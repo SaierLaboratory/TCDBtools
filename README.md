@@ -2,7 +2,7 @@
 
 The programs in this repository have been developed in collaboration with Dr. Gabriel Moreno-Hagelsieb from the Wilfried Laurier University in Ontario, Canada.
 
-The list below contains the main programs. Dependencies developed by us are not printed in this list, but they are included as part of the repository:
+The list below contains the main programs. Dependencies developed by our group are not shown in this list, but they are included as part of the repository:
 
 <ul>
   <li>areFamiliesHomologous</li>
