@@ -15,7 +15,7 @@ The list below contains the main programs. Dependencies developed by us are not 
 
 * **NOTE 1:**  
 Make sure you download the perl modules and point your _$PERL5LIB_ 
-enviroment variable to the directory were you installed the modules.
+enviroment variable to the destination directory.
 
 * **NOTE 2:**  
 In order to run _areFamiliesHomologous.pl_ with option **-u fxpand** 
