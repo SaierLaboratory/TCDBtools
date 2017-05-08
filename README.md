@@ -9,7 +9,7 @@ not shown in this list, but they are included as part of the repository.
 Each program has its one help file:
 
 
-**1.** famXpander.pl (help)
+**1.** famXpander.pl ([manual](manuals/famXpander.md))  
 **2.** extractFamily.pl  
 **3.** areFamiliesHomologous.pl  
 **4.** list_top_gsat_hits.pl  
