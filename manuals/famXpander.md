@@ -34,7 +34,7 @@ was not tested with more recent versions of perl.
 
 ## Command line options
 The following options are available. You can also run the 
-script without arguments to display the options::
+script without arguments to display the options:
 
     -i  input filename in fasta format (required)  
     -o  output folder (default: faaOut)  
