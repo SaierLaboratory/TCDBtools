@@ -45,8 +45,8 @@ script without arguments to display the options:
 - **-h** keep only aligned region [T/F] (default: T)  
 - **-c** minimum alignment coverage of original sequence (default: 0.8)  
 - **-s** minimal subject seq length relative to query seq length (default: 0.8)  
-- **-l** maximal subject seq length relative to query seq length. Option is 
-  ignored if **-h T** (default: 1.25) 
+- **-l** maximal subject seq length relative to query seq length.  
+  Option is ignored if **-h T** (default: 1.25) 
 - **-r** identity redundancy threshold for cd-hit (default: 0.8)  
 - **-a** number of cpus to use.  
 - **-p** run remotely at ncbi [T/F] (default F)  
