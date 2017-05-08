@@ -34,20 +34,21 @@ was not tested with more recent versions of perl.
 
 ## Command line options
 The following options are available. You can also run the 
-script without arguments to display the options:
+script without arguments to display the options::
 
-- **``-i``** ``input filename in fasta format (required)``  
-- **``-o``** ``output folder (default: faaOut)``  
-- **``-n``** ``max number of aligned sequences to keep (default: 10000)``  
-- **``-e``** ``evalue threshold (default: 1e-7)``  
-- **``-f``** ``psiblast evalue threshold (default: 1e-5)``  
-- **``-t``** ``psiblast iterations (default: 1)``  
-- **``-h``** ``keep only aligned region [T/F] (default: T)``  
-- **``-c``** ``minimum alignment coverage of original sequence (default: 0.8)``  
-- **``-s``** ``minimal subject seq length relative to query seq length (default: 0.8)``  
-- **``-l``** ``maximal subject seq length relative to query seq length.``  
-  ``   Option is ignored if **-h T** (default: 1.25)`` 
-- **``-r``** ``identity redundancy threshold for cd-hit (default: 0.8)``  
-- **``-a``** ``number of cpus to use.``  
-- **``-p``** ``run remotely at ncbi [T/F] (default F)``  
+    -i  input filename in fasta format (required)  
+    -o  output folder (default: faaOut)  
+    -n  max number of aligned sequences to keep (default: 10000)  
+    -e  evalue threshold (default: 1e-7)  
+    -f  psiblast evalue threshold (default: 1e-5)  
+    -t  psiblast iterations (default: 1)  
+    -h  keep only aligned region [T/F] (default: T)  
+    -c  minimum alignment coverage of original sequence 
+        (default: 0.8)  
+    -s  minimal subject seq length relative to query seq length (default: 0.8)
+    -l  maximal subject seq length relative to query seq length.
+        Option is ignored if **-h T** (default: 1.25)
+    -r  identity redundancy threshold for cd-hit (default: 0.8)  
+    -a  number of cpus to use.  
+    -p  run remotely at ncbi [T/F] (default F)  
 
