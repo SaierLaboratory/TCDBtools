@@ -1,7 +1,7 @@
 # Welcome to TCDBtools.
 
 The programs in this repository have been developed in collaboration between 
-members of the SaierLab and the group of  Gabriel Moreno-Hagelsieb from the 
+members of the SaierLab and the group of Dr. Gabriel Moreno-Hagelsieb from the 
 Wilfried Laurier University in Ontario, Canada.
 
 The list below contains the main programs. Dependencies developed by us are 
