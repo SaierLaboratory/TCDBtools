@@ -16,7 +16,7 @@ The following programs need to be available in your path for this
 program to run properly:
 
 1. **_blast+ 2.4.0 to 2.6.0_**  
-Other versions of blast may require minor adaptations. Visit 
+Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
 2. **NCBI non-redundant protein database**  
