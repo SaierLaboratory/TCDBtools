@@ -17,7 +17,7 @@ Each program has its one help file:
 
 ---
 
-* **NOTE 1:**  
+* **Note:**  
 Make sure you download the perl modules and point your _$PERL5LIB_ 
 enviroment variable to the destination directory.
 
