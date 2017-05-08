@@ -7,9 +7,9 @@ are extracted and redundant sequences filtered out. This program is
 similar to protocol1 from the [BioV suite](https://github.com/SaierLaboratory/BioVx), 
 three main differences: **1)** famXpander performs blast searches locally,
 although it can also run them remotely; **2)** blast searches are performed 
-first for all protein queries and the redundant sequences are removed; 
-and **3)** famXpander can extract either the full sequence of the top hits 
-or just the aligned regions.
+first for all protein queries and the redundant sequences are removed at the
+end only once; and **3)** famXpander can extract either the full sequence 
+of the top hits or just the aligned regions.
 
 ## Dependencies
 The following programs need to be available in your path for this 
@@ -46,7 +46,7 @@ script without arguments to display the options:
 - **``-c``** ``minimum alignment coverage of original sequence (default: 0.8)``  
 - **``-s``** ``minimal subject seq length relative to query seq length (default: 0.8)``  
 - **``-l``** ``maximal subject seq length relative to query seq length.``  
-  ``Option is ignored if **-h T** (default: 1.25)`` 
+  ``   Option is ignored if **-h T** (default: 1.25)`` 
 - **``-r``** ``identity redundancy threshold for cd-hit (default: 0.8)``  
 - **``-a``** ``number of cpus to use.``  
 - **``-p``** ``run remotely at ncbi [T/F] (default F)``  
