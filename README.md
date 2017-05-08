@@ -9,9 +9,9 @@ not shown in this list, but they are included as part of the repository.
 Each program has its one help file:
 
 
-**1.** areFamiliesHomologous.pl  
+**1.** famXpander.pl (help)
 **2.** extractFamily.pl  
-**3.** famXpander.pl  
+**3.** areFamiliesHomologous.pl  
 **4.** list_top_gsat_hits.pl  
 **5.** findDistantFamilyHomologs.pl  
 
