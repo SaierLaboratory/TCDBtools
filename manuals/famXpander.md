@@ -35,9 +35,9 @@ was not tested with more recent versions of perl.
 ## Command line options
 The following options are available. You can also run the 
 script without arguments to display the options:
-``
-- **-i** input filename in fasta format (required)  
-- **-o** output folder (default: faaOut)  
+
+- ``**-i** input filename in fasta format (required)``  
+- ``**-o** output folder (default: faaOut)``  
 - **-n** max number of aligned sequences to keep (default: 10000)  
 - **-e** evalue threshold (default: 1e-7)  
 - **-f** psiblast evalue threshold (default: 1e-5)  
@@ -50,4 +50,4 @@ script without arguments to display the options:
 - **-r** identity redundancy threshold for cd-hit (default: 0.8)  
 - **-a** number of cpus to use.  
 - **-p** run remotely at ncbi [T/F] (default F)  
-``
+
