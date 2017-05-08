@@ -15,20 +15,20 @@ or just the aligned regions.
 The following programs need to be available in your path for this 
 program to run properly:
 
-* **_blast+ 2.4.0_**  
+1. **_blast+ 2.4.0_**  
 Newer versions of blast may require minor adaptations. Visit 
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-* **NCBI non-redundant protein database**  
+2. **NCBI non-redundant protein database**  
 Given that blast runs locally the NCBI non-redundant (NR) database
 must be available locally through the environment varaible _$BLASTDB_. 
 You can download NR from the NCBI FTP site (ftp://ftp.ncbi.nlm.nih.gov/blast/db/).
 
-* **_cd-hit 4.6_**  
+3. **_cd-hit 4.6_**  
 Visit the [official website](http://weizhongli-lab.org/cd-hit/) to 
 download the latest version.
 
-* **_PERL 5.18_**  
+4. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
