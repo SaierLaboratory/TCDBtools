@@ -20,7 +20,7 @@ Other versions of blast may require minor adaptations. Visit
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
 2. **NCBI non-redundant protein database**  
-Given that blast runs locally the NCBI non-redundant (NR) database
+Given that blast runs locally, the NCBI non-redundant (NR) database
 must be available locally through the environment varaible _$BLASTDB_. 
 You can download NR from the NCBI FTP site:  
 ftp://ftp.ncbi.nlm.nih.gov/blast/db/
