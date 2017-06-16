@@ -136,11 +136,12 @@ if( open( my $OS,">","$tempSeqFile" ) ) {
     close ($OS);
 }
 else {
+    system "rm -r $tempFolder";
     die "\n\tcould not open $tempSeqFile\n\n";
 }
 
 print "   will be psiblasting $toRun sequences\n";
-my $blastOutputHashRef = runBlast();
+my $blastOutputHashRef = runBlast($toRun);
 PasteSeqToFiles( $blastOutputHashRef,
                  $cutRange );
 
@@ -160,7 +161,7 @@ sub PasteSeqToFiles {
     my $printed_seqs = 0;
     my $seqNum       = (@$refIDArrayRef);
     if( $seqNum > 0 ) {
-        #### using entry_batch to retreieve full seqs:
+        #### using entry_batch to retrieve full seqs:
         if ( $cutRange eq 'F' ) {
             my $entryList = "$tempFolder/entry.list";
             open( my $ENTRYLS,">","$entryList" );
@@ -169,15 +170,19 @@ sub PasteSeqToFiles {
             my $get_seqs
                 = qq(blastdbcmd -entry_batch $entryList -target_only )
                 . qq(-outfmt "%a %i %t %s");
-            print "   extracting full sequences from NR database\n";
+            print "   extracting $seqNum full sequences from NR database:\n";
             for my $seqLine ( qx($get_seqs) ) {
                 $seqLine =~ s{^(\w+)\.\d+}{$1};
                 $seqLine =~ s{(\S+)\n}{\n$1\n};
                 print {$OF} ">",$seqLine;
                 $printed_seqs++;
+                ### feedback to terminal
+                progressLine($printed_seqs,$seqNum);
+                ### end feedback
             }
         }
         else { # $cutRange eq 'T'
+            print "   saving $seqNum sequence segments:\n";
             for my $refID ( @$refIDArrayRef ) {
                 my $hr = $blastOutputHashRef->{$refID};
                 my $fullname = $hr->{'sn'};
@@ -187,9 +192,12 @@ sub PasteSeqToFiles {
                     = ">" . $refID . " "
                     . $hr->{'full'} . ":$range [" . $fullname . "]\n"
                     . $hr->{'seq'}  . "\n";
-                print "      printing seq: $refID ($s_start-$s_end)\n";
+                #print "      saving seq: $refID ($s_start-$s_end)\n";
                 print {$OF} $sequence;
                 $printed_seqs++;
+                ### feedback to terminal
+                progressLine($printed_seqs,$seqNum);
+                ### end feedback
             }
         }
     }
@@ -208,6 +216,7 @@ sub PasteSeqToFiles {
 }
 
 sub runBlast {
+    my $totalQueries = $_[0];
     my $refIDBlastResultRef = {};
     my $tempSeqFile = "$tempFolder/query.seqTemp";
     if( length($ENV{"BLASTDB"}) > 0 ) {
@@ -246,43 +255,57 @@ sub runBlast {
         . qq( -evalue $Evalue -inclusion_ethresh $iEvalue )
         . qq( -outfmt '7 ) . join(" ",@columns) . qq(' );
     if( $remote eq "T" ) {
-        open( my $PSIFL,">","$tmpPsiFile" );
-        print {$PSIFL} "# Iteration: 1\n";
-        close($PSIFL);
-        my $blastCmd1 = $blastRootCmd . qq( -remote >> $tmpPsiFile);
-        print "   psiblasting at NCBI (might take a while)\n";
-        system("$blastCmd1 2>/dev/null");
-        if( $iters > 1 ) {
-            print "   preparing for second iteration\n";
-            if( my @pssms = prepareRemoteIter("$tmpPsiFile","$blastRootCmd") ){
-                print "        running second iteration:\n";
-                open( my $PSIFL2,">>","$tmpPsiFile" );
-                print {$PSIFL2} "# Iteration: 2\n";
-                close($PSIFL2);
-                my $totPssm = @pssms;
-                my $currentPssm = 0;
-                for my $pssm ( @pssms ) {
-                    $currentPssm++;
-                    print "           $pssm ($currentPssm/$totPssm)\n";
+        #my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpPsiFile);
+        print "   psiblasting at NCBI (might take a while):\n";
+        #### each remote run should contain only one query
+        #### for network and wait reasons
+        my $pCnt = 0;
+        for my $query ( separateQueries() ) {
+            $pCnt++;
+            my $tmpFile = "$tmpPsiFile.$query";
+            print "      "
+                . join(";  ",
+                       "Query: $pCnt",
+                       "Iteration: 1",
+                       "ID: $query"
+                   ),"\n";
+            open( my $PSIFL,">","$tmpFile" );
+            print {$PSIFL} "# Iteration: 1\n";
+            close($PSIFL);
+            my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpFile);
+            $blastCmdR =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
+            #print $blastCmdR,"\n";exit;
+            system("$blastCmdR 2>/dev/null");
+            #### now second iteration:
+            if( $iters > 1 ) {
+                print "        preparing for second iteration\n";
+                my $sendCmd = $blastRootCmd;
+                $sendCmd =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
+                if( my $pssm = prepareRemoteIter("$tmpFile","$sendCmd") ){
+                    print "        running second iteration ($query)\n";
+                    open( my $PSIFL2,">>","$tmpFile" );
+                    print {$PSIFL2} "# Iteration: 2\n";
+                    close($PSIFL2);
                     my $blastCmd2
-                        = $blastRootCmd . qq( -remote >> $tmpPsiFile);
+                        = $blastRootCmd . qq( -remote >> $tmpFile);
                     my $runPssm = "$tempFolder/$pssm";
                     $blastCmd2
-                        =~ s{query\s$tempSeqFile}{in_pssm $runPssm};
+                        =~ s{query\s+$tempSeqFile}{in_pssm $runPssm};
                     system("$blastCmd2 2>/dev/null");
                 }
-            }
-            else {
-                print "        no need to run second iteration\n";
+                else {
+                    print "        no need to run second iteration\n";
+                }
             }
         }
+        system("cat $tmpPsiFile.* > $tmpPsiFile");
+        system("rm $tmpPsiFile.*");
     }
     else {
         my $blastCmd = $blastRootCmd
-            . qq( -out $tmpPsiFile )
             . qq( -num_iterations $iters -num_threads $cpus);
-        print "   psiblasting now (might take a while)\n";
-        system("$blastCmd 2>/dev/null");
+        print "   psiblasting now (might take a while):\n";
+        runPlusSave("$tmpPsiFile","$blastCmd","$totalQueries");
     }
     my $psiCount = 0;
     open( my $PSIBL,"<","$tmpPsiFile" );
@@ -390,7 +413,7 @@ sub checkFastaFile {
     my $totalSeqs      = 0;
     open( my $IS,"<",$inputSeqFile );
     while (<$IS>) {
-        if ( $_ =~ m/^\s+/ ) { next; }
+        if ( $_ =~ m/^\s+\n/ ) { next; }
         if ( $_ =~ m/\>(\S+)\s/ ) {
             $currentName = $1;
             $currentName =~ s{^(gnl|lcl)\|}{};
@@ -398,6 +421,7 @@ sub checkFastaFile {
             $currentName =~ s{\|}{-}g;
             $seqCount->{$currentName}++;
             $totalSeqs++;
+            s{^(gnl|lcl)\|}{};
         }
         $seqHashRef->{$currentName} .= $_;
     }
@@ -430,6 +454,7 @@ sub signalHandler {
 sub prepareRemoteIter {
     my ($rawFile,$blastPssm) = @_;
     my $pssmFile = "$tempFolder/pssm";
+    system("rm ${pssmFile}* &>/dev/null");
     my $accList  = "$tempFolder/accList";
     my $dbFile   = "$tempFolder/dbFile";
     ### first extract the identifiers from the raw psiblast file
@@ -450,7 +475,7 @@ sub prepareRemoteIter {
     my @accs = keys %cAcc;
     my $cAcc = @accs;
     if( $cAcc < 10 ) {
-        print "        not enough results to produce pssms\n";
+        print "        not results to produce pssms\n";
         return();
     }
     else {
@@ -459,9 +484,9 @@ sub prepareRemoteIter {
         close($LIST);
         ### now build a blast database
         my $buildDBCmd
-            = qq(blastdbcmd -entry_batch $accList -target_only )
+            = qq(blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
             . qq( | makeblastdb -dbtype prot -out $dbFile -title "dbFile");
-        system("$buildDBCmd >&/dev/null");
+        system("$buildDBCmd &>/dev/null");
         ### now run psiblast to build pssm files as necessary
         $blastPssm =~ s{db\s+nr\s+}{db $dbFile };
         $blastPssm
@@ -474,11 +499,80 @@ sub prepareRemoteIter {
         if( $cPssm > 0 ) {
             my @returned
                 = sort { length($a) <=> length($b) || $a cmp $b } @pssms;
-            return(@returned);
+            return($returned[0]);
         }
         else {
             print "        did not produce pssms\n";
             return();
         }
     }
+}
+
+sub progressLine {
+    my($printed_seqs,$seqNum) = @_;
+    my $columns = qx(tput cols);
+    chomp($columns);
+    if( $columns > 20
+            && $seqNum >= 10
+            && -t STDOUT
+            && -t STDIN ) {
+        my $percent
+            = sprintf("%.0f",(100 * $printed_seqs / $seqNum));
+        my $pbwidth = $columns - ( 15 );
+        my $nhashes = ($printed_seqs / $seqNum * $pbwidth);
+        printf("\r% -${pbwidth}s% 10s",
+               '#' x $nhashes, " [ " . $percent . "% ]");
+    }
+}
+
+sub runPlusSave {
+    my($tmpPsiFile,$blastCmd,$qtoRun) = @_;
+    my $numLn    = length($qtoRun);
+    my $iter     = 0;
+    my $query    = "NA";
+    my $queryCnt = 0;
+    open( my $PSITMP,">","$tmpPsiFile");
+    open( my $GETPSIRES,"-|","$blastCmd 2>/dev/null" );
+    while(<$GETPSIRES>) {
+        print {$PSITMP} $_;
+        if( m{Iteration:\s+(\d+)} ) {
+            $iter = $1;
+        }
+        if( m{Query:\s+(\S+)} ) {
+            my $newquery = $1;
+            if( $newquery ne $query ) {
+                $queryCnt++;
+            }
+            $query = $newquery;
+            my $pCnt = " " x ($numLn - length($queryCnt)) . $queryCnt;
+            print "      "
+                .join(";  ",
+                      "Query: $pCnt",
+                      "Iteration: $iter",
+                      "ID: $query"
+                  ),"\n";
+        }
+    }
+    close($GETPSIRES);
+    close($PSITMP);
+    ### return something to verify that this ran all right
+    if( $queryCnt > 0 ) {
+        return($queryCnt);
+    }
+    else {
+        return();
+    }
+}
+
+sub separateQueries {
+    my @queries = ();
+    for my $seqID ( @qids ) {
+        my $sequence = $querySeqHashRef->{"$seqID"};
+        #print "separating $seqID into $tempFolder/$seqID\n";
+        open( my $SINGLE,">","$tempFolder/$seqID");
+        print {$SINGLE} $sequence;
+        close($SINGLE);
+        push(@queries,"$seqID");
+    }
+    return(@queries);
 }
