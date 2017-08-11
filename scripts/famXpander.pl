@@ -177,7 +177,7 @@ sub PasteSeqToFiles {
                 print {$OF} ">",$seqLine;
                 $printed_seqs++;
                 ### feedback to terminal
-                progressLine($printed_seqs,$seqNum);
+                progressLine($printed_seqs,$seqNum,0);
                 ### end feedback
             }
         }
@@ -196,7 +196,7 @@ sub PasteSeqToFiles {
                 print {$OF} $sequence;
                 $printed_seqs++;
                 ### feedback to terminal
-                progressLine($printed_seqs,$seqNum);
+                progressLine($printed_seqs,$seqNum,0);
                 ### end feedback
             }
         }
@@ -508,23 +508,6 @@ sub prepareRemoteIter {
     }
 }
 
-sub progressLine {
-    my($printed_seqs,$seqNum) = @_;
-    my $columns = qx(tput cols);
-    chomp($columns);
-    if( $columns > 20
-            && $seqNum >= 10
-            && -t STDOUT
-            && -t STDIN ) {
-        my $percent
-            = sprintf("%.0f",(100 * $printed_seqs / $seqNum));
-        my $pbwidth = $columns - ( 15 );
-        my $nhashes = ($printed_seqs / $seqNum * $pbwidth);
-        printf("\r% -${pbwidth}s% 10s",
-               '#' x $nhashes, " [ " . $percent . "% ]");
-    }
-}
-
 sub runPlusSave {
     my($tmpPsiFile,$blastCmd,$qtoRun) = @_;
     my $numLn    = length($qtoRun);
@@ -575,4 +558,39 @@ sub separateQueries {
         push(@queries,"$seqID");
     }
     return(@queries);
+}
+
+sub progressLine {
+    my($done,$toGo,$decim) = @_;
+    my $columns = qx(tput cols);
+    chomp($columns);
+    if( $columns > 50
+            && $toGo >= 10
+            && -t STDOUT
+            && -t STDIN ) {
+        if( $decim > 2 ) {
+            ### better to count than show percent
+            my $buffer     = " " x ( length($toGo) - length($done) + 1 );
+            my $counter    = "[$buffer" . $done . " ]";
+            my $countSpace = length($counter);
+            my $pbwidth    = $columns - ( $countSpace + 3 );
+            my $nhashes    = int($done / $toGo * $pbwidth);
+            printf("\r% -${pbwidth}s% ${countSpace}s",
+                   '#' x $nhashes,$counter);
+        }
+        else {
+            my $percent    = sprintf("%.${decim}f",(100 * $done / $toGo));
+            my $maxPC      = sprintf("%.${decim}f",100);
+            my $buffer     = " " x ( length($maxPC) - length($percent) + 1 );
+            my $counter    = "[$buffer" . $percent . "% ]";
+            my $countSpace = length($counter);
+            my $pbwidth    = $columns - ( $countSpace + 3 );
+            my $nhashes    = int($done / $toGo * $pbwidth);
+            printf("\r% -${pbwidth}s% ${countSpace}s",
+                   '#' x $nhashes,$counter);
+        }
+        if( $done == $toGo ) {
+            print "\n";
+        }
+    }
 }
