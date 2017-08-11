@@ -58,7 +58,7 @@ my $options = GetOptions(
     "a=s" => \$cpus,
     "p=s" => \$remote,
 );
-my $pc_min_cover = 100 * $min_coverage;
+
 if( $remote eq "T" && $iters > 2) {
     print qq(    can run only two iterations at NCBI, -t reset to "2"\n);
 }
@@ -116,6 +116,12 @@ if( $remote eq "T" ) {
 else {
     print "   Using $cpus cpu threads\n";
 }
+#### fix coverage from fraction to percent:
+my $pc_min_cover
+    = ( $min_coverage >= 1 && $min_coverage <= 100 ) ? $min_coverage
+    : $min_coverage > 100 ? 80
+    : 100 * $min_coverage;
+print "   Coverage: $pc_min_cover%\n";
 
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
 print "   working in temp folder:\n\t$tempFolder\n";
