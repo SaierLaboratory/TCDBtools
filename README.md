@@ -9,12 +9,12 @@ not shown in this list, but they are included as part of the repository.
 Each program has its one help file:
 
 
-**1.** famXpander.pl ([manual](manuals/famXpander.md))
-**2.** extractFamily.pl ([manual](manuals/extractFamily.md))
-**3.** areFamiliesHomologous.pl
-**4.** list_top_gsat_hits.pl
-**5.** findDistantFamilyHomologs.pl
-**6.** mkBlastClusters.pl
+**1.** famXpander.pl ([manual](manuals/famXpander.md))  
+**2.** extractFamily.pl ([manual](manuals/extractFamily.md))  
+**3.** areFamiliesHomologous.pl  
+**4.** list_top_gsat_hits.pl  
+**5.** findDistantFamilyHomologs.pl  
+**6.** mkBlastClusters.pl  
 
 ---
 
