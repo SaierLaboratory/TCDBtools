@@ -14,7 +14,7 @@ Each program has its one help file:
 **3.** areFamiliesHomologous.pl  
 **4.** list_top_gsat_hits.pl  
 **5.** findDistantFamilyHomologs.pl  
-**6.** mkBlastClusters.pl  
+**6.** mkProteinClusters.pl  
 
 ---
 
