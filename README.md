@@ -11,10 +11,12 @@ Each program has its one help file:
 
 **1.** famXpander.pl ([manual](manuals/famXpander.md))  
 **2.** extractFamily.pl ([manual](manuals/extractFamily.md))  
-**3.** areFamiliesHomologous.pl  
-**4.** list_top_gsat_hits.pl  
-**5.** findDistantFamilyHomologs.pl  
-**6.** mkProteinClusters.pl  
+**3.** columnizeFaa.pl  
+**4.** areFamiliesHomologous.pl  
+**5.** list_top_gsat_hits.pl  
+**6.** interpret_proto2_top_hits.pl  
+**7.** findDistantFamilyHomologs.pl  
+**8.** mkProteinClusters.pl  
 
 ---
 
