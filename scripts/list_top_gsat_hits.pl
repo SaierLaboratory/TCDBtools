@@ -10,8 +10,8 @@ $Data::Dumper::Deepcopy = 1;
 use Getopt::Long;
 
 #to check dependencies
-use R2::CheckDependencies;
-use R2::tcdb;
+use TCDB::CheckDependencies;
+use TCDB::tcdb;
 
 
 
@@ -19,7 +19,7 @@ use R2::tcdb;
 #Check dependencies
 
 my @dependencies = ("sort", "grep");
-my $CheckDep_obj = new R2::CheckDependencies();
+my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
 $CheckDep_obj -> checkDependencies;
 
@@ -126,7 +126,7 @@ if ($fullTransitivity || $printBestScore) {
     my ($path, $status, $prots) = split (/(SRRSW_PASSED\.|SRRSW_FAILED\.)/, $file);
 
     #my ($tcdb, $ncbi) = ($prots =~ /^(\d+\.[a-zA-Z]+\.\d+\.\d+.\d+-\w+)\.(\w+)\.gsat$/)? ($1, $2) : (undef, undef);
-    my ($tcdb, $ncbi) = ($prots =~ /^(\d+\.[a-zA-Z]+[0-9\.]+-[a-zA-Z0-9\.]+)\.(\w+)\.gsat$/)? ($1, $2) : (undef, undef);
+    my ($tcdb, $ncbi) = ($prots =~ /^(\d+\.[a-zA-Z]+[0-9\.]+-\w+)\.(\w+)\.gsat$/)? ($1, $2) : (undef, undef);
     die "Could not extract homology transitivity data from: $bun" unless ($tcdb && $ncbi);
 
     push (@{ $srrswGsat{$ncbi} }, [$tcdb, $ncbi, $gsat]);
@@ -273,10 +273,10 @@ if ($fullTransitivity || $printBestScore) {
     }
 
 
-#    print "$query vs $subject\n";
+#    print "$family1 vs $family2\t|\t$query vs $subject\n";
 #    print "Check Spliced!\n", Data::Dumper->Dump([\@query_srrsw,  \@sub_srrsw], [qw( *query_srrsw *sub_srrsw)]);
 #    print "Check Scores!\n", Data::Dumper->Dump([\@fam1_scores,  \@fam2_scores], [qw( *fam1_scores *fam2_scores)]);
-#    exit;
+#    <STDIN>;
 
 
 

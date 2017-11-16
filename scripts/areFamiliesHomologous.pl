@@ -8,8 +8,8 @@ use Data::Dumper;
 use Getopt::Long;
 
 #to check dependencies
-use R2::CheckDependencies;
-use R2::tcdb;
+use TCDB::CheckDependencies;
+use TCDB::tcdb;
 
 
 
@@ -161,7 +161,7 @@ use R2::tcdb;
 my @dependencies = ("mkdir", "grep", "wc", "extractFamily.pl",
 		    "famXpander.pl",  "protocol2.py", "columnizeFaa.pl",
 		    "gsat.py");
-my $CheckDep_obj = new R2::CheckDependencies();
+my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
 $CheckDep_obj -> checkDependencies;
 
@@ -209,12 +209,12 @@ my $psiblast_it = 1;
 
 
 #For famXpander: E-value for considering psiblast hits (option -e)
-my $evalue = 1e-3;
+my $evalue = 1e-7;
 
 
 #For famXpander: E-value for including pairwise alignments in psiblast
 #(option -e2)
-my $iEvalue = 1e-2;
+my $iEvalue = 1e-5;
 
 
 #Number of blast alignments to retrieve from famXpander or protocol1
@@ -257,11 +257,13 @@ my $tmo_cutoff = 5;
 
 #For protocol2, minimal alignment lent to consider a hit significant
 #(option -p2m)
-my $proto2_min_hit_len = 60;
+my $proto2_min_hit_len = 80;
 
 
 #This variable indicates whether GSAT should run
 my $run_gsat = 0;
+
+my $gsat_shuffles = 1000;
 
 
 #The z-score threshold to determine significant hits from
@@ -299,7 +301,7 @@ read_command_line_arguments();
 #If the -x argument was given, download the sequences of each
 #input family from TCDB.
 
-R2::tcdb::extract_seqs_from_tcdb([$fam_1, $fam_2], $inseq_dir, $prog) if ($extract_seqs_from_tcdb || $only_extract_seqs);
+TCDB::tcdb::extract_seqs_from_tcdb([$fam_1, $fam_2], $inseq_dir, $prog) if ($extract_seqs_from_tcdb || $only_extract_seqs);
 
 
 #Check if user only wants to extract the sequences.
@@ -314,8 +316,8 @@ if ($only_extract_seqs) {
 #Get the number of sequences in each family
 
 
-my ($seq_file_fam_1, $nseqs_fam_1) = @{ R2::tcdb::count_sequences_in_family($fam_1, $inseq_dir, $prog) };
-my ($seq_file_fam_2, $nseqs_fam_2) = @{ R2::tcdb::count_sequences_in_family($fam_2, $inseq_dir, $prog) };
+my ($seq_file_fam_1, $nseqs_fam_1) = @{ TCDB::tcdb::count_sequences_in_family($fam_1, $inseq_dir, $prog) };
+my ($seq_file_fam_2, $nseqs_fam_2) = @{ TCDB::tcdb::count_sequences_in_family($fam_2, $inseq_dir, $prog) };
 
 
 #Total number of pairs of proteins between both families.
@@ -340,14 +342,14 @@ foreach my $fam ([$fam_1, $seq_file_fam_1], [$fam_2, $seq_file_fam_2]) {
   if ($prog eq "fxpand") {
 
     #run famXpander
-    R2::tcdb::run_famXpander($fam->[0], $fam->[1], $proto1_dir, $evalue, $iEvalue,
+    TCDB::tcdb::run_famXpander($fam->[0], $fam->[1], $proto1_dir, $evalue, $iEvalue,
 			     $psiblast_it, $sbj_min_cov, $tgt_min_length,
 			     $tgt_max_length, $cdhit_cutoff, $keep_aln_regions, $num_aligns);
   }
   else {
 
     #Run protocol1
-    R2::tcdb::run_protocol1($fam->[1], $proto1_dir, $evalue, $cdhit_cutoff, $psiblast_it, $num_aligns);
+    TCDB::tcdb::run_protocol1($fam->[1], $proto1_dir, $evalue, $cdhit_cutoff, $psiblast_it, $num_aligns);
   }
 }
 
@@ -379,13 +381,13 @@ my $total_prot1_pairs = 0;
 if ($prog eq 'fxpand') {
 
   #Run protocol2
-  my $p2outdir = R2::tcdb::run_proto2($fam_1, $fam_2, $proto1_dir, $proto2_dir, $proto2_min_hit_len, \$total_prot1_pairs);
+  my $p2outdir = TCDB::tcdb::run_proto2($fam_1, $fam_2, $proto1_dir, $proto2_dir, $proto2_min_hit_len, \$total_prot1_pairs);
 
 
   #Select top protocol2 hits and run GSAT
   if ($run_gsat) {
-    R2::tcdb::run_gsat_for_top_proto2_hits($p2outdir, $gsat_mode, $proto2_low_cutoff, $proto2_high_cutoff, $gsat_cutoff,
-					   \$prot2_hsp_cnt, \$gsat_hsp_cnt, $prog, $proto1_dir, $tmo_cutoff);
+    TCDB::tcdb::run_gsat_for_top_proto2_hits($p2outdir, $gsat_mode, $proto2_low_cutoff, $proto2_high_cutoff, $gsat_cutoff,
+					   \$prot2_hsp_cnt, \$gsat_hsp_cnt, $prog, $proto1_dir, $tmo_cutoff, $gsat_shuffles);
   }
 }
 
@@ -394,10 +396,10 @@ else {
 
     #Read the family sequences in column format
     my @fam1_seqs = ();
-    R2::tcdb::read_2col_seqs($seq_file_fam_1, \@fam1_seqs);
+    TCDB::tcdb::read_2col_seqs($seq_file_fam_1, \@fam1_seqs);
 
     my @fam2_seqs = ();
-    R2::tcdb::read_2col_seqs($seq_file_fam_2, \@fam2_seqs);
+    TCDB::tcdb::read_2col_seqs($seq_file_fam_2, \@fam2_seqs);
 
 
   FAM1:foreach my $f1 (@fam1_seqs) {
@@ -411,7 +413,7 @@ else {
 
 
 	#Run protocol2
-	my $p2outdir = R2::tcdb::run_proto2($f1->[0], $f2->[0], $proto1_dir, $proto2_dir, $proto2_min_hit_len, \$total_prot1_pairs);
+	my $p2outdir = TCDB::tcdb::run_proto2($f1->[0], $f2->[0], $proto1_dir, $proto2_dir, $proto2_min_hit_len, \$total_prot1_pairs);
 
 
 	#Count this pair as analyzed (both had protocol_1 blast hits.
@@ -420,7 +422,7 @@ else {
 
 	#Select top protocol2 hits and run GSAT
 	if ($run_gsat) {
-	  R2::tcdb::run_gsat_for_top_proto2_hits($p2outdir, $gsat_mode, $proto2_low_cutoff, $proto2_high_cutoff, $gsat_cutoff,
+	  TCDB::tcdb::run_gsat_for_top_proto2_hits($p2outdir, $gsat_mode, $proto2_low_cutoff, $proto2_high_cutoff, $gsat_cutoff,
 						 \$prot2_hsp_cnt, \$gsat_hsp_cnt, $prog, [], $tmo_cutoff);
 	}
       }
@@ -585,7 +587,7 @@ sub read_fam1 {
 
   my ($opt, $value) = @_;
 
-  R2::tcdb::validate_tcdb_id([$value]);
+  TCDB::tcdb::validate_tcdb_id([$value]);
 
   $fam_1 = $value;
 }
@@ -598,7 +600,7 @@ sub read_fam2 {
 
   my ($opt, $value) = @_;
 
-  R2::tcdb::validate_tcdb_id([$value]);
+  TCDB::tcdb::validate_tcdb_id([$value]);
 
   $fam_2 = $value;
 }
@@ -731,70 +733,75 @@ The script accepts the following command line options:
       stored. This option is incompatible with -x.
 
  -n, --psiblast-it {integer}
-    Number of iterations that psi-blast will perform.
-    (Defauult is 1)
+      Number of iterations that psi-blast will perform.
+      (Defauult is 1)
 
  -e, --evalue
-    Expectation value threshold for saving psiblast hits
-    Argument is optional (defult value 1e-3)
+      Expectation value threshold for saving psiblast hits
+      Argument is optional (defult value 1e-7)
 
  -e2, --inc-evalue
-    E-value inclusion threshold for pairwise alignments in psi-blast.
-    (Default value is 1e-2)
+      E-value inclusion threshold for pairwise alignments in psi-blast.
+      (Default value is 1e-5)
 
  -a, --alignment-matches {int}
-    Number of blast matches to retrieve from famXpander or protocol1.
-   (Default 10000)
+      Number of blast matches to retrieve from famXpander or protocol1.
+     (Default 10000)
 
  -k, --keep-aln-regions {T/F}
-    Option that indicates whether famXpander will feed only the psiblast
-    aligned regions to protocol2. 
-    (Default F)
+      Option that indicates whether famXpander will feed only the psiblast
+      aligned regions to protocol2. 
+      (Default F)
 
  -c, --min-coverage {float}
-    For famXpander, minimum alignment coverage of original sequence
-    (Default 0.8)
+      For famXpander, minimum alignment coverage of original sequence
+      (Default 0.8)
 
  -s, --min-rseq-length {float}
-    For famXpander, minimal sequence length relative to original seq length,
-    (Default 0.8)
+      For famXpander, minimal sequence length relative to original seq length,
+      (Default 0.8)
 
  -l, --max-seq-length {float}
-    famXpander  maximal sequence length relative to original seq length.
-    The higher this value, the easier it will be to detect
-    protein fusions.
-    (Default 5.0 (ignored if -k is given)
+      famXpander  maximal sequence length relative to original seq length.
+      The higher this value, the easier it will be to detect
+      protein fusions.
+      (Default 5.0 (ignored if -k is given)
 
  -r, --cdhit-cutoff {float}
-    Identity redundancy threshold for cd-hit.
-    (default 0.9)
+      Identity redundancy threshold for cd-hit.
+      (default 0.9)
 
- -p2t, --proto2-cutoff {float}
-     Lower threshold to identify significant hits from Protocol_2 and GSAT
-     (default is 14.0)
+ -p2lt, --proto2-low-cutoff {float}
+      Minimum threshold to identify significant hits from Protocol_2 and GSAT
+      (default is 14.0)
+
+ -p2ht, --proto2-high-cutoff {float}
+      Maximum threshold to identify significant hits from Protocol_2 and GSAT.
+      Use this option along with -p2lt to focus the analysis on a range of scores.
+     (default is unlimited)
 
  -tmo,  --min-tms-overlap {float}
-    Minimum TMS overlap threshold to consider that a protocol2 hit is
-    significant. By default it accepts any overlap grater than zero.
+      Minimum TMS overlap threshold to consider that a protocol2 hit is
+      significant. By default it accepts any overlap grater than zero.
 
  -p2m, --proto2-min-aln {integer}
-     Protocol2 parameter that indicates the minimum alignment length
-     to keep. (Default is 60)
+      Protocol2 parameter that indicates the minimum alignment length
+      to keep. (Default is 80)
 
  -gr, --run-gsat (--no-run-gsat to negate)
-     This option signals to run gsat using the parameters passed to
-     options -g and -gm. By default gsat will not run in order to make
-     the script finish faster and let the user look a the output to
-     determine the best parameters to use for gsat.
+      This option signals to run gsat using the parameters passed to
+      options -g and -gm. By default gsat will not run in order to make
+      the script finish faster and let the user look a the output to
+      determine the best parameters to use for gsat.
 
  -g, --gsat-cutoff
-     Threshold to consider GSAT results significant.
-     (default is 15)
+      Threshold to consider GSAT results significant.
+      (default is 15)
 
  -gm, --gsat-mode {string}
-     Indicate whether GSAT will run on the full protein sequence
-     (mode full) or just the segements that aligned in protocol2
-     (mode segment). Default value is: segment
+      Indicate whether GSAT will run on the full protein sequence
+      (mode full) or just the segements that aligned in protocol2
+      (mode segment). Default value is: segment
 
  -h, --help
       Display the help of this program. Help will also be

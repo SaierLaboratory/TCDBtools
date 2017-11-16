@@ -1,8 +1,8 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #########################################################################
 #									#
 #	Author : Gabo Moreno-Hagelsieb          			#
-#	Date: Dec 18, 2015         					#
+#	Date of first draft: Dec 18, 2015              			#
 #									#
 #########################################################################
 
@@ -11,6 +11,8 @@ use Getopt::Long;
 # to make temporary files/directories
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
+
+my $commandLine = join(" ",$0,@ARGV);
 
 ### ensure that external programs (psiblastp, makeblastdb, cd-hit) exist
 my @missingsoft = ();
@@ -38,30 +40,41 @@ my $cpuNumber
         =~ m{\.max-threads\s+=\s+(\d+)} ? $1
     : 2;
 
-my (
-    $inputSeqFile, $outputFolder, $maxSubject, $Evalue, $iEvalue, $iters,
-    $cutRange,   $min_coverage, $min_size, $max_size, $filter, $cpus, $remote
-) = ( '', 'famXOut', 10000, "1e-7", "1e-5", "1",
-      'T', 0.8, 0.8, 1.25, 0.8, $cpuNumber, 'F' );
-my $options = GetOptions(
-    "i=s" => \$inputSeqFile,
-    "o=s" => \$outputFolder,
-    "n=f" => \$maxSubject,
-    "e=s" => \$Evalue,
-    "f=s" => \$iEvalue,
-    "t=s" => \$iters,
-    "h=s" => \$cutRange,
-    "c=f" => \$min_coverage,
-    "s=f" => \$min_size,
-    "l=f" => \$max_size,
-    "r=f" => \$filter,
-    "a=s" => \$cpus,
-    "p=s" => \$remote,
-);
+####### default values for options
+my $inputSeqFile = '';
+my $outputFolder = 'famXOut';
+my $maxSubject   = 10000;
+my $Evalue       = "1e-7";
+my $iEvalue      = "1e-5";
+my $iters        = 1;
+my $cutRange     = 'T';
+my $min_coverage = 0.8;
+my $eitherCov    = 'F';
+my $min_size     = 0.8;
+my $max_size     = 1.25;
+my $filter       = 0.8;
+my $cpus         = $cpuNumber;
+my $rewrite      = 'T';
+my $remote       = 'F';
 
-if( $remote eq "T" && $iters > 2) {
-    print qq(    can run only two iterations at NCBI, -t reset to "2"\n);
-}
+my $options
+    = GetOptions(
+        "i=s" => \$inputSeqFile,
+        "o=s" => \$outputFolder,
+        "n=f" => \$maxSubject,
+        "e=s" => \$Evalue,
+        "f=s" => \$iEvalue,
+        "t=s" => \$iters,
+        "h=s" => \$cutRange,
+        "c=f" => \$min_coverage,
+        "x=s" => \$eitherCov,
+        "s=f" => \$min_size,
+        "l=f" => \$max_size,
+        "r=f" => \$filter,
+        "a=s" => \$cpus,
+        "w=s" => \$rewrite,
+        "p=s" => \$remote,
+    );
 
 my $ownName = $0;
 $ownName =~ s{.*/}{};
@@ -75,22 +88,30 @@ if ( !$inputSeqFile ) {
     print "   -f psiblast evalue threshold, default 1e-5\n";
     print "   -t psiblast iterations, default 1\n";
     print "   -h keep only aligned region [T/F], default T\n";
-    print "   -c minimum alignment coverage of original sequence,\n"
+    print "   -c minimum alignment coverage of query sequence,\n"
         . "       default 0.8\n";
+    print "   -x coverage applies to either sequence, default F\n";
     print "   -s minimal subject seq length relative to query seq length,\n"
-        . "       default 0.8 (a mostly meaningless option)\n";
+        . "       default 0.8\n";
     print "   -l maximal subject seq length relative to query seq length,\n"
         . "       default 1.25 (ignored if -h T)\n";
     print "   -r identity redundancy threshold (for cd-hit), default 0.8\n";
     print "   -a number of cpus to use, default in this machine: $cpuNumber\n";
+    print "   -w overwrite previous psiblast.tbl (if it exists) [T/F],\n"
+        . "       default T\n";
     print "   -p run remotely (at ncbi) [T/F], default F\n";
     print "\n";
     exit;
 }
 
 ### make sure that some options are well declared
-$remote   = $remote   =~ m{^(T|F)$}i ? uc($1) : "F";
-$cutRange = $cutRange =~ m{^(T|F)$}i ? uc($1) : "T";
+$remote    = $remote    =~ m{^(T|F)$}i ? uc($1) : "F";
+$cutRange  = $cutRange  =~ m{^(T|F)$}i ? uc($1) : "T";
+$rewrite   = $rewrite   =~ m{^(T|F)$}i ? uc($1) : "T";
+$eitherCov = $eitherCov =~ m{^(T|F)$}i ? uc($1) : "F";
+if( $remote eq "T" && $iters > 2) {
+    print qq(    can run only two iterations at NCBI, -t reset to "2"\n);
+}
 
 my @columns = qw(
                     qseqid
@@ -116,7 +137,8 @@ if( $remote eq "T" ) {
 else {
     print "   Using $cpus cpu threads\n";
 }
-#### fix coverage from fraction to percent:
+
+#### make sure coverage is a percent
 my $pc_min_cover
     = ( $min_coverage >= 1 && $min_coverage <= 100 ) ? $min_coverage
     : $min_coverage > 100 ? 80
@@ -128,6 +150,10 @@ print "   working in temp folder:\n\t$tempFolder\n";
 unless( -d $outputFolder ) {
     system("mkdir $outputFolder");
 }
+
+open( my $COMMANDLINE,">>","$outputFolder/command.line" );
+print {$COMMANDLINE} $commandLine,"\n";
+close($COMMANDLINE);
 
 my $querySeqHashRef = checkFastaFile($inputSeqFile);
 my @qids = sort keys %$querySeqHashRef;
@@ -148,17 +174,14 @@ else {
 
 print "   will be psiblasting $toRun sequences\n";
 my $blastOutputHashRef = runBlast($toRun);
-PasteSeqToFiles( $blastOutputHashRef,
-                 $cutRange );
+PasteSeqToFiles( $blastOutputHashRef,$cutRange );
 
 print  "\n\tcleaning up ...";
 system "rm -r $tempFolder";
 print  "\tdone!\n\n";
 
 sub PasteSeqToFiles {
-    my ( $blastOutputHashRef,
-         $cutRange )
-        = @_;
+    my ( $blastOutputHashRef, $cutRange ) = @_;
     my $refIDArrayRef = [];
     push @{ $refIDArrayRef }, keys %$blastOutputHashRef;
     my $tmp_file = "$tempFolder/results.faa";
@@ -223,98 +246,131 @@ sub PasteSeqToFiles {
 
 sub runBlast {
     my $totalQueries = $_[0];
-    my $refIDBlastResultRef = {};
     my $tempSeqFile = "$tempFolder/query.seqTemp";
-    if( length($ENV{"BLASTDB"}) > 0 ) {
-        my @blastdbs = split(/:/,$ENV{"BLASTDB"});
-        my $trueDBs  = @blastdbs;
-        my $verifDir = 0;
-        my $vefirNR  = 0;
-        for my $testDir ( @blastdbs ) {
-            if( -d $testDir ) {
-                $verifDir++;
-                my $nr_sure = $testDir . "/nr.pal";
-                if( -f "$nr_sure" ) {
-                    $vefirNR++;
-                }
-            }
-        }
-        unless( $verifDir == $trueDBs ) {
-            system "rm -r $tempFolder";
-            die qq(\n\tBLASTDB directory not there:\n\t$ENV{"BLASTDB"}\n\n);
-        }
-        unless( $vefirNR > 0 ) {
-            system "rm -r $tempFolder";
-            die qq(\n\tthere's no NR database in:\n\t$ENV{"BLASTDB"}\n\n);
-        }
-    }
-    else {
-        system "rm -r $tempFolder";
-        die qq(\n\tBLASTDB is not set up\n\n);
-    }
     my $outPsiFile = "$outputFolder/psiblast.tbl";
     my $tmpPsiFile = "$tempFolder/psiblast.tbl";
-    my $blastRootCmd
-        = qq(psiblast -query $tempSeqFile -db nr )
-        . qq( -max_target_seqs $maxSubject )
-        . qq( -max_hsps 1 -qcov_hsp_perc $pc_min_cover )
-        . qq( -evalue $Evalue -inclusion_ethresh $iEvalue )
-        . qq( -outfmt '7 ) . join(" ",@columns) . qq(' );
-    if( $remote eq "T" ) {
-        #my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpPsiFile);
-        print "   psiblasting at NCBI (might take a while):\n";
-        #### each remote run should contain only one query
-        #### for network and wait reasons
-        my $pCnt = 0;
-        for my $query ( separateQueries() ) {
-            $pCnt++;
-            my $tmpFile = "$tmpPsiFile.$query";
-            print "      "
-                . join(";  ",
-                       "Query: $pCnt",
-                       "Iteration: 1",
-                       "ID: $query"
-                   ),"\n";
-            open( my $PSIFL,">","$tmpFile" );
-            print {$PSIFL} "# Iteration: 1\n";
-            close($PSIFL);
-            my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpFile);
-            $blastCmdR =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
-            #print $blastCmdR,"\n";exit;
-            system("$blastCmdR 2>/dev/null");
-            #### now second iteration:
-            if( $iters > 1 ) {
-                print "        preparing for second iteration\n";
-                my $sendCmd = $blastRootCmd;
-                $sendCmd =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
-                if( my $pssm = prepareRemoteIter("$tmpFile","$sendCmd") ){
-                    print "        running second iteration ($query)\n";
-                    open( my $PSIFL2,">>","$tmpFile" );
-                    print {$PSIFL2} "# Iteration: 2\n";
-                    close($PSIFL2);
-                    my $blastCmd2
-                        = $blastRootCmd . qq( -remote >> $tmpFile);
-                    my $runPssm = "$tempFolder/$pssm";
-                    $blastCmd2
-                        =~ s{query\s+$tempSeqFile}{in_pssm $runPssm};
-                    system("$blastCmd2 2>/dev/null");
-                }
-                else {
-                    print "        no need to run second iteration\n";
-                }
-            }
+    if( -f "$outPsiFile" && $rewrite eq "F" ) {
+        print "    using pre-run psiblast results in $outPsiFile\n";
+        my( $psiCount,$refIDBlastResultRef ) = parseBlast("$outPsiFile");
+        if( $psiCount > 0 ) {
+            return($refIDBlastResultRef);
         }
-        system("cat $tmpPsiFile.* > $tmpPsiFile");
-        system("rm $tmpPsiFile.*");
+        else {
+            print "    $outPsiFile has no results\n"
+                . "     (rm $outPsiFile and run again)\n";
+            signalHandler();
+        }
     }
     else {
-        my $blastCmd = $blastRootCmd
-            . qq( -num_iterations $iters -num_threads $cpus);
-        print "   psiblasting now (might take a while):\n";
-        runPlusSave("$tmpPsiFile","$blastCmd","$totalQueries");
+        if( length($ENV{"BLASTDB"}) > 0 ) {
+            my @blastdbs = split(/:/,$ENV{"BLASTDB"});
+            my $trueDBs  = @blastdbs;
+            my $verifDir = 0;
+            my $vefirNR  = 0;
+            for my $testDir ( @blastdbs ) {
+                if( -d $testDir ) {
+                    $verifDir++;
+                    my $nr_sure = $testDir . "/nr.pal";
+                    if( -f "$nr_sure" ) {
+                        $vefirNR++;
+                    }
+                }
+            }
+            unless( $verifDir == $trueDBs ) {
+                system "rm -r $tempFolder";
+                die qq(\n\tBLASTDB directory not there:\n\t$ENV{"BLASTDB"}\n\n);
+            }
+            unless( $vefirNR > 0 ) {
+                system "rm -r $tempFolder";
+                die qq(\n\tthere's no NR database in:\n\t$ENV{"BLASTDB"}\n\n);
+            }
+        }
+        else {
+            system "rm -r $tempFolder";
+            die qq(\n\tBLASTDB is not set up\n\n);
+        }
+        my $blastRootCmd
+            = qq(psiblast -query $tempSeqFile -db nr )
+            . qq( -max_target_seqs $maxSubject )
+            . qq( -max_hsps 1 )
+            . qq( -evalue $Evalue -inclusion_ethresh $iEvalue )
+            . qq( -outfmt ') . join(" ","7",@columns) . qq(');
+        ##### a bit redundant, but might be good when
+        ##### performing psiblast iterations
+        if( $eitherCov eq 'F' ) {
+            $blastRootCmd .= qq( -qcov_hsp_perc $pc_min_cover );
+        }
+        if( $remote eq "T" ) {
+            #my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpPsiFile);
+            print "   psiblasting at NCBI (might take a while):\n";
+            #### each remote run should contain only one query
+            #### for network and wait reasons
+            my $pCnt = 0;
+            for my $query ( separateQueries() ) {
+                $pCnt++;
+                my $tmpFile = "$tmpPsiFile.$query";
+                print "      "
+                    . join(";  ",
+                           "Query: $pCnt",
+                           "Iteration: 1",
+                           "ID: $query"
+                       ),"\n";
+                open( my $PSIFL,">","$tmpFile" );
+                print {$PSIFL} "# Iteration: 1\n";
+                close($PSIFL);
+                my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpFile);
+                $blastCmdR =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
+                #print $blastCmdR,"\n";exit;
+                system("$blastCmdR 2>/dev/null");
+                #### now second iteration:
+                if( $iters > 1 ) {
+                    print "        preparing for second iteration\n";
+                    my $sendCmd = $blastRootCmd;
+                    $sendCmd =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
+                    if( my $pssm = prepareRemoteIter("$tmpFile","$sendCmd") ){
+                        print "        running second iteration ($query)\n";
+                        open( my $PSIFL2,">>","$tmpFile" );
+                        print {$PSIFL2} "# Iteration: 2\n";
+                        close($PSIFL2);
+                        my $blastCmd2
+                            = $blastRootCmd . qq( -remote >> $tmpFile);
+                        my $runPssm = "$tempFolder/$pssm";
+                        $blastCmd2
+                            =~ s{query\s+$tempSeqFile}{in_pssm $runPssm};
+                        system("$blastCmd2 2>/dev/null");
+                    }
+                    else {
+                        print "        no need to run second iteration\n";
+                    }
+                }
+            }
+            system("cat $tmpPsiFile.* > $tmpPsiFile");
+            system("rm $tmpPsiFile.*");
+        }
+        else {
+            my $blastCmd = $blastRootCmd
+                . qq( -num_iterations $iters -num_threads $cpus);
+            print "   psiblasting now (might take a while):\n";
+            runPlusSave("$tmpPsiFile","$blastCmd","$totalQueries");
+        }
+        my( $psiCount,$refIDBlastResultRef ) = parseBlast("$tmpPsiFile");
+        if( $psiCount > 0 ) {
+            system("mv $tmpPsiFile $outPsiFile 2>/dev/null");
+            return($refIDBlastResultRef);
+        }
+        else {
+            print "   no psiblast results to report\n\n";
+            signalHandler();
+        }
+        unlink($tempSeqFile);
     }
+}
+
+sub parseBlast {
+    my $psiBlastFile = $_[0];
+    my $refIDBlastResultRef = {};
     my $psiCount = 0;
-    open( my $PSIBL,"<","$tmpPsiFile" );
+    open( my $PSIBL,"<","$psiBlastFile" );
   BLASTRESULT:
     while( my $blastResult = <$PSIBL> ) {
         chomp $blastResult;
@@ -333,6 +389,18 @@ sub runBlast {
             $sciname,
             $qseq,$sseq
         ) = @items;
+        my $qcov = 100 * ( ( $q_end - $q_start + 1 ) / $qlen );
+        my $scov = 100 * ( ( $s_end - $s_start + 1 ) / $slen );
+        if( $eitherCov eq 'T' ) {
+            if( $qcov < $pc_min_cover && $scov < $pc_min_cover ) {
+                next BLASTRESULT;
+            }
+        }
+        else {
+            if( $qcov < $pc_min_cover ) {
+                next BLASTRESULT;
+            }
+        }
         # make sure that the line has results
         if( $qlen < 5 ) {
             next BLASTRESULT;
@@ -384,15 +452,7 @@ sub runBlast {
         }
     }
     close($PSIBL);
-    if( $psiCount > 0 ) {
-        system("mv $tmpPsiFile $outPsiFile 2>/dev/null");
-    }
-    else {
-        print "   no psiblast results to report\n\n";
-        signalHandler();
-    }
-    unlink($tempSeqFile);
-    return $refIDBlastResultRef;
+    return($psiCount,$refIDBlastResultRef);
 }
 
 sub extractName {

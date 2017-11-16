@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 #########################################################
 #						       	#
 #	Author : Gabo Moreno-Hagelsieb         		#
@@ -15,12 +15,13 @@ use Getopt::Long;
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
 
-my ( $tcdbFamID, $outputFolder, $format )
-    = ( '', 'Families', 'fasta' );
+my ( $tcdbFamID, $outputFolder, $format, $database )
+    = ( '', 'Families', 'fasta', 'tcdb');
 my $options = GetOptions(
     "i=s" => \$tcdbFamID,
     "o=s" => \$outputFolder,
     "f=s" => \$format,
+    "d=s" => \$database,
 );
 
 my $ownName = $0;
@@ -28,11 +29,13 @@ $ownName =~ s{.*/}{};
 if ( !$tcdbFamID ) {
     print "usage: " . $ownName . " [options]\n";
     print "\noptions:\n";
-    print "   -i TCDB family ID, required. Example: 1.C.39\n"
+    print qq(   -i TCDB family ID, required. Example: 1.C.39\n)
         . qq(      "-i tcdb", "-i all", or "-i full" will bring the\n)
         . qq(      complete TCDB database\n);
     print "   -o output folder, default Families\n";
     print "   -f output format (fasta|column|blast), default fasta\n";
+    print "   -d database (a fasta file with TCDB entries),\n"
+        . "      default: tcdb (online database)\n";
     print "\n";
     exit;
 }
@@ -72,7 +75,13 @@ $ownName =~ s{.*/}{};
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
 print "   working in temp folder:\n\t$tempFolder\n";
 mkdir("$outputFolder") unless( -d "$outputFolder" );
-my $tcdbref = bringTCDB();
+
+#### decide if we use TCDB online or a file with "frozen"
+#### tcdb sequences
+unless( our $tcdbref = bringTCDB("$database") ) {
+    print "something is wrong with your database choice:\n $database\n";
+    signalHandler();
+}
 my @keys
     = ( $tcdbFamID eq "tcdb" ) ? keys %$tcdbref
     : grep { m{$matcher} }  keys %$tcdbref;
@@ -110,7 +119,7 @@ if( $countPrinted > 0 ) {
             . qq( -parse_seqids -hash_index -out $tempFolder/$filename )
             . qq( -title "$filename $date");
         system("$makeDbCmd >&/dev/null");
-        system("mv $tempFolder/$filename.p* $outputFolder/");
+        system("mv $tempFolder/$filename.p* $outputFolder/ 2>/dev/null");
         print  "    cleaning up ...\n";
         system "rm -r $tempFolder";
         print "    $tcdbFamID is saved as blast database at:\n"
@@ -130,23 +139,42 @@ else {
 }
 
 sub bringTCDB {
-    system("wget -N http://www.tcdb.org/public/tcdb -O $tempFolder/tcdb >&/dev/null");
-    my $id = "";
-    my %seq = ();
-    open( my $TCDBI,"<","$tempFolder/tcdb" );
-    while(<$TCDBI>) {
-        if( m{^>gnl\|TC-DB\|(\S+?)\s*\|(\S+)} ) {
-            $id = join("-",$2,$1);
+    my $inputDB = $_[0];
+    my $tcdbURL = "http://www.tcdb.org/";
+    if( $inputDB eq "tcdb" ) {
+        print "   working with online TCDB database\n";
+        system("wget -N $tcdbURL/public/tcdb -O $tempFolder/tcdb >&/dev/null");
+    }
+    elsif( -f "$inputDB" ) {
+        print "   working with local TCDB fasta file\n";
+        system("cp $inputDB $tempFolder/tcdb >&/dev/null");
+    }
+    else {
+        return();
+    }
+    if( -f "$tempFolder/tcdb" ) {
+        my $id = "";
+        my %seq = ();
+        open( my $TCDBI,"<","$tempFolder/tcdb" );
+        while(<$TCDBI>) {
+            if( m{^>gnl\|TC-DB\|(\S+?)\s*\|(\S+)} ) {
+                $id = join("-",$2,$1);
+                #### remove version from identifier
+                $id =~ s{\.\d+$}{};
+            }
+            else {
+                chomp;
+                $seq{"$id"} .= $_;
+            }
+        }
+        close($TCDBI);
+        my $count = keys %seq;
+        if( $count > 0 ) {
+            return(\%seq);
         }
         else {
-            chomp;
-            $seq{"$id"} .= $_;
+            return();
         }
-    }
-    close($TCDBI);
-    my $count = keys %seq;
-    if( $count > 0 ) {
-        return(\%seq);
     }
     else {
         return();
