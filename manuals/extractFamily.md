@@ -33,4 +33,7 @@ script without arguments to display the options:
                  TCDB ID and the sequence in one string.
         blast:   Generates a BLAST database with the downloaded
                  sequences.
+    -d  path to a fasta file with all sequences in TCDB,
+        as in previous runs of 'extractFamily.pl -i tcdb -f fasta'
+        Default: tcdb  (online database).
 
