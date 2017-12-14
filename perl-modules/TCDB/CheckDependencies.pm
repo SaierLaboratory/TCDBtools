@@ -1,4 +1,4 @@
-package R2::CheckDependencies;
+package TCDB::CheckDependencies;
 
 
 use warnings;
@@ -50,12 +50,12 @@ use Class::Struct;
 # GENERAL GUIDE FOR USAGE:
 #
 # Load class:
-# use R2::CheckDependencies;
+# use TCDB::CheckDependencies;
 #
 #
 # Constructor:
 #
-# my $myObj = new R2::CheckDependencies();
+# my $myObj = new TCDB::CheckDependencies();
 #
 #
 #
@@ -67,7 +67,7 @@ use Class::Struct;
 #
 # Initiallizing variables through constructor
 #
-# my $myObj = new R2::CheckDependencies(
+# my $myObj = new TCDB::CheckDependencies(
 #    dependencies_list => ['dep1', 'dep2', 'dep3'...],
 #    user_dirs => ['dir1', 'dir2', 'dir3', ... ],
 #    allow_no_dependencies => 1,
@@ -77,7 +77,7 @@ use Class::Struct;
 #
 # Initializing variables through accessors:
 #
-# my $myObj = new R2::CheckDependencies();
+# my $myObj = new TCDB::CheckDependencies();
 # $myObj->dependencies_list(['dep1', 'dep2', 'dep3'...]);
 # $myObj->user_dirs([dir1', 'dir2', 'dir3', ... ]);
 # $myObj->allow_no_dependencies(1);
@@ -100,7 +100,7 @@ use Class::Struct;
 
 
 
-struct ("R2::CheckDependencies" =>
+struct ("TCDB::CheckDependencies" =>
 	{
 	 'dependencies_list'     => '@',  #Input programs for which dependencies will be tested.
 	 'user_dirs'            => '@',   #Additional dirs that will be searched for dependencies.
@@ -310,16 +310,16 @@ sub help {
  GENERAL GUIDE FOR USAGE:
 
  Load class:
- use R2::CheckDependencies;
+ use TCDB ::CheckDependencies;
 
 
  #Object Constructor:
- my $myObj = new R2::CheckDependencies();
+ my $myObj = new TCDB::CheckDependencies();
 
 
 
  #Get help about this class:
- my $myObj = new R2::CheckDependencies()->help;
+ my $myObj = new TCDB::CheckDependencies()->help;
 
 
  $myObj->help;
@@ -327,7 +327,7 @@ sub help {
 
 
  #Initiallizing variables within the constructor:
- my $myObj = new R2::CheckDependencies(
+ my $myObj = new TCDB::CheckDependencies(
     dependencies_list => ['dep1', 'dep2', 'dep3'...],
     user_dirs => ['dir1', 'dir2', 'dir3', ... ],
     allow_no_dependencies => 1,
@@ -336,7 +336,7 @@ sub help {
 
 
  #Initializing variables through accessors:
- my $myObj = new R2::CheckDependencies();
+ my $myObj = new TCDB::CheckDependencies();
  $myObj->dependencies_list(['dep1', 'dep2', 'dep3'...]);
  $myObj->user_dirs(['dir1', 'dir2', 'dir3', ... ]);
  $myObj->allow_no_dependencies(1);
