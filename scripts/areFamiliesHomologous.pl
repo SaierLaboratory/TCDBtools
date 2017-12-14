@@ -184,8 +184,8 @@ read_command_line_arguments();
 # 		        *fxpandRemote *cdhit_cutoff *proto2_low_cutoff *proto2_high_cutoff *tmo_cutoff
 #                       *proto2_min_hit_len *run_gsat *gsat_ignore_proteins *gsat_shuffles *gsat_cutoff *gsat_mode)]), "\n\n";
 
-# print "Command line parsed!\n";
-# exit;
+#  print "Command line parsed!\n";
+#  exit;
 
 
 
@@ -421,34 +421,44 @@ sub get_subfamilies_for_tcdb_id {
   my %myFams2 = ();
 
 
-  #first family
   opendir (my $dirh, $globalDir) || die "Could not open dir: $globalDir --> $_";
 
-  #Get the diectories that match the input tcdb family
-  if (scalar @elements1 < 5) {
-    %myFams1 = map { $_ => 1 } grep { /^$fam_id1\./ } readdir $dirh;
+  #first family
+  unless (-f $finalResFile1 && -f $finalPsiFile1) {
+
+    #Get the diectories that match the input tcdb family
+    if (scalar @elements1 < 5) {
+
+      #The second regex is in case the directory has exactly the name of the family or subfamily
+      %myFams1 = map { $_ => 1 } grep { /^$fam_id1\./ || /^$fam_id1$/} readdir $dirh;
+    }
+    else {
+      %myFams1 = map {$_ => 1} grep { /^$fam_id1$/ } readdir $dirh;
+    }
+
+
+    die "No famXpander results found for family $fam_id1" unless (%myFams1);
+
+    #Rewind directory so that second family can be analyzed
+    rewinddir($dirh);
   }
-  else {
-    %myFams1 = map {$_ => 1} grep { /^$fam_id1$/ } readdir $dirh;
-  }
-
-
-  die "No famXpander results found for family $fam_id1" unless (%myFams1);
-
 
   #Second family
-  rewinddir($dirh);
+  unless (-f $finalResFile2 && -f $finalPsiFile2) {
 
-  #Get the diectories that match the input tcdb family
-  if (scalar @elements2 < 5) {
-    %myFams2 = map { $_ => 1 } grep { /^$fam_id2\./ } readdir $dirh;
-  }
-  else {
-    %myFams2 = map {$_ => 1} grep { /^$fam_id2$/ } readdir $dirh;
+    #Get the diectories that match the input tcdb family
+    if (scalar @elements2 < 5) {
+
+      #The second regex is in case the directory has exactly the name of the family or subfamily
+      %myFams2 = map { $_ => 1 } grep { /^$fam_id2\./ || /^$fam_id2$/} readdir $dirh;
+    }
+    else {
+      %myFams2 = map {$_ => 1} grep { /^$fam_id2$/ } readdir $dirh;
+    }
+    die "No famXpander results found for family $fam_id2" unless (%myFams2);
   }
   closedir $dirh;
 
-  die "No famXpander results found for family $fam_id2" unless (%myFams2);
 
 #  print Data::Dumper->Dump([\%myFams1, \%myFams2 ], [qw( *myFams1 *myFams2)]);
 #  print "Length fam1: ", scalar keys %myFams1, "\n";
@@ -465,7 +475,6 @@ sub get_subfamilies_for_tcdb_id {
   my $locDir2 = "$localDir/$fam_id2";
   system "mkdir -p $locDir1" unless (-d $locDir1);
   system "mkdir -p $locDir2" unless (-d $locDir2);
-
 
   #Concatenating files and removing redundancies for $fam_id1
   unless (-f $finalResFile1 && $finalPsiFile1) {
