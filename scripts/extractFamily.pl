@@ -162,6 +162,9 @@ sub bringTCDB {
                 #### remove version from identifier
                 $id =~ s{\.\d+$}{};
             }
+            elsif( m{>(\S+)} ) {
+                $id = $1;
+            }
             else {
                 chomp;
                 $seq{"$id"} .= $_;

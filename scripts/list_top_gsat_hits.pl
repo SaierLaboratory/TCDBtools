@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Getopt::Long;
 
 #to check dependencies
 use TCDB::CheckDependencies;
-use TCDB::tcdb;
+
 
 
 
@@ -60,8 +60,9 @@ $sort_arg = '-n' if ($sort_incrementally);
 
 
 #Extract the Subject and Target families from the report.tbl file
+my $tblFile = (-f "$proto2_dir/report.tbl")? "$proto2_dir/report.tbl" : "$proto2_dir/*/report.tbl";
 
-my $headCmd = qq( head -1  $proto2_dir/*/report.tbl );
+my $headCmd = qq( head -1  $tblFile );
 chomp (my $cmdOut = `$headCmd`);
 
 my ($family1, $family2) = ($cmdOut =~ /Subject:\s+(\S+)\s+Target:\s+(\S+)/) ? ($1, $2) : die "Could not extract families from report.tbl file";
@@ -79,7 +80,9 @@ my @elements2 = split (/\./, $family2);
 #Get list of top protocol2 hits
 
 #Command to get the list of protocol2 hits that passed the GSAT score
-my $grep = qq(find $proto2_dir/*/gsat -name "PASS*" -print | xargs grep -H 'Precise score');
+my $gsatDir = (-d "$proto2_dir/gsat")? "$proto2_dir/gsat" : "$proto2_dir/*/gsat";
+
+my $grep = qq(find $gsatDir -name "PASS*" -print | xargs grep -H 'Precise score');
 my $perl = q(perl -ne 'chomp; @a=split(/\s+/, $_); @b=split(/\:/,$a[0]); print "$a[3]\t\t$b[0]\n";');
 my $sort = "sort $sort_arg";
 
@@ -102,7 +105,7 @@ unless ($fullTransitivity) {
 if ($fullTransitivity || $printBestScore) {
 
   #Get the resandwished results
-  my $grep2 = qq(find $proto2_dir/*/gsat -name "SRRSW_*" -print | xargs grep -H 'Precise score');
+  my $grep2 = qq(find $gsatDir -name "SRRSW_*" -print | xargs grep -H 'Precise score');
   my $cmd2  = "$grep2 | $perl";
   my $srrsw = `$cmd2`;
 
@@ -659,7 +662,7 @@ list all protocol2 hits with high GSAT score.
 Input parameters:
 
 -p2d, --proto2-dir {path}
-ls   The root directory for all protocol2 results. Default value
+   The root directory for all protocol2 results. Default value
    is the current directory.
 
 -inc, --increasing
