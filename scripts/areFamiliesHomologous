@@ -421,10 +421,10 @@ sub get_subfamilies_for_tcdb_id {
   my %myFams2 = ();
 
 
-  #first family
   opendir (my $dirh, $globalDir) || die "Could not open dir: $globalDir --> $_";
 
-  unless (-f $finalResFile1 || $finalPsiFile1) {
+  #first family
+  unless (-f $finalResFile1 && -f $finalPsiFile1) {
 
     #Get the diectories that match the input tcdb family
     if (scalar @elements1 < 5) {
@@ -439,14 +439,17 @@ sub get_subfamilies_for_tcdb_id {
 
     die "No famXpander results found for family $fam_id1" unless (%myFams1);
 
-    #Second family
+    #Rewind directory so that second family can be analyzed
     rewinddir($dirh);
   }
 
-  unless (-f $finalResFile2 && $finalPsiFile2) {
+  #Second family
+  unless (-f $finalResFile2 && -f $finalPsiFile2) {
 
     #Get the diectories that match the input tcdb family
     if (scalar @elements2 < 5) {
+
+      #The second regex is in case the directory has exactly the name of the family or subfamily
       %myFams2 = map { $_ => 1 } grep { /^$fam_id2\./ || /^$fam_id2$/} readdir $dirh;
     }
     else {
