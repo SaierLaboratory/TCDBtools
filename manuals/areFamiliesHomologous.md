@@ -36,8 +36,8 @@ This program is available in our [Perl repository](https://github.com/SaierLabor
 3. **_protocol2.py_**  
 This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
 
-4. **_gsat.py_**
-TThis program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+4. **_gsat.py_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
 
 5. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
