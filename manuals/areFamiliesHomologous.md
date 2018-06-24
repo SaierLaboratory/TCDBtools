@@ -1,15 +1,13 @@
 # Documentation for script: _areFamiliesHomologous_
 
 ## Summary
-Our software famXpander, Protocol2 and GSAT were integrated into a pipeline 
+Our programs famXpander, Protocol2 and GSAT were integrated into a pipeline 
 that significantly speeds up the analysis of distant evolutionary relationships between 
-families using the transitivity property of homology, thus eliminating the possibility 
-of human errors (PMID: 29579047). In addition, BLASTs for all proteins in TCDB were 
-pre-computed to allow rapid comparisons of large superfamilies and make analyses at the 
-level of class or subclass. Users have the option to use precomputed alignments or run 
-new BLASTs for their sequences.
+families using the transitivity property of homology. In addition, BLASTs for all 
+proteins in TCDB were pre-computed to allow rapid comparisons of large superfamilies 
+and make analyses at the level of class or subclass. Users have the option to use 
+precomputed alignments or run new BLASTs for their sequences.
 
-## Description
 First, famXpander is run in order to extract an expanded list of candidate homologous 
 proteins for each family. Second, protocol2 is run to determine homology and TMS 
 topology. Only those pairs that have a protocol2 score above a user-specified 
