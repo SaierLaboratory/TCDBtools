@@ -648,7 +648,7 @@ sub read_command_line_arguments {
       "n|psiblast-it=i"           => \$psiblast_it,
       "e|evalue=f"                => \$evalue,
       "e2|inc-evalue=f"           => \$iEvalue,
-      "a|alinment-matches=i"      => \$num_aligns,
+      "a|alignment-matches=i"     => \$num_aligns,
       "k|keep-aln-regions=s"      => \&read_keep_aln_regions,
       "c|min-coverage=f"          => \$sbj_min_cov,
       "s|min-rseq-length=f"       => \$tgt_min_length,
@@ -840,6 +840,13 @@ Second, protocol2 is run to determine homology and TMS topology.
 Only those pairs that have a protocol2 score above a user-specified
 threshold and minimum alignment length will be singled out to run gsat.
 If gsat has a z-score above a user-specified value it will be indicated.
+
+Citation:
+* Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr.
+  Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated 
+  ion channels and lipid scramblases. 
+  2018. PLoS One. 13(3):e0192851
+  PMID: 29579047
 
 The script accepts the following command line options:
 
