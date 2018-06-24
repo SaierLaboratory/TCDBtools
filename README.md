@@ -6,16 +6,19 @@ Wilfrid Laurier University in Ontario, Canada.
 
 The list below contains the main programs. Dependencies developed by us are 
 not shown in this list, but they are included as part of the repository. 
-Each program has its one help file:
+Each program has its own help file:
 
 
 **1.** famXpander.pl ([manual](manuals/famXpander.md))  
-**2.** extractFamily.pl ([manual](manuals/extractFamily.md))  
-**3.** columnizeFaa.pl  
-**4.** areFamiliesHomologous.pl  
-**5.** list_top_gsat_hits.pl  
-**6.** interpret_proto2_top_hits.pl  
-**7.** mkProteinClusters.pl  
+**2.** extractFamily.pl ([manual](manuals/extractFamily.md))    
+**3.** areFamiliesHomologous.pl ([manual](manuals/areFamiliesHomologous.md))   
+**4.** mkProteinClusters.pl  ([manual](manuals/mkProteinClusters.md))
+**5.** tmsRepeat ([manual](manuals/tmsRepeat.md))
+**6.** getDomainTopology ([manual](manuals/getDomainTopology.md))
+**7.** getMultCompSystems ([manual](manuals/getMultCompSystems.md))
+**8.** findNovelTransporters ([manual](manuals/findNovelTransporters.md))
+
+
 
 ---
 
