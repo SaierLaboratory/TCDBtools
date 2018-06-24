@@ -56,7 +56,7 @@ my $fam_1 = "";
 my $fam_2 = "";
 
 
-#what program will be used to search for homologs: proto1 or fxpand
+#what program will be used to search for homologs: proto1, fxpand or globalfxd
 my $prog  = "";
 
 
@@ -70,7 +70,7 @@ my $inseq_dir = "";
 my $proto1_dir = "";
 
 
-#This is the directory were the precumputed famXpander results for
+#This is the directory were the precomputed famXpander results for
 #all TCDB are stored
 my $global_fxpand_dir = "/ResearchData/famXpander";
 
@@ -89,7 +89,7 @@ my $extract_seqs_from_tcdb = 0;
 my $only_extract_seqs = 0;
 
 
-#number of interation that psiblast will perform
+#number of interations that psiblast will perform
 my $psiblast_it = 1;
 
 
@@ -648,7 +648,7 @@ sub read_command_line_arguments {
       "n|psiblast-it=i"           => \$psiblast_it,
       "e|evalue=f"                => \$evalue,
       "e2|inc-evalue=f"           => \$iEvalue,
-      "a|alinment-matches=i"      => \$num_aligns,
+      "a|alignment-matches=i"     => \$num_aligns,
       "k|keep-aln-regions=s"      => \&read_keep_aln_regions,
       "c|min-coverage=f"          => \$sbj_min_cov,
       "s|min-rseq-length=f"       => \$tgt_min_length,
@@ -841,6 +841,13 @@ Only those pairs that have a protocol2 score above a user-specified
 threshold and minimum alignment length will be singled out to run gsat.
 If gsat has a z-score above a user-specified value it will be indicated.
 
+Citation:
+* Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr.
+  Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated 
+  ion channels and lipid scramblases. 
+  2018. PLoS One. 13(3):e0192851
+  PMID: 29579047
+
 The script accepts the following command line options:
 
  -f1, --family1 {string}
@@ -854,11 +861,13 @@ The script accepts the following command line options:
       (option is mandatory).
 
  -u, --prog {string}
-      Specify which program will be used to find homologs: protocol1 (proto1),
-      famXpander (fxpand), or global precomputed results of famXpander for all
-      TCDB (globalfxd). If fxpand is selected, input sequences must
-      be in fasta format. If proto1 is selected, input sequences must be in
-      2-column format (Id, protein sequence in one string).
+      Specify which program will be used to find homologs:
+        proto1:    protocol1 (currently broken),
+        fxpand:    famXpander
+        globalfxd: Use global precomputed results of famXpander for all
+                   proteins in TCDB.
+      If fxpand is selected, input sequences must be in fasta format. 
+      If proto1 is selected, input sequences must be in 2-column format.
       (Option is mandatory)
 
  -d, --indir {string}
@@ -933,8 +942,8 @@ The script accepts the following command line options:
       protein fusions.
       (Default 5.0 (ignored if -k is given)
 
- -fxr, --fxpand-remore
-      Run famXpander remotely. By default famXpander is run locally.
+ -fxr, --fxpand-remote
+      Run famXpander remotely at NCBI. By default famXpander is run locally.
 
  -r, --cdhit-cutoff {float}
       Identity redundancy threshold for cd-hit.
@@ -968,7 +977,7 @@ The script accepts the following command line options:
       when parsing Protocol2 hits and select hits on which to run GSAT.
       By default no hits are ignored.
 
--gsh, --gsat-shuffles {integer >= 500}
+ -gsh, --gsat-shuffles {integer >= 500}
       Number of shuffles to run GSAT (default 1000).
 
  -g, --gsat-cutoff
