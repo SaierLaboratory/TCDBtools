@@ -9,13 +9,17 @@ pre-computed to allow rapid comparisons of large superfamilies and make analyses
 level of class or subclass. Users have the option to use precomputed alignments or run 
 new BLASTs for their sequences.
 
-
 ## Description
 First, famXpander is run in order to extract an expanded list of candidate homologous 
 proteins for each family. Second, protocol2 is run to determine homology and TMS 
 topology. Only those pairs that have a protocol2 score above a user-specified 
 threshold and minimum alignment length will be singled out to run gsat. If gsat has 
 a z-score above a user-specified value it will be indicated.
+
+## How to cite this program
+If you find this program useful, please cite the paper:  
+
+Medrano-Soto A, Moreno-Hagelsieb G, et al. Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated ion channels and lipid scramblases. 2018. PLoS One. **13**(3):e0192851
 
 
 ## Dependencies
