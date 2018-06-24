@@ -1,7 +1,7 @@
 # Documentation for script: _areFamiliesHomologous_
 
 ## Summary
-Our software Protocol1/famXpander, Protocol2 and GSAT were integrated into a pipeline 
+Our software famXpander, Protocol2 and GSAT were integrated into a pipeline 
 that significantly speeds up the analysis of distant evolutionary relationships between 
 families using the transitivity property of homology, thus eliminating the possibility 
 of human errors (PMID: 29579047). In addition, BLASTs for all proteins in TCDB were 
@@ -14,14 +14,19 @@ new BLASTs for their sequences.
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.4.0 to 2.6.0_**  
-Other versions of blast may require minor adaptations. Visit the
-[download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
+1. **_extractFamily.pl_**  
+This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-2. **_wget_**  
-Sequences are downloaded from the TCDB server using [wget](https://www.gnu.org/software/wget).
+2. **_famXpander.pl_**  
+This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-3. **_PERL 5.18_**  
+3. **_protocol2.py_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+
+4. **_gsat.py_**
+TThis program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+
+5. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
