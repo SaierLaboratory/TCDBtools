@@ -19,8 +19,10 @@ a z-score above a user-specified value it will be indicated.
 ## How to cite this program
 If you find this program useful, please cite the paper:  
 
-  * Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr. _Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated ion channels and lipid scramblases._ 2018. PLoS One. **13**(3):e0192851  
-PMID: [29579047](https://www.ncbi.nlm.nih.gov/pubmed/?term=29579047)
+  * Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr.  
+  _Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated ion channels and lipid scramblases._  
+  2018. PLoS One. **13**(3):e0192851  
+  PMID: [29579047](https://www.ncbi.nlm.nih.gov/pubmed/?term=29579047)
 
 
 ## Dependencies
