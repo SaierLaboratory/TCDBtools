@@ -37,16 +37,11 @@ was not tested with more recent versions of perl.
 The following options are available. You can also run the 
 script without arguments to display the options:
 
-    -i  TCDB family ID (required)
-        "-i tcdb", "-i all", or "-i full" will bring the
-        complete TCDB database
-    -o  output directory where data will be saved. (default: Families)  
-    -f  output format: fasta|column|blast (default: fasta)
-        column:  presents data in 2 tab-delimited columns,
-                 TCDB ID and the sequence in one string.
-        blast:   Generates a BLAST database with the downloaded
-                 sequences.
-    -d  path to a fasta file with all sequences in TCDB,
-        as in previous runs of 'extractFamily.pl -i tcdb -f fasta'
-        Default: tcdb  (online database).
+     -i query filename in fasta format, required
+     -o output folder, default: Clusters
+     -p program for pairwise comparisons
+        [blastp|fasta36|ssearch36|ublast], default: blastp
+     -c agglomerative clustering method
+        [average|complete|single|ward|weighted],
+         default: ward
 
