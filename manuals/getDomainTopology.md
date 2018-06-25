@@ -26,7 +26,7 @@ The rational for this program was published in two of our publications:
 
 
 ## Dependencies
-The following programs need to be available in your path for this 
+The following dependencies need to be available in your enviroment for this 
 program to run properly:
 
 1. **Perl Module: _TCDB::Assorted_**  
@@ -38,8 +38,9 @@ This module is available in our [Perl repository](https://github.com/SaierLabora
 3. **Perl Module: _TCDB::Domain::Characterize_**  
 This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-4. **_gsat.py_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+4. **_ssearch36 version: 36.3.8e_**  
+Other versions of ssearch may require minor adaptations. Visit the
+[download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
 5. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
