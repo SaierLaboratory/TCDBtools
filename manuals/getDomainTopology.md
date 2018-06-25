@@ -29,14 +29,14 @@ The rational for this program was published in two of our publications:
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_extractFamily.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+1. **Perl Module: _TCDB::Assorted_**  
+This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-2. **_famXpander.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+2. **Perl Module: _TCDB::Domain::PfamParser_**  
+This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-3. **_protocol2.py_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+3. **Perl Module: _TCDB::Domain::Characterize_**  
+This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
 4. **_gsat.py_**  
 This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
