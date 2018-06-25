@@ -19,16 +19,13 @@ program to run properly:
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-2. **_tmsplit_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+2. **Perl Module: _TCDB::Assorted_**  
+This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
 3. **_extractFamily.pl_**  
 This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
-4. **_quod.py_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
-
-5. **_PERL 5.18_**  
+4. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
