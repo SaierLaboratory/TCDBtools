@@ -51,12 +51,12 @@ script without arguments to display the options:
       (Argument is mandatory).
 
     -s, --seqs {path}
-      Directory to access the sequences in FASTA formate that will be used to 
+      Directory to access the sequences in FASTA format that will be used to 
       search for repeats.
-     (Argument is mandatory)
+      (Argument is mandatory)
 
     -f, --id-format {string}
-      format of identifier used:
+      Format of identifier used:
         tc    plain tcdb identifier of a system (e.g., 2.A.1.8.1)
         tca   tcdb id and accession separated by dash (e.g. 2.A.1.8.3-Q9R6U5)
         o     other, it can be refSeq, uniprot or custom, but it is requried
@@ -64,7 +64,7 @@ script without arguments to display the options:
       (Argument is mandatory)
 
     -r, --repeat-unit {int)
-      Size in TMS of the repeat unit to search in the protein.
+      Expected size in TMS of the repeat unit to search in the protein.
       (Argument is mandatory)
 
     -t, --tail-size {int}
