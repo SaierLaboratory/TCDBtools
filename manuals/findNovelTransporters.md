@@ -18,7 +18,7 @@ Other versions of blast may require minor adaptations. Visit the
 This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
 
 3. **_hmmtop_**  
-TMS are predicted with HMMTOP. Visit the [download site.](http://www.enzim.hu/hmmtop/html/download.html).
+TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
 
 4. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
