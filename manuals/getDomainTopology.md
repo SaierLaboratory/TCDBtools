@@ -1,4 +1,4 @@
-# Documentation for script: _areFamiliesHomologous_
+# Documentation for script: _getDomainTopology.pl_
 
 ## Summary
 This program characterizes the Pfam domain composition of a TCDB family. It first runs 
