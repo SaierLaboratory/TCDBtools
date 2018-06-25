@@ -224,8 +224,8 @@ my $bdb_cmd =
 unless (-f "${blastdb}.phr") {
 
   if ($file_proteome =~ /.+\.gz$/) {
-    print qq(zcat $file_proteome | $bdb_cmd -in - \n);
-    system qq(zcat $file_proteome | $bdb_cmd -in -);
+    print qq(gzcat $file_proteome | $bdb_cmd -in - \n);
+    system qq(gzcat $file_proteome | $bdb_cmd -in -);
   }
   elsif ($file_proteome =~ /.+\.bz2$/) {
     system qq(bzcat $file_proteome | $bdb_cmd -in -);
