@@ -24,15 +24,20 @@ If you find this program useful, please cite the paper:
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.4.0 to 2.6.0_**  
-Other versions of blast may require minor adaptations. Visit the
-[download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
+1. **_ssearch36 version: 36.3.8e_**  
+Other versions of ssearch may require minor adaptations. Visit the
+[download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
-2. **_R_**  
-The [R package](https://www.r-project.org/) is used. Make sure the following 
-packages are installed: cluster, MCMCpack and ape.
+2. **_tmsplit_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
 
-3. **_PERL 5.18_**  
+3. **_extractFamily.pl_**  
+This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+
+4. **_quod.py_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+
+5. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
@@ -40,11 +45,46 @@ was not tested with more recent versions of perl.
 The following options are available. You can also run the 
 script without arguments to display the options:
 
-     -i query filename in fasta format, required
-     -o output folder, default: Clusters
-     -p program for pairwise comparisons
-        [blastp|fasta36|ssearch36|ublast], default: blastp
-     -c agglomerative clustering method
-        [average|complete|single|ward|weighted],
-         default: ward
+    -i, --infile {path}
+      Input file with id/accession(s) of the protein(s) to analyze and the coordinates
+      of the TMSs in that protein(s).
+      (Argument is mandatory).
+
+    -s, --seqs {path}
+      Directory to access the sequences in FASTA formate that will be used to 
+      search for repeats.
+     (Argument is mandatory)
+
+    -f, --id-format {string}
+      format of identifier used:
+        tc    plain tcdb identifier of a system (e.g., 2.A.1.8.1)
+        tca   tcdb id and accession separated by dash (e.g. 2.A.1.8.3-Q9R6U5)
+        o     other, it can be refSeq, uniprot or custom, but it is requried
+              that is is a single string without spaces.
+      (Argument is mandatory)
+
+    -r, --repeat-unit {int)
+      Size in TMS of the repeat unit to search in the protein.
+      (Argument is mandatory)
+
+    -t, --tail-size {int}
+      Number of residues to add to the beginning and end of TMS regions before
+      running comparisons. Value should be less than or equal to 15 residues.
+     (Default: 5);
+
+    -e, --evalue {float}
+      Maximum evalue to consider an alignment between two TMS bundles significant.
+      (Default: 0.1);
+
+    -c, --coverage {float}
+      Minimum alignment coverage of the smallest bundle to consider an alignment
+      signifiant.
+      (default: 0.8)
+
+    -id, --perc-identity {float}
+       Minimum identity in the alignemnt to consider alignments signficant.
+       (defatul 0.3);
+
+    -gs, --gsat-shuffles {int}
+       Number of shuffles that will be used to run GSAT on good matches.
 
