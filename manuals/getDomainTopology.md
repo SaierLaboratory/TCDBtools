@@ -21,7 +21,7 @@ The rational for this program was published in two of our publications:
   **PMID:** [29579047](https://www.ncbi.nlm.nih.gov/pubmed/?term=29579047) 
   
   * Moreno-Hagelsieb G, Vitug B, Medrano-Soto A, Saier MH Jr.
-  J Mol Microbiol Biotechnol. 2017;27(4):252-267
+  J Mol Microbiol Biotechnol. 2017. **27**(4):252-267
   **PMID:** [29145176](https://www.ncbi.nlm.nih.gov/pubmed/?term=29145176)
 
 
