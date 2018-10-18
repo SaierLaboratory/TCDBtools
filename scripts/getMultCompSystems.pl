@@ -1152,7 +1152,7 @@ sub run_quod {
   #Run quod for the alignment
 
   my $alnFig = "${q}_vs_${s}.png";
-  my $cmd1 = qq(quod.py -q -s -l "$q (red) and $s (blue)"  -o $plotDir/$alnFig --xticks 50 --width 15 $qseq $sseq );
+  my $cmd1 = qq(quod.py -q -s -l "$q (red) and $s (blue)"  -o $plotDir/$alnFig --xticks 50 --width 15 -- $qseq $sseq );
   system $cmd1 unless (-f "$plotDir/$alnFig");
   return undef unless (-f "$plotDir/$alnFig");
 
@@ -1161,13 +1161,13 @@ sub run_quod {
   #Run quod for the full sequencess of the query and subject proteins
 
   my $qName = "${q}_vs_${s}_qAln";
-  my $cmd2 = qq(quod.py -q -f -l "$tcAcc"  -o $plotDir/${qName}.png --width 15 --color red --xticks 100 -W $qs,2 $qe,-2 --  $seqDir/${tcAcc}.faa);
+  my $cmd2 = qq(quod.py -q -l "$tcAcc"  -o $plotDir/${qName}.png --width 15 --color red --xticks 50 -w ${qs}-${qe}::1 --  $seqDir/${tcAcc}.faa);
   system $cmd2 unless (-f "$plotDir/${qName}.png");
   return undef unless (-f "$plotDir/${qName}.png");
 
 
   my $sName = "${q}_vs_${s}_sAln";
-  my $cmd3 = qq(quod.py -q -f -l "$s"  -o $plotDir/${sName}.png --width 15 --color blue --xticks 100 -W $ss,2 $se,-2 --  $seqDir/${s}.faa);
+  my $cmd3 = qq(quod.py -q -l "$s"  -o $plotDir/${sName}.png --width 15 --color blue --xticks 50 -w ${ss}-${se}::1 --  $seqDir/${s}.faa);
   system $cmd3 unless (-f "$plotDir/${sName}.png");
   return undef unless (-f "$plotDir/${sName}.png");
 
@@ -1203,6 +1203,7 @@ sub generate_html_page {
       <tr>
         <td colspan="2" style="text-align: center;"><img src="../plots/${alnImg}.png" alt="Aligned region"></td>
       </tr>
+    </table>
   </body>
 </html>
 HTML
@@ -1216,31 +1217,6 @@ HTML
 
 
 
-
-#==========================================================================
-#Extract the full sequences of the query and subject proteins
-#Examples:  1.F.1.1.1-O00161   AKM80767.1
-
-
-
-sub extract_full_sequences {
-
-  my ($tcid, $s) = @_;
-
-
-  my $tcid_seq = "$seqDir/${tcid}.faa";
-  my $acc_seq  = "$seqDir/${s}.faa";
-
-  #extract the query secuence from tcdb and the subject from the custom blastdb
-  my $cmd1 = qq(blastdbcmd  -db $tcdbBlastDBdir/tcdb  -entry $tcid  -out $tcid_seq);
-  system "$cmd1" unless (-f $tcid_seq && !(-z $tcid_seq));
-  die "Could not extract sequence for $tcid" unless (-f $tcid_seq && !(-z $tcid_seq));
-
-
-  my $cmd2 = qq(blastdbcmd  -db $blastdb  -entry ${s}.1  -out $acc_seq);
-  system "$cmd2" unless (-f $acc_seq && !(-z $acc_seq));
-  die "Could not extract sequence for $s" unless (-f $acc_seq && !(-z $acc_seq));
-}
 
 
 

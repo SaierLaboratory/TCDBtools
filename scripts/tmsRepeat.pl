@@ -52,7 +52,7 @@ my $seqDir         = "sequences";
 my $alignDir       = "alignments";
 my $plotsDir       = "plots";
 
-#all (all sequences in out output file)
+#all (all sequences in output file)
 #each (generate one directory per sequence.. for better organization)
 #debug (it will print the contents of the hash table one sequences at a time)
 my $mode           = "all";
@@ -464,7 +464,7 @@ sub align_bundles {
 
       #run ssearch36 of $rFile vs @cmpFile
       my $ssearchOut = "$alignmentsDir/ssearch_$id.out";
-      my $ssearch_params = qq(-p -k 10000 $compStats -E $gs_evalue -s BL62 -W 0 $rFile $libFile > $ssearchOut);
+      my $ssearch_params = qq(-p $compStats -E $gs_evalue -s BL62 -W 0 $rFile $libFile > $ssearchOut);
       system "ssearch36 $ssearch_params" unless (-f $ssearchOut);
 
 
@@ -609,9 +609,9 @@ sub align_bundles {
 
 	    #extract initial positions for both bundles
 	    my $qbstart = $lhr_bundleSeqFiles->{$q_bid}->[1];
-	    my $qbend   = $qLen - 1;
+	    my $qbend   = $lhr_bundleSeqFiles->{$q_bid}->[2]; #$qLen - 1;
 	    my $sbstart = $lhr_bundleSeqFiles->{$s_bid}->[1];
-	    my $sbend   = $hLen - 1;
+	    my $sbend   = $lhr_bundleSeqFiles->{$s_bid}->[2]; #$hLen - 1;
 	    die "Could not extract coords for bundle $q_bid" unless ($qbstart && $qbend);
 	    die "Could not extract coords for bundle $s_bid" unless ($sbstart && $sbend);
 
@@ -629,14 +629,10 @@ sub align_bundles {
 	    my $srep = "${sgp_start}-${sgp_end}:blue";
 
 	    #Format the coordinates for the bar delimiting the bundles
-	    my $bars = "-w $qbstart,$qbend,0 $sbstart,$sbend,0";
+	    my $bars = "-w ${qbstart}-${qbend}::1 ${sbstart}-${sbend}::1";
 
 	    #The quod command line
 	    my $cmd = "quod.py $whole_prot_seq  -t png -l '$plotTitle' -o $plotFile -q -r 80 $bars --xticks $xticksSpacing -nt +0 -at ${pstring} ${qrep} ${srep}";
-	    #my $cmd = "quod.py $whole_prot_seq  -t png -l '$plotTitle' -o $plotFile -q -r 80 $bars -nt +0 -at ${pstring} ${qrep} ${srep}";
-
-#	    print "Check quod command:\n$cmd\n";
-#	    <STDIN>;
 
 	    my $img = "${plotFile}.png";
 	    system $cmd unless (-f $img);
@@ -940,7 +936,7 @@ sub read_command_line_arguments {
 
   my $ls_status = GetOptions(
       "i|infile=s"         => \$gs_infile,
-      "if|infile-foramt=s" => \$infileFmt,
+      "if|infile-format=s" => \$infileFmt,
       "o|outdir=s"         => \$outdir,
       "f|id-format=s"      => \$gs_idFormat,
       "r|rep-unit=i"       => \$gs_repUnit,
@@ -1004,8 +1000,7 @@ sub read_command_line_arguments {
 
 
   #option -cs
-  $compStats  = "-z 21" if ($compStatsFlag);
-  
+  $compStats  = "-k 10000 -z 21" if ($compStatsFlag);
 }
 
 
@@ -1020,6 +1015,14 @@ This script searches for sets of TMS repeated in a full protein.
    Input file with id/accession(s) of the protein(s) to analyze and the coordinates
    of the TMSs in that protein(s).
    (Argument is mandatory).
+
+-if, --infile-format {string} (optional)
+  Format of the TMS coordenates. It can be either tms or hmmtop.
+  (default hmmtop)
+
+-o, --outdir {path}
+  Output directory where results will be saved.
+  (default: repeats)
 
 -s, --seqs {path}
   Directory to access the sequences in FASTA formate that will be used to 

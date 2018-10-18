@@ -262,32 +262,35 @@ sub runBlast {
         }
     }
     else {
-        if( length($ENV{"BLASTDB"}) > 0 ) {
-            my @blastdbs = split(/:/,$ENV{"BLASTDB"});
-            my $trueDBs  = @blastdbs;
-            my $verifDir = 0;
-            my $vefirNR  = 0;
-            for my $testDir ( @blastdbs ) {
-                if( -d $testDir ) {
-                    $verifDir++;
-                    my $nr_sure = $testDir . "/nr.pal";
-                    if( -f "$nr_sure" ) {
-                        $vefirNR++;
+        #### if running locally, check for BLASTDB and nr within it
+        if( $remote eq "F" ) {
+            if( length($ENV{"BLASTDB"}) > 0 ) {
+                my @blastdbs = split(/:/,$ENV{"BLASTDB"});
+                my $trueDBs  = @blastdbs;
+                my $verifDir = 0;
+                my $vefirNR  = 0;
+                for my $testDir ( @blastdbs ) {
+                    if( -d $testDir ) {
+                        $verifDir++;
+                        my $nr_sure = $testDir . "/nr.pal";
+                        if( -f "$nr_sure" ) {
+                            $vefirNR++;
+                        }
                     }
                 }
+                unless( $verifDir == $trueDBs ) {
+                    system "rm -r $tempFolder";
+                    die qq(\n\tno BLASTDB directory:\n\t$ENV{"BLASTDB"}\n\n);
+                }
+                unless( $vefirNR > 0 ) {
+                    system "rm -r $tempFolder";
+                    die qq(\n\tno NR database in:\n\t$ENV{"BLASTDB"}\n\n);
+                }
             }
-            unless( $verifDir == $trueDBs ) {
+            else {
                 system "rm -r $tempFolder";
-                die qq(\n\tBLASTDB directory not there:\n\t$ENV{"BLASTDB"}\n\n);
+                die qq(\n\tBLASTDB is not set up\n\n);
             }
-            unless( $vefirNR > 0 ) {
-                system "rm -r $tempFolder";
-                die qq(\n\tthere's no NR database in:\n\t$ENV{"BLASTDB"}\n\n);
-            }
-        }
-        else {
-            system "rm -r $tempFolder";
-            die qq(\n\tBLASTDB is not set up\n\n);
         }
         my $blastRootCmd
             = qq(psiblast -query $tempSeqFile -db nr )

@@ -113,6 +113,7 @@ $family =~ s{\.\w+$}{};
 print "   root name is $family\n";
 
 ##### learn all the identifiers
+print "      learning IDs\n";
 my @ids = ();
 open( my $FAA,"<","$queryFile" )
     or die "\tno $queryFile file\n\n";
@@ -125,7 +126,9 @@ while(<$FAA>) {
 }
 close($FAA);
 
-### establish default score at 10 (arbitrary, coming from SuperFamilyTree)
+##### establish default score at 10 (arbitrary,
+##### taken from SuperFamilyTree)
+print "      establishing default distance\n";
 for my $id1 ( @ids ) {
     for my $id2 ( @ids ) {
         my $pair = join("\t",sort($id1,$id2));
@@ -162,6 +165,7 @@ if( $countResults > 0 ) {
 }
 else {
     print "Deleting $pwFile because it seems to be empty\n";
+    unlink("$pwFile");
     print "please check your fasta file and try again\n";
     signalHandler();
 }
@@ -263,7 +267,7 @@ sub runPairWise {
         signalHandler();
     }
     else {
-        print "    running $program\n";
+        print "      running $program\n";
         #print "$pwCmd\n";
         system("$pwCmd");
         system("bzip2 -f -9 $tmpFile");
