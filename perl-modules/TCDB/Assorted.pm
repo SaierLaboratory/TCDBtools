@@ -12,6 +12,7 @@ our @EXPORT = qw( getFamilyIDs       getSystemAccessions  getUniqueTCIDs
                   sort_by_class      sort_by_subclass     sort_by_family
                   sort_by_subfamily  sort_by_system       validate_tcdb_id
                   getModeSystems     getGBLASTmultiComponentTCIDs
+                  readFamilyFile
                  );
 
 
@@ -793,6 +794,50 @@ sub by_class {
 
 
 
+#==========================================================================
+#Read a set of TCDB families from a comma-separated string
+
+
+sub readStringFams {
+
+  my $string = shift;
+
+  my %uIDs = map {$_ => 1} split(/,/, $string);
+  my @ids = sort_by_family(keys %uIDs);
+
+  validate_tcdb_id(\@ids);
+
+  return \@ids;
+}
+
+
+
+
+#==========================================================================
+#Read a file with TCDB families (one tcid per line), validate the
+#tcids, and sort them by family
+
+
+sub readFamilyFile {
+
+  my $infile = shift;
+
+  die "Error: file not found or empty -> $infile!\n" unless (-f $infile && !(-z $infile));
+
+  open (my $fileh, "<", $infile) || die $!;
+  chomp(my @families = <$fileh>);
+  close $fileh;
+
+  validate_tcdb_id(\@families);
+  my %uIDs = map {$_ => 1} @families;
+
+  my @sortedRefFams = sort_by_family (keys %uIDs);
+
+
+  return \@sortedRefFams;
+
+}
+
 
 
 
@@ -809,7 +854,6 @@ sub validate_tcdb_id {
   my $tcdb_ids = shift;
 
   if (is_arrayref $tcdb_ids) {
-
     foreach my $id ( @$tcdb_ids ) {
       validate_tcid($id);
     }
@@ -876,10 +920,11 @@ sub getGBLASTmultiComponentTCIDs {
     next if (/^#/);
 
 
-    my ($qid, $sacc, $tcid, $desc, $alen, $eval, @kk) = split ("\t");
-    next unless ($qid && $sacc && $tcid && $eval);
+    my ($qid, $sid, $tcid, $desc, $alen, $eval, @kk) = split ("\t");
+    next unless ($qid && $sid && $tcid && $eval);
 
-    my ($qacc, $ver) = split(/\./, $qid);
+    my ($qacc, $ver1) = split(/\./, $qid);
+    my ($sacc, $ver2) = split(/\./, $sid);
 
 #    print Data::Dumper->Dump([ $qacc, $sacc, $tcid, $eval], [qw(*qacc *sacc *tcid *eval)]);
 #    <STDIN>;
@@ -1950,6 +1995,222 @@ sub validate_files {
     }
   }
 }
+
+
+
+#==========================================================================
+#Check if an alignment coverage satisfies predefined criteria (mode):
+# X:  Either protein must satisfy the cutoff
+# B:  Both proteins must satisfy the cutoff
+# Q:  Only the query protein must satisfy the cutoff
+# S:  Only the subject protein must satisfy the cutoff.
+
+sub coverage_ok {
+
+  my ($qcov, $scov, $cutoff, $mode) = @_;
+
+
+  #Either protein must comply with cutoff
+  if ($mode eq 'X') {
+    (($qcov >= $cutoff) || ($scov >= $cutoff)) ? return 1 : return 0;
+  }
+
+
+  #Both coverages must comply with cutoff
+  elsif ($mode eq 'B') {
+    (($qcov >= $cutoff) && ($scov >= $cutoff))? return 1 : return 0;
+  }
+
+
+  #Only query must comply with cutoff
+  elsif ($mode eq 'Q') {
+    ($qcov >= $cutoff)? return 1 : return 0;
+  }
+
+
+  #Only the subject must comply with cutoff
+  elsif ($mode eq 'S') {
+    ($scov >= $cutoff)? return 1 : return 0;
+  }
+
+
+  #Error
+  else { die "Error: unknown coverage control mode: $mode"; }
+
+}
+
+
+
+
+
+
+#==========================================================================
+#After parsing PFAM output we get a list of PFAM accessions for which we
+#want to extract clan info:
+
+sub get_clans {
+
+  my ($out, $tmpDir) = @_;
+
+  my $clansDB = ($ENV{PFAMCLANSDB})? $ENV{PFAMCLANSDB} : "/ResearchData/pfam/download/Pfam-A.clans.tsv.gz";
+
+  #Temporal file to store PFAM accessions
+  my $tmpFile = ($tmpDir)? "$tmpDir/pfam_acc.txt" : "/tmp/pfam_acc.txt";
+
+
+  #Save all PFAM accession to a temporal file to grep
+  open (my $ah, ">", $tmpFile) || die $!;
+  print $ah join ("\n", keys %{ $out }), "\n";
+  close $ah;
+
+
+  #Extract clans now
+  my $cmd = qq(zgrep -F -f $tmpFile $clansDB);
+  my $data = qx($cmd);
+  return unless ($data);
+
+
+  #Parse clan data
+  chomp(my @clans = split (/\n/, $data));
+  foreach my $line (@clans) {
+
+    #
+    #Modify this line if more information is necesary. These are example
+    #lines from the Pfam clans file (tabs were replaced with '|'):
+    #
+    #PF00034|CL0318|Cytochrome-c|Cytochrom_C|Cytochrome c
+    #PF00032|||Cytochrom_B_C|Cytochrome b(C-terminal)/b6/petD
+    #
+
+    my ($pfam, $clan, @kk) = split(/\t/, $line);
+    $out->{$pfam} = ($clan)? $clan : 0;
+  }
+
+  #Delete temporal file with PFAM accessions.
+  system "rm $tmpFile" if (-f $tmpFile);
+}
+
+
+
+
+
+
+#==========================================================================
+#Parse PFAM output. All identified domains are saved to hash $clans.
+#This will allow to later search for clans for domains identified
+#in query sequences.
+#
+# out:   hash where PFAM results will be saved
+# clans: hash that will store identified domain accessions for
+#        later clan assignment
+#
+# NOTE: hmmscan must be run with the options:
+#       --noali --cut_ga --domtblout
+#
+#      For example:
+#      hmmscan --cpu 4 --noali --cut_ga -o /dev/null --domtblout [outfile] [pfamDB]  [inputSeqsFile]
+#
+
+sub parse_pfam {
+
+  my ($infile, $out, $clans) = @_;
+
+
+  open (my $fh, "<", $infile) || die $!;
+  while (<$fh>) {
+
+    chomp;
+    next unless ($_);
+    next if (/^#/);
+
+    my @data = split(/\s+/);
+
+    my $pfamName = $data[0];
+    my ($pfamID, $kk) = split(/\./, $data[1]);
+    my $pfamLen  = $data[2];
+    my $qacc     = $data[3];
+    my $qlen     = $data[5];
+    my $eval     = $data[6];
+    my $dstart   = $data[15];
+    my $dend     = $data[16];
+    my $qstart   = $data[19];
+    my $qend     = $data[20];
+    my $def      = substr($_, 181);
+
+
+
+#    print "$_\n", Data::Dumper->Dump([$pfamName, $pfamID, $pfamLen, $qacc, $qlen, $eval, $dstart, $dend, $qstart, $qend, $def],
+#				     [qw(*pfamName *pfamID *pfamLen *qacc *qlen *eval *dstart *dend *qstart *qend *def)]);
+#    <STDIN>;
+
+
+    #Collect PFAM hits
+    push (@{ $out->{$qacc}->{$pfamID} },
+	    {pfamid=> $pfamID, dlen=>$pfamLen,  dstart=>$dstart,  dend=>$dend, evalue=>$eval,
+	     dname=>$pfamName, def=>$def, qlen=>$qlen, qstart=>$qstart, qend=>$qend });
+    $clans->{$pfamID} = 0;
+  }
+
+  close $fh;
+
+
+}
+
+
+#==========================================================================
+#Parse hmmtop Output
+
+sub parse_hmmtop {
+
+  my ($out, $infile) = @_;
+
+  open (my $fh, "<", $infile) || die $!;
+  while(<$fh>) {
+    chomp;
+    next unless (/^\>/);
+
+    if (/^\>HP:\s+\d+\s+(\S+).+\s+(IN|OUT)\s+(\d+)/) {
+
+      my $acc = $1;
+      my $n   = $3;
+
+
+      if (/^\>HP:\s+\d+\s+(\S+).+\s+(IN|OUT)\s+(\d+)\s+(.+)/) {
+
+
+	my @coords = ($n)? split(/\s+/, $4) : ();
+
+	my @res = ();
+	if (@coords) {
+	  for(my $i=0; $i <= $#coords - 1; $i += 2) {
+
+	    #
+	    #Saving coords as a string helps in formating coords
+	    #for quod plots. But it may be more convenient for
+	    #General purpose applications to store as an array
+	    #of integers... if so, this woudl be the line:
+	    #
+	    # push (@res, [$coords[$i], $coords[$i+1]]);
+	    #
+	    push (@res, "$coords[$i]-$coords[$i+1]");
+	  }
+	}
+
+	$out->{$acc}->{ntms}    = $n;
+	$out->{$acc}->{coords} = \@res;
+      }
+
+      #Regular expression may fail when there are 0 TMS
+      else {
+	$out->{$acc}->{ntms} = 0;
+	$out->{$acc}->{coords} = [];
+      }
+    }
+  }
+  close $fh;
+
+}
+
 
 
 
