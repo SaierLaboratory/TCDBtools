@@ -281,9 +281,9 @@ HEADER
     <p><b>Alignment:</b></p>
     <div class='seq'>
     <pre>
-Q: $qseq
-   $hstr
-S: $sseq
+$qseq
+$hstr
+$sseq
     </pre>
     </div>
 
