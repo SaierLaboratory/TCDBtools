@@ -182,6 +182,18 @@ sub generate_report {
 
 .seq {
    border: 2px solid black;
+   height: 70px;
+   width:  100%;
+   overflow-x: auto;
+   overflow-y: hidden;
+   margin: 1em 0;
+   background: gray;
+   color: white;
+}
+
+
+.dom {
+   border: 2px solid black;
    height: 100px;
    width:  100%;
    overflow-x: auto;
@@ -234,6 +246,7 @@ HEADER
 
     my $eval   = sprintf ("%.1e", $hit->{evalue});
     my $id     = sprintf ("%.1f", $hit->{id});
+    my $hstr   = $hit->{hstr};
 
     my $alnHit = <<HIT;
 
@@ -263,6 +276,16 @@ HEADER
          <td class='data'></td>
       </tr>
     </table>
+    <br />
+
+    <p><b>Alignment:</b></p>
+    <div class='seq'>
+    <pre>
+Q: $qseq
+   $hstr
+S: $sseq
+    </pre>
+    </div>
 
 HIT
 
@@ -280,7 +303,7 @@ HIT
     <br />
     <hr />
     <p><b>Pfam info:</b></p>
-    <div class='seq'>
+    <div class='dom'>
 
 $domData
 
@@ -671,6 +694,7 @@ sub parse_ssearch {
 	my $send    = $hsp->end('subject');
 	my $qseq    = $hsp->query_string;
 	my $sseq    = $hsp->hit_string;
+	my $hstr    = $hsp->homology_string;
 
 	#Calculate coverages properly (do not use alignment length as it includes gaps
 	my $qCov_tmp = ($qend - $qstart) / $qlen * 100;
@@ -684,7 +708,7 @@ sub parse_ssearch {
 
 	  push(@{ $out }, {qacc=>$qacc, sacc=>$sacc,     qlen=>$qlen, slen=>$slen,     qcov=>$qcov,
 			   scov=>$scov, evalue=>$eval,   id=>$id,     qstart=>$qstart, qend=>$qend,
-			   sstart=>$sstart, send=>$send, qseq=>$qseq, sseq=>$sseq});
+			   sstart=>$sstart, send=>$send, qseq=>$qseq, sseq=>$sseq, hstr=>$hstr});
 	}
       } # hsp
     } # hit
