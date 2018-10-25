@@ -30,4 +30,5 @@ echo
 
 #Reporting superkingdom content
 echo "Reporting superkingdom content"
-cut -d " " -f 2 kingdom.txt | sort | uniq -c
+cut -d " " -f 2 kingdom.txt | sort | uniq -c > orgDistribution.txt
+cat orgDistribution.txt
