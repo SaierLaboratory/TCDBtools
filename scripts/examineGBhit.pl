@@ -8,6 +8,12 @@ use Getopt::Long;
 use TCDB::Assorted;
 
 
+#==========================================================================
+#  This program is a wrapper to alignSeqFiles.pl where the second
+#  sequence is expected to be a TCDB protein, as is the case when
+#  examining GBLAST hits.
+#==========================================================================
+
 
 my $query = "";
 my $sAcc  = "";
@@ -163,7 +169,7 @@ Options:
     Subject accession (Uniprot or RefSeq of protein in TCDB).
 
 -t  {String} (Mandatory)
-    Subject TCID (full TCID of the accession passed to option -s)
+    Subject system TCID (full TCID of the accession passed to option -s)
 
 -o  {PATH} (Default: .)
     Output directory where results will be stored.
