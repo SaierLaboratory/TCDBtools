@@ -52,6 +52,7 @@ my $coverage   = 70.0;
 my $covControl = "X";
 my $blastComp  = "F"; #2;
 my $segFilter  = 'no';
+my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
 
 read_command_line();
 
@@ -695,6 +696,11 @@ sub parse_ssearch {
 	my $qseq    = $hsp->query_string;
 	my $sseq    = $hsp->hit_string;
 	my $hstr    = $hsp->homology_string;
+
+	#If the alignment has less than $minLength aas, ignore it
+        my $qtmp = $qseq; $qtmp =~ s/-//g;
+	my $stmp = $sseq; $stmp =~ s/-//g;
+	next HSP if (length($qtmp) < $minLength || length($stmp) < $minLength);
 
 	#Calculate coverages properly (do not use alignment length as it includes gaps
 	my $qCov_tmp = ($qend - $qstart) / $qlen * 100;
