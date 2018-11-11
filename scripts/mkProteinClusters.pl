@@ -10,6 +10,7 @@ use Getopt::Long;
 # to make temporary files/directories
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
+use strict;
 
 ### this is to be able to add an option for the agglomerative
 ### clustering method. Right now only ward because it's the very best
@@ -36,16 +37,17 @@ my $pairWiseMatch = join("|",@pairWise);
 
 ### check if there's more than one processor or assume there's 2.
 my $cpuNumber = 2;
-# my $cpuNumber
+#my $cpuNumber
 #     = qx(sysctl -a | grep 'cpu.thread_count')
 #         =~ m{\.cpu\.thread_count:\s+(\d+)} ? $1
 #     : qx(sysctl -a 2>/dev/null | grep 'max-threads')
 #         =~ m{\.max-threads\s+=\s+(\d+)} ? $1
 #     : 2;
 
-my (
-    $queryFile, $outputFolder, $pwprogram, $aggMethod
-) = ( '', 'Clusters', 'blastp', 'ward' );
+my $queryFile    = '';
+my $outputFolder = 'Clusters';
+my $pwprogram    = 'blastp';
+my $aggMethod    = 'ward';
 
 my $options = GetOptions(
     "i=s" => \$queryFile,
@@ -128,6 +130,7 @@ close($FAA);
 
 ##### establish default score at 10 (arbitrary,
 ##### taken from SuperFamilyTree)
+my %score = ();
 print "      establishing default distance\n";
 for my $id1 ( @ids ) {
     for my $id2 ( @ids ) {

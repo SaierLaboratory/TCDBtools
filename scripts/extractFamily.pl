@@ -11,6 +11,7 @@
 ## from TCDB using a TCDB ID
 
 use Getopt::Long;
+use strict;
 # to make temporary files/directories
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
@@ -78,13 +79,11 @@ mkdir("$outputFolder") unless( -d "$outputFolder" );
 
 #### decide if we use TCDB online or a file with "frozen"
 #### tcdb sequences
-unless( our $tcdbref = bringTCDB("$database") ) {
-    print "something is wrong with your database choice:\n $database\n";
-    signalHandler();
-}
+my $tcdbref = bringTCDB("$database")
+    or signalHandler("something is wrong with your database choice:\n $database");
 my @keys
-    = ( $tcdbFamID eq "tcdb" ) ? keys %$tcdbref
-    : grep { m{$matcher} }  keys %$tcdbref;
+    = ( $tcdbFamID eq "tcdb" ) ? keys %{$tcdbref}
+    : grep { m{$matcher} } keys %{$tcdbref};
 
 my $rootName = ( $tcdbFamID eq "tcdb" ) ? "tcdb" : "family-$filename";
 my $ending
@@ -109,7 +108,8 @@ for my $id ( sort @keys ) {
     }
     $countPrinted++;
 }
-close($FAML);
+close($FAMFL);
+
 if( $countPrinted > 0 ) {
     if( $format eq "blast" ) {
         my $date = qx(date);
@@ -185,7 +185,13 @@ sub bringTCDB {
 }
 
 sub signalHandler {
-    print "\n\tcleaning up ...";
-    system "rm -r $tempFolder";
+    my $message = $_[0];
+    if( length($message) ) {
+        print $message,"\n";
+    }
+    if( -d "$tempFolder" ) {
+        print "\n\tcleaning up ...";
+        system "rm -r $tempFolder";
+    }
     die  " done!\n\n";
 }
