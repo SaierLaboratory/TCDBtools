@@ -156,30 +156,36 @@ sub readSequences {
 
   open (my $MYFILE1, "<", $seqFile) || die $!;
   while (<$MYFILE1>) {
+
     chomp;
     my $line = $_;
     $line =~ s/\r//g;	# remove linefeed char
     $line =~ s/\n//g;	# remove new line char
 
     if ($line =~ /^>/) {
-      if ($sequence ne "") {
-	push(@FASTAseq, $sequence);
-	$sequence = "";
-      }
-      @tmp1 = split(/\s+/, $line);
 
+      if ($sequence ne "") {
+
+	push(@FASTAseq, $sequence) unless (exists $noTMS{$cnt});
+	$sequence = "";
+
+#	print "|$cnt|\n", Data::Dumper->Dump([\@seqname, \@FASTAseq, \%noTMS], [qw(*seqname *FASTAseq *noTMS)]);
+#	<STDIN>;
+
+	$cnt++;
+      }
+
+      @tmp1 = split(/\s+/, $line);
       push(@seqname, $tmp1[0]) unless (exists $noTMS{$cnt});
-      $cnt++;
     }
     else { $sequence = $sequence.$line; }
   }
-
-  unless (exists $noTMS{$cnt}) {
-    push(@FASTAseq, $sequence);
-    $cnt++;
-  }
-
   close($MYFILE1);
+
+  push(@FASTAseq, $sequence) unless (exists $noTMS{$cnt});
+
+#  print Data::Dumper->Dump([\@TMsegments, \%noTMS, \@seqname, \@FASTAseq, $cnt], [qw(*TMsegments *noTMS *seqname *FASTAseq *cnt)]);
+#  exit;
 }
 
 
@@ -238,13 +244,19 @@ sub predictTMS {
     my $n   = undef;
     my $tms = undef;
 
-    if (/(IN|OUT)\s+(\d)\s+(.+)$/) {
-      $n   = $2;
-      $tms = $3;
+    if (/(IN|OUT)\s+(\d)/) {
+      $n = $2;
+      unless ($n == 0) {
+	if (/(IN|OUT)\s+\d\s+(.+)$/) {
+	  $tms = $2;
+	}
+      }
     }
 
     if ($n == 0) { $noTMS{$cnt} = 1; }
     else {
+
+      die "Error, there should be TMS: n=$n tms=$tms\nline:$_\n" unless ($tms);
 
       #Format the hhmtop coordiantes into CSV coordinates
       my $cvs = format_hmmtop2cvs($tms);
@@ -310,11 +322,18 @@ sub read_command_line {
   #If no output file is given, do not generate output directory because
   #output will be sent to STDOUT
   if ($outfile) {
-
     system "mkdir -p $outdir" unless (-d $outdir);
 
     #Generate the full path to the outputfile
     $outfile = "$outdir/$outfile" if ($outfile);
+  }
+  else {
+
+    #If there is no outfile, generate an error if the output directory was given.
+    #There is no point in generating and empty directory if output is going to STDOUT.
+    if ($outdir ne ".") {
+      die "Error: if output dir is different from the default, results can't be sent to STDOUT!\n";
+    }
   }
 }
 
@@ -455,7 +474,9 @@ Input parameters:
    simple TMSs masked.
 
 -d,  --outdir { DIR } (Optional; Default: '.')
-   Output directory where results will be saved
+   Output directory where results will be saved. Use this option
+   only if you are providing an output file name, otherwise
+   an error will be generated.
 
 -o, --outfile (Optional; Default: STDOUT)
    File in the output directory where results will be saved.
