@@ -32,6 +32,7 @@
 # options and use HHMTOP predicted TMSs, thus removing the need, but keeping
 # the option, for the user to provide the TMS.
 #
+# Date: 11/11/2018
 #---------------------------------------------------------------------------
 
 
@@ -244,10 +245,10 @@ sub predictTMS {
     my $n   = undef;
     my $tms = undef;
 
-    if (/(IN|OUT)\s+(\d)/) {
+    if (/\s+(IN|OUT)\s+(\d+)/) {
       $n = $2;
       unless ($n == 0) {
-	if (/(IN|OUT)\s+\d\s+(.+)$/) {
+	if (/(IN|OUT)\s+\d+\s+(.+)$/) {
 	  $tms = $2;
 	}
       }
@@ -451,13 +452,13 @@ simple or complex.
 Input parameters:
 
 -s, --inseqs { FILE } (Mandatory)
-   The root directory for all protocol2 results. Default value
-   is the current directory.
+   Input file in FASTA format with all sequences to be analyzed.
 
--t, --tms { FILE } (Optional; Default: prdict with HMMTOP);
-   List top GSAT hits in increasing order. By default
-   results are listed this way (This option is ignored if
-   the option -b is given).
+-t, --tms { FILE } (Optional; Default: predict with HMMTOP);
+   Input file with TMS coordinates either in HMMTOP format
+   or TMSOC format (comma separated pairs). Each line in this
+   file must have the same order the the sequeces passed through
+   the -s option.
 
 -f, --tms-format { string } (Optional; Default: hmmtop)
    Indicates the format of the input TMS file. Options are
