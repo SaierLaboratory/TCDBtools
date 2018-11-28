@@ -53,6 +53,7 @@ my $covControl = "X";
 my $blastComp  = "F"; #2;
 my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
+my $subMatrix  = 'BL50';
 
 read_command_line();
 
@@ -786,7 +787,7 @@ sub run_alignment {
     close $fh;
   }
   elsif ($prog eq 'ssearch36') {
-    $cmd = qq(ssearch36 -z 21 -k 10000 -s BL62 -E $evalue -W 0 -m 0  $qfile $sfile > $alnFile );
+    $cmd = qq(ssearch36 -z 21 -k 10000 -s BL62 -E $evalue -W 0 -m 0 -s $subMatrix $qfile $sfile > $alnFile );
     print "$cmd\n";
     system $cmd unless (-f $alnFile && !(-z $alnFile));
   }
@@ -813,6 +814,7 @@ sub read_command_line {
 	"e|evalue=f"       => \$evalue,
 	"c|coverage=f"     => \$coverage,
 	"cc|cov-control=s" => \&read_covControl,
+	"m|sub-matrix=s"   => \&read_subMatrix,
 	"scs|seq-comp-stats=s"     => \&read_blastComp,
 	"lcf|low-complex-filter=s" => \&read_segFilter,
 	"h|help"           => sub { print_help(); },
@@ -865,8 +867,8 @@ sub check_label {
 
   my($option, $label) = @_;
 
-  unless ($label =~ /^[0-9a-zA-Z_\.-]+$/) {
-    die "Error in option ${option}: illegal characters in label. Valid characters are 0-9a-zA-Z_.-\n";
+  unless ($label =~ /^[\+0-9a-zA-Z_\.\+-]+$/) {
+    die "Error in option ${option}: illegal characters in label. Valid characters are 0-9a-zA-Z_.+-: $label\n";
   }
 }
 
@@ -924,6 +926,22 @@ sub read_covControl {
 
   $covControl = $tmp;
 }
+
+
+#==========================================================================
+#Option -m (Any matrix supported by ssearch
+
+sub read_subMatrix {
+  my ($opt, $value) = @_;
+
+  my $tmp = uc $value;
+  unless ($tmp =~ /^(BL50|BL62|P250|OPT5|VT200|VT160|P120|VT120|BL80|VT80|MD40|VT40|MD20|VT20|MD10|VT10)$/) {
+    die "Error in option -m: illegal matrix ($value). Value should be any matrix supported by SSEARCH\n";
+  }
+
+  $subMatrix = $tmp;
+}
+
 
 
 #==========================================================================
@@ -1002,6 +1020,10 @@ Options:
 
 -e, --evalue {float} (Optional. Default: 1e-10)
    E-value threshold to use in the alignments.
+
+-m, --sub-matrix {string} (Optional. Default: BL50)
+   Substitution matrix to use in the alignments. Any matrix supported by
+   ssearch36 can be used.
 
 -c, --coverage {float} (Optional. Default: 70.0)
    Threshold for Alignment coverage percentage to use in the alignments.

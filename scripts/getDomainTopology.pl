@@ -29,7 +29,7 @@ my $prop_prots_w_domain = 0.05;
 #Options for TCDB::Domain::Characterize
 my $rootDir              = ".";
 my $tcdbSeqsFile         = "/Users/amedrano/Projects/tcdb/TOG/data/tcdb.faa"; #"/ResearchData/pfam/download/tcdb.faa";
-my $pfamFile             = "/Users/amedrano/Projects/tcdb/TOG/data/tcdb.pfam-a.hmmscan.bz2"; #"/ResearchData/pfam/tcdb.pfam-a.hmmscan.bz2";
+my $pfamFile             = "/ResearchData/pfam/tcdb.pfam-a.hmmscan.bz2"; #"/Users/amedrano/Projects/tcdb/TOG/data/tcdb.pfam-a.hmmscan.bz2"; 
 my $blastdb              = "/Users/amedrano/db/blastdb/tcdb";
 my $prog                 = "ssearch36";
 my $analysisLevel        = 'system';
@@ -314,13 +314,9 @@ Identify the main protein domains in a family.
   given, in which case all TCIDs will be treated as a superfamily.
 
  -dc, --domain-cov {float} (Default: 0.7)
-<<<<<<< HEAD
   Minimum coverage of the Pfam domain to consider it a match. If coverage
   is less than the specified threshold, the coverage must apply to the
   the query protein to consider the domain hit significant.
-=======
-  Minimum coverage of the Pfam domain to consider it a match.
->>>>>>> bc63fc1c9f568203b3756774ad030fedfc40ff35
 
  -pc, --protein-cov {float} (Default: 0.1)
   Minimum coverage of the query protein sequence per domain.
@@ -328,11 +324,7 @@ Identify the main protein domains in a family.
  -e, --evalue {float} (Default: 1e-5)
   Maximum evalue threshold to consider a Pfam domain hit.
 
-<<<<<<< HEAD
  -m, --prots-w-domain {float) (Default: 0.05)
-=======
- -m, --prots-w-domain {float) (Default: 0.10)
->>>>>>> bc63fc1c9f568203b3756774ad030fedfc40ff35
   Minimum proportion of the proteins in the input family that should
   contain a domain, in order to consider the domain as part of the
   family for the purpose of this analyis.
