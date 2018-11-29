@@ -53,7 +53,7 @@ my $covControl = "X";
 my $blastComp  = "F"; #2;
 my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
-my $subMatrix  = 'BL50';
+my $subMatrix  = 'BL62';
 
 read_command_line();
 
