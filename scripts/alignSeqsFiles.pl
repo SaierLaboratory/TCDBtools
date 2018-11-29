@@ -787,7 +787,7 @@ sub run_alignment {
     close $fh;
   }
   elsif ($prog eq 'ssearch36') {
-    $cmd = qq(ssearch36 -z 21 -k 10000 -s BL62 -E $evalue -W 0 -m 0 -s $subMatrix $qfile $sfile > $alnFile );
+    $cmd = qq(ssearch36 -z 21 -k 10000 -s $subMatrix -E $evalue -W 0 -m 0  $qfile $sfile > $alnFile );
     print "$cmd\n";
     system $cmd unless (-f $alnFile && !(-z $alnFile));
   }
