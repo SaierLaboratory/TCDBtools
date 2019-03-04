@@ -42,8 +42,8 @@ my $accession = undef;
 my $accFile   = undef
 my $outdir    = undef;
 my $blastdb   = undef;
-my $evalue    = 1;
-
+my $evalue    = 1e-3;
+my $subMatrix  = 'BL50';
 
 read_command_line();
 
@@ -67,7 +67,7 @@ die "Both files must exist:\n  $fragFile\n  $protFile" unless (-f $fragFile && -
 #align fragment to full protein
 
 my $alignFile = "$outdir/${accession}_glsearch.out";
-my $cmd = qq(glsearch36 -s BL62 -z 21 -k 10000 $fragFile $protFile > $alignFile);
+my $cmd = qq(glsearch36 -s BL62 -z 21 -k 10000 -E $evalue -s $subMatrix $fragFile $protFile > $alignFile);
 system $cmd unless (-f  $alignFile);
 
 
@@ -203,6 +203,7 @@ sub read_command_line {
 	"o|outdir=s"       => \$outdir,
 	"bdb|blastdb=s"    => \&read_blastdb,
 	"e|evalue=f"       => \$evalue,
+        "m|sub-matrix=s"   => \&read_subMatrix,
 	"h|help"           => sub { print_help(); },
 	"<>"               => sub { die "Error: Unknown argument: $_[0]\n"; });
   exit unless ($status);
@@ -275,6 +276,20 @@ sub read_blastdb {
 }
 
 
+#==========================================================================
+#Option -m (Any matrix supported by ssearch
+
+sub read_subMatrix {
+  my ($opt, $value) = @_;
+
+  my $tmp = uc $value;
+  unless ($tmp =~ /^(BL50|BL62|P250|OPT5|VT200|VT160|P120|VT120|BL80|VT80|MD40|VT40|MD20|VT20|MD10|VT10)$/) {
+    die "Error in option -$opt: illegal matrix ($value). Value should be any matrix supported by SSEARCH\n";
+  }
+
+  $subMatrix = $tmp;
+}
+
 
 
 
@@ -286,7 +301,30 @@ sub print_help {
 
     my $help = <<'HELP';
 
-Type the help here.
+Analyze any given GBLAST match. Plot hydropathy and inferred domains.
+
+Options
+
+-a, --accession {String} (Mandatory)
+   NCBI accession of query protein
+
+-f, --fragment {String} (Mandatory)
+   Sequence fragment to locate within the full protein
+
+-o, --outdir {PATH} (Optional. Default: ./)
+   Path to output directory.
+
+-bdb {PATH} (Optional. Default: nr)
+   Path to the BLAST database where accessions will be extracted from.
+
+-e {FLOAT} (Optional. Default: )
+   E-value cut off when comparing full proteins
+
+-m {STRIN} (Optional. Default: BL50)
+   Amino acid substitution matrix to use in comparisons.
+
+-h, --help
+   Print this help.
 
 HELP
 

@@ -21,7 +21,7 @@ my $sTC   = "";
 
 my $outdir = ".";
 my $owBlastDB = 0;
-
+my $subMatrix = "BL50";
 
 read_command_line_arguments();
 #print Data::Dumper->Dump([$query, $sAcc, $sTC, $outdir, $owBlastDB],
@@ -62,7 +62,7 @@ system $cmd3 unless (-f $sSeqFile);
 
 my $alnDir  = "$outdir/ssearch_${query}_vs_$sAcc";
 my $repFile = "$alnDir/report.html";
-my $cmd4 = qq(alignSeqsFiles.pl -q $qSeqFile -ql $query -s $sSeqFile -sl $sID -o $alnDir -e 10 -c 20 -cc X);
+my $cmd4 = qq(alignSeqsFiles.pl -q $qSeqFile -ql $query -s $sSeqFile -sl $sID -o $alnDir -e 1 -c 20 -cc X -m $subMatrix);
 system $cmd4 unless (-f $repFile);
 
 
@@ -88,6 +88,7 @@ sub read_command_line_arguments {
       "t=s"    => \$sTC,
       "o=s"    => \$outdir,
       "w=s"    => \&read_owBlastDB,
+      "m=s"    => \&read_subMatrix,
       "h|help" => sub { print_help(); },
 
       #For arguments that do not look like valid options
@@ -148,6 +149,21 @@ sub read_owBlastDB {
   }
 }
 
+#==========================================================================
+#Option -m (Any matrix supported by ssearch)
+
+sub read_subMatrix {
+  my ($opt, $value) = @_;
+
+  my $tmp = uc $value;
+  unless ($tmp =~ /^(BL50|BL62|P250|OPT5|VT200|VT160|P120|VT120|BL80|VT80|MD40|VT40|MD20|VT20|MD10|VT10)$/) {
+    die "Error in option -$opt: illegal matrix ($value). Value should be any matrix supported by SSEARCH\n";
+  }
+
+  $subMatrix = $tmp;
+}
+
+
 
 
 
@@ -176,6 +192,10 @@ Options:
 
 -w  {T/F} (Default: F)
     Overwrite the contents of the local TCDB blast database.
+
+-m  {string} (Optional. Default: BL50)
+   Substitution matrix to use in the alignments. Any matrix supported by
+   ssearch36 can be used.
 
 -h, --help
   Print this help. This option takes precedence over anyother option.

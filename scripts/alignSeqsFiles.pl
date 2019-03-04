@@ -46,14 +46,14 @@ my $qlabel     = "Query";
 my $slabel     = "Subject";
 my $outdir     = "";
 my $prog       = 'ssearch36'; #'blastp';
-my $evalue     = 1e-5;
+my $evalue     = 1e-4;
 my $identity   = 20.0;
-my $coverage   = 60.0;
+my $coverage   = 40.0;
 my $covControl = "X";
 my $blastComp  = "F"; #2;
 my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
-my $subMatrix  = 'BL62';
+my $subMatrix  = 'BL50';
 
 read_command_line();
 
@@ -778,7 +778,7 @@ sub run_alignment {
 
     #Run blast
     $cmd = qq(blastp -query $qfile -subject $sfile -matrix BLOSUM62 -out $alnFile $outFmt -evalue $evalue -use_sw_tback $compStr $segStr);
-    #print "$cmd\n";
+    print "$cmd\n";
     system $cmd unless (-f $alnFile && !(-z $alnFile));
 
     #Append command line to the end of results file
@@ -787,7 +787,12 @@ sub run_alignment {
     close $fh;
   }
   elsif ($prog eq 'ssearch36') {
-    $cmd = qq(ssearch36 -z 21 -k 10000 -s $subMatrix -E $evalue -W 0 -m 0  $qfile $sfile > $alnFile );
+    $cmd = qq(ssearch36 -z 11 -k 1000 -s $subMatrix -E $evalue -W 0 -m 0  $qfile $sfile > $alnFile );
+    print "$cmd\n";
+    system $cmd unless (-f $alnFile && !(-z $alnFile));
+  }
+  elsif ($prog eq 'glsearch36' || $prog eq 'ggsearch36') {
+    $cmd = qq($prog -z 11 -k 1000 -s $subMatrix -E $evalue -m 0  $qfile $sfile > $alnFile );
     print "$cmd\n";
     system $cmd unless (-f $alnFile && !(-z $alnFile));
   }
@@ -839,7 +844,7 @@ sub read_qfile {
   my ($opt, $value) = @_;
 
   unless (-f $value && !(-z $value)) {
-    die "Error in option -q: File with sequences does not exist or is empty --> $value\n";
+    die "Error in option -$opt: File with sequences does not exist or is empty --> $value\n";
   }
 
   $qfile = $value;
@@ -853,7 +858,7 @@ sub read_sfile {
     my ($opt, $value) = @_;
 
   unless (-f $value && !(-z $value)) {
-    die "Error in option -s: File with sequences does not exist or is empty --> $value\n";
+    die "Error in option -$opt: File with sequences does not exist or is empty --> $value\n";
   }
 
   $sfile = $value;
@@ -904,8 +909,8 @@ sub read_prog {
   my ($opt, $value) = @_;
 
   my $tmp = lc $value;
-  unless ($tmp =~ /^(blastp|ssearch36)$/) {
-    die "Error in option -cc: illegal program ($value). Valid programs are blastp and ssearch36\n";
+  unless ($tmp =~ /^(blastp|ssearch36|glsearch36|ggsearch36)$/) {
+    die "Error in option -$opt: illegal program ($value). Valid programs are blastp and ssearch36\n";
   }
 
   $prog = $tmp;
@@ -921,7 +926,7 @@ sub read_covControl {
 
   my $tmp = uc $value;
   unless ($tmp =~ /^[XQSB]$/) {
-    die "Error in option -cc: illegal charater ($value). Valid characters are Q,S,B,X\n";
+    die "Error in option -$opt: illegal charater ($value). Valid characters are Q,S,B,X\n";
   }
 
   $covControl = $tmp;
@@ -936,7 +941,7 @@ sub read_subMatrix {
 
   my $tmp = uc $value;
   unless ($tmp =~ /^(BL50|BL62|P250|OPT5|VT200|VT160|P120|VT120|BL80|VT80|MD40|VT40|MD20|VT20|MD10|VT10)$/) {
-    die "Error in option -m: illegal matrix ($value). Value should be any matrix supported by SSEARCH\n";
+    die "Error in option -$opt: illegal matrix ($value). Value should be any matrix supported by SSEARCH\n";
   }
 
   $subMatrix = $tmp;
@@ -952,7 +957,7 @@ sub read_blastComp {
 
   my $tmp = uc $value;
   unless ($tmp =~ /^[TF]$/) {
-    die "Error in option -scs: illegal charater ($value). Valid characters are T and F\n";
+    die "Error in option -$opt: illegal charater ($value). Valid characters are T and F\n";
   }
 
   $blastComp = ($tmp eq 'T')? 2 : 0;
@@ -967,7 +972,7 @@ sub read_segFilter {
 
   my $tmp = uc $value;
   unless ($tmp =~ /^[TF]$/) {
-    die "Error in option -lcf: illegal charater ($value). Valid characters are T and F\n";
+    die "Error in option -$opt: illegal charater ($value). Valid characters are T and F\n";
   }
 
 
@@ -1008,9 +1013,9 @@ Options:
    Short label identifying the subject file. Valid characters are numbers, dots,
    dashes and underscores. No spaces allowed.
 
--p, --prog {string} (Optional. Default: blastp);
-   Program that will be used to align the sequences. Valid options are blastp
-   and ssearch36 (case insensitive)
+-p, --prog {string} (Optional. Default: ssearch36);
+   Program that will be used to align the sequences. 
+   Valid options are (case insensitive): blastp|ssearch36|glsearch36|ggsearch36
 
 -o, --oudir {path} (Optional, Default: see below)
    Output directory to store the results. Depending on the chosen  alignment
@@ -1018,14 +1023,14 @@ Options:
    files, the default output directory will be:
              ./{prog}_{slabel}_vs_{qlabel}
 
--e, --evalue {float} (Optional. Default: 1e-10)
+-e, --evalue {float} (Optional. Default: 1e-4)
    E-value threshold to use in the alignments.
 
 -m, --sub-matrix {string} (Optional. Default: BL50)
    Substitution matrix to use in the alignments. Any matrix supported by
    ssearch36 can be used.
 
--c, --coverage {float} (Optional. Default: 70.0)
+-c, --coverage {float} (Optional. Default: 40.0)
    Threshold for Alignment coverage percentage to use in the alignments.
 
 -cc, --cov-control {char} (Optional. Defaul: X)
@@ -1037,7 +1042,8 @@ Options:
    S:  Coverage applies to the subject protein only.
 
 -scs, --seq-comp-stats { T/F } (Optional. Default: T)
-   Peforem sequence composition statistics when calculating E-values.
+   Perform sequence composition statistics when calculating E-values with
+   BlastP. SSEARCH always corrects for sequence composition bias.
 
 -lcf, --low-complex-filter { T/F } (Optional. Default: F)
     Filter low complexity regions from alignments before calculating
