@@ -42,13 +42,14 @@ my $accession = undef;
 my $accFile   = undef
 my $outdir    = undef;
 my $blastdb   = undef;
-my $evalue    = 1e-3;
-my $subMatrix  = 'BL50';
+my $evalue    = 1e-2;
+my $subMatrix = 'BL50';
+my $quiet     = 0;
 
 read_command_line();
 
-#print Data::Dumper->Dump([$fragment, $accession, $accFile, $outdir, $blastdb, $evalue],
-#                         [qw(*fragment *accession *accFile *outdir *blastdb *evalue)]);
+#print Data::Dumper->Dump([$fragment, $accession, $accFile, $outdir, $blastdb, $evalue, $quiet],
+#                         [qw(*fragment *accession *accFile *outdir *blastdb *evalue *quiet)]);
 #exit;
 
 
@@ -146,8 +147,9 @@ sub run_quod {
     last;
   }
 
+  my $qstring = ($quiet)? "-q" : "";
 
-  my $cmd = qq(quod.py -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
+  my $cmd = qq(quod.py $qstring -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
 #  print "$cmd\n";
   system $cmd;
 }
@@ -203,7 +205,8 @@ sub read_command_line {
 	"o|outdir=s"       => \$outdir,
 	"bdb|blastdb=s"    => \&read_blastdb,
 	"e|evalue=f"       => \$evalue,
-        "m|sub-matrix=s"   => \&read_subMatrix,
+	"m|sub-matrix=s"   => \&read_subMatrix,
+	"q|quiet!"         => \$quiet,
 	"h|help"           => sub { print_help(); },
 	"<>"               => sub { die "Error: Unknown argument: $_[0]\n"; });
   exit unless ($status);
@@ -317,11 +320,13 @@ Options
 -bdb {PATH} (Optional. Default: nr)
    Path to the BLAST database where accessions will be extracted from.
 
--e {FLOAT} (Optional. Default: )
+-e, --evalue {FLOAT} (Optional. Default: 0.01)
    E-value cut off when comparing full proteins
 
--m {STRIN} (Optional. Default: BL50)
+-m, --sub-matrix {STRIN} (Optional. Default: BL50)
    Amino acid substitution matrix to use in comparisons.
+
+-q, --quiet [flag] (Optional. Default: show plots).
 
 -h, --help
    Print this help.
