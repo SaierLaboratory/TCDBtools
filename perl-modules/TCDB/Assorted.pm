@@ -604,7 +604,8 @@ sub readFullTCDB {
 
   my ($tcdbFaa, $allFams) = @_;
 
-  my $cmd = qq(grep '>' $tcdbFaa | perl -pe 's/[ \\t]+\$//;  s/\\>//;');
+  #Take care of fasta headers that might include functional definitions beyond the ID
+  my $cmd = qq(grep '>' $tcdbFaa | perl -pe 's/[ \\t]+.*\$//;  s/\\>//;');
   my $allSystems = `$cmd`;
   my @ids = split(/\n/, $allSystems);
 

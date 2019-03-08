@@ -984,7 +984,7 @@ sub alignDomainsVsProteins {
     if ($self->searchWith eq 'ssearch36') {
 
       #Defaults: -s BL50 -z 2 (but l1-l6 also works) ... sensitive, but error prone
-      my $args = qq(-z 21 -k 1000 -E $eval -m 8C $domSeqs $famSeqs > $outfile);
+      my $args = qq(-z 21 -k 1000 -E $eval -m 8C -s BL50 $domSeqs $famSeqs > $outfile);
       system "ssearch36 $args";
     }
     elsif ($self->searchWith eq 'blastp') {
