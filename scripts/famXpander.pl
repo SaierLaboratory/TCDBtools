@@ -318,29 +318,28 @@ sub runBlast {
                            "Iteration: 1",
                            "ID: $query"
                        ),"\n";
-                open( my $PSIFL,">","$tmpFile" );
-                print {$PSIFL} "# Iteration: 1\n";
-                close($PSIFL);
-                my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpFile);
+                my $blastCmdR = $blastRootCmd . qq( -remote);
                 $blastCmdR =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
-                #print $blastCmdR,"\n";exit;
-                system("$blastCmdR 2>/dev/null");
+                open( my $PSIFL,">","$tmpFile" );
+                my $remoteOutPut = qx($blastCmdR 2>/dev/null);
+                print {$PSIFL} "# Iteration: 1\n",$remoteOutPut,"\n";
+                close($PSIFL);
                 #### now second iteration:
                 if( $iters > 1 ) {
                     print "        preparing for second iteration\n";
                     my $sendCmd = $blastRootCmd;
-                    $sendCmd =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
-                    if( my $pssm = prepareRemoteIter("$tmpFile","$sendCmd") ){
+                    $sendCmd
+                        =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
+                    if( my $pssm = prepareRemoteIter("$tmpFile","$sendCmd") ) {
                         print "        running second iteration ($query)\n";
-                        open( my $PSIFL2,">>","$tmpFile" );
-                        print {$PSIFL2} "# Iteration: 2\n";
-                        close($PSIFL2);
-                        my $blastCmd2
-                            = $blastRootCmd . qq( -remote >> $tmpFile);
+                        my $blastCmd2 = $blastRootCmd . qq( -remote);
                         my $runPssm = "$tempFolder/$pssm";
                         $blastCmd2
                             =~ s{query\s+$tempSeqFile}{in_pssm $runPssm};
-                        system("$blastCmd2 2>/dev/null");
+                        my $remoteOutPut2 = qx($blastCmd2 2>/dev/null);
+                        open( my $PSIFL2,">>","$tmpFile" );
+                        print {$PSIFL2} "# Iteration: 2\n",$remoteOutPut2,"\n";
+                        close($PSIFL2);
                     }
                     else {
                         print "        no need to run second iteration\n";
