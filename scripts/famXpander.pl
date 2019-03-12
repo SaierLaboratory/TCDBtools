@@ -304,7 +304,6 @@ sub runBlast {
             $blastRootCmd .= qq( -qcov_hsp_perc $pc_min_cover );
         }
         if( $remote eq "T" ) {
-            #my $blastCmdR = $blastRootCmd . qq( -remote >> $tmpPsiFile);
             print "   psiblasting at NCBI (might take a while):\n";
             #### each remote run should contain only one query
             #### for network and wait reasons
@@ -321,8 +320,13 @@ sub runBlast {
                 my $blastCmdR = $blastRootCmd . qq( -remote);
                 $blastCmdR =~ s{query\s+$tempSeqFile}{query $tempFolder/$query};
                 open( my $PSIFL,">","$tmpFile" );
-                my $remoteOutPut = qx($blastCmdR 2>/dev/null);
-                print {$PSIFL} "# Iteration: 1\n",$remoteOutPut,"\n";
+                print {$PSIFL} "# Iteration: 1\n";
+                for my $remoteLine ( qx($blastCmdR 2>/dev/null) ) {
+                    my @items = split(/\s+/,$remoteLine);
+                    if( scalar(@items) > 3 || $remoteLine =~ m{^#} ) {
+                        print {$PSIFL} $remoteLine;
+                    }
+                }
                 close($PSIFL);
                 #### now second iteration:
                 if( $iters > 1 ) {
@@ -336,9 +340,14 @@ sub runBlast {
                         my $runPssm = "$tempFolder/$pssm";
                         $blastCmd2
                             =~ s{query\s+$tempSeqFile}{in_pssm $runPssm};
-                        my $remoteOutPut2 = qx($blastCmd2 2>/dev/null);
                         open( my $PSIFL2,">>","$tmpFile" );
-                        print {$PSIFL2} "# Iteration: 2\n",$remoteOutPut2,"\n";
+                        print {$PSIFL2} "# Iteration: 2\n";
+                        for my $remoteLine2 ( qx($blastCmd2 2>/dev/null) ) {
+                            my @items2 = split(/\s+/,$remoteLine2);
+                            if( scalar(@items2) > 3 || $remoteLine2 =~ m{^#} ) {
+                                print {$PSIFL2} $remoteLine2;
+                            }
+                        }
                         close($PSIFL2);
                     }
                     else {

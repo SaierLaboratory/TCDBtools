@@ -453,6 +453,7 @@ sub run_quod {
 
   my $alnFig = "$plotsDir/${q}_vs_${s}_qs${qs}_qe${qe}_ss${ss}_se${se}";
   my $cmd1 = qq(quod.py --grid -q -s -l "$q (red) and $s (blue)"  -o $alnFig --xticks 25 --width 15 -- $qseq $sseq);
+  #print "$cmd1\n\n";
   system $cmd1 unless (-f "${alnFig}.png");
   return undef unless (-f "${alnFig}.png");
 
@@ -472,7 +473,8 @@ sub run_quod {
   #Plot query hydropathy
   my $qPfam = get_pfam_coords_for_quod($q, "red");
   my $qName = "$plotsDir/${q}_vs_${s}_qaln_qs${qs}_qe${qe}";
-  my $cmd2  = qq(quod.py --grid -q -l "$q"  -o $qName --width 15 --c red --xticks 25 -w ${qs}-${qe}::1 -t png -nt +0  $qTMS $qPfam --  $seqDir/${q}.faa);
+  my $cmd2  = qq(quod.py --grid -q -l "$q"  -o $qName --width 15 --color red --xticks 25 -w ${qs}-${qe}::1 -t png -nt +0  $qTMS $qPfam --  $seqDir/${q}.faa);
+  #print "$cmd2\n\n";
   system $cmd2 unless (-f "${qName}.png");
   return undef unless (-f "${qName}.png");
 
@@ -488,7 +490,8 @@ sub run_quod {
   #Plot Subject hydropaty
   my $sPfam = get_pfam_coords_for_quod($s, "blue");
   my $sName = "$plotsDir/${q}_vs_${s}_saln_ss${ss}_se${se}";
-  my $cmd3  = qq(quod.py --grid -q -l "$s"  -o $sName --width 15 --c blue --xticks 25 -w ${ss}-${se}::1 -t png -nt +0 $sTMS $sPfam --  $seqDir/${s}.faa);
+  my $cmd3  = qq(quod.py --grid -q -l "$s"  -o $sName --width 15 --color blue --xticks 25 -w ${ss}-${se}::1 -t png -nt +0 $sTMS $sPfam --  $seqDir/${s}.faa);
+  #print "$cmd3\n\n";
   system $cmd3 unless (-f "${sName}.png");
   return undef unless (-f "${sName}.png");
 
