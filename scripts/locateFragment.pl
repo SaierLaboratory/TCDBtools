@@ -37,14 +37,15 @@ $CheckDep_obj -> checkDependencies;
 #==========================================================================
 #Read command line arguments
 
-my $fragment  = undef;
-my $accession = undef;
-my $accFile   = undef
-my $outdir    = undef;
-my $blastdb   = undef;
-my $evalue    = 1e-2;
-my $subMatrix = 'BL50';
-my $quiet     = 0;
+my $fragment    = undef;
+my $accession   = undef;
+my $accFile     = undef
+my $outdir      = undef;
+my $blastdb     = undef;
+my $evalue      = 1e-2;
+my $subMatrix   = 'BL50';
+my $quiet       = 0;
+my $interactive = 0;
 
 read_command_line();
 
@@ -148,8 +149,9 @@ sub run_quod {
   }
 
   my $qstring = ($quiet)? "-q" : "";
+  my $iString = ($interactive)? "--show" : "";
 
-  my $cmd = qq(quod.py $qstring -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
+  my $cmd = qq(quod.py $qstring $iString -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
 #  print "$cmd\n";
   system $cmd;
 }
@@ -206,6 +208,7 @@ sub read_command_line {
 	"bdb|blastdb=s"    => \&read_blastdb,
 	"e|evalue=f"       => \$evalue,
 	"m|sub-matrix=s"   => \&read_subMatrix,
+	"t|interactive!"   => \$interactive,
 	"q|quiet!"         => \$quiet,
 	"h|help"           => sub { print_help(); },
 	"<>"               => sub { die "Error: Unknown argument: $_[0]\n"; });
@@ -214,6 +217,7 @@ sub read_command_line {
 
   die "Error: option -f is mandatory." unless ($fragment);
   die "Error: options -i or -a are mandatory." unless ($accession || $accFile);
+  die "Error: flags -t and -q cannot be set at the same time!" if ($quiet && $interactive);
 
   #Default value for output directory
   $outdir = "." unless ($outdir);
@@ -326,7 +330,14 @@ Options
 -m, --sub-matrix {STRIN} (Optional. Default: BL50)
    Amino acid substitution matrix to use in comparisons.
 
--q, --quiet [flag] (Optional. Default: show plots).
+-t, --interactive [flag] (Optional)
+   Generate the plot but open it in interactive mode,
+   The user will be able to identify specific residue
+   positions. This option is incompatible with -q.
+
+-q, --quiet [flag] (Optional)
+    Generate plots but do not attempt to open them with
+    an image viewer. Incompatible with option -i.
 
 -h, --help
    Print this help.
