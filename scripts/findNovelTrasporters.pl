@@ -19,6 +19,7 @@ use TCDB::CheckDependencies;
 #==========================================================================
 
 
+
 #==========================================================================
 #Check dependencies
 
@@ -61,10 +62,10 @@ my $minTMS = 4;
 
 
 #For queries that require results higher than this evalue
-my $greaterThanEvalue = 0.001;
+my $greaterThanEvalue = 1e-3;
 
 
-#Evalue threshold to consider to remote homologs redundant.
+#Evalue threshold to consider two remote homologs redundant.
 my $redundantEvalue = 1e-5;
 
 
@@ -172,7 +173,7 @@ print "Generating reports\n";
 
 
 #HTML report
-generate_reports(\%bestCandidates);
+generate_reports();
 
 
 
@@ -189,8 +190,6 @@ print "\n### Finished ###\n";
 
 
 sub generate_reports {
-
-  my $prots = shift;
 
 
   #----------------------------------------------------------------------
@@ -221,7 +220,11 @@ HEADER
   print $hth $hHeader;
 
   print $outh "#Accession\tLength\tTMSs\tDescription\n";
-  foreach my $acc (sort {$a cmp $b} keys %bestCandidates) {
+  foreach my $acc (sort by_tmsNlength  keys %bestCandidates) {
+
+
+    #Ignore accession if the sequence is partial
+    next if ($bestCandidates{$acc}{annot} =~ /partial/i);
 
     #text report
     print $outh "$acc\t", $bestCandidates{$acc}{length}, "\t",
@@ -268,6 +271,28 @@ CLOSE
 
 
 #==========================================================================
+#Sort final candidates by number of TMS and by length.
+
+sub by_tmsNlength {
+
+  my $alen = $bestCandidates{$a}{length};
+  my $atms = $bestCandidates{$a}{tms};
+
+  my $blen = $bestCandidates{$b}{length};
+  my $btms = $bestCandidates{$b}{tms};
+
+
+  if ($atms == $btms) {
+    $blen <=> $alen;
+  }
+  else {
+    $btms <=> $atms;
+  }
+}
+
+
+
+#==========================================================================
 #Generate hydropathy plot for a given accession
 
 sub generate_plot {
@@ -288,7 +313,7 @@ sub generate_plot {
   system $cmd1 unless (-f $sfile && !(-z $sfile));
 
   my $qTMS = "-at " . join(",", @{ $coords }) . ":cyan";
-  my $cmd2 = qq(quod.py -q -l "$id" -o $pfile --width 15 --c blue --xticks 50 -nt +0  $qTMS --  $sfile);
+  my $cmd2 = qq(quod.py -q -l "$id" -o $pfile --width 15 --color blue --xticks 50 -nt +0  $qTMS --  $sfile);
   system $cmd2 unless (-f $pfile && !(-z $pfile));
 
 }
@@ -344,6 +369,7 @@ sub remove_redundant_candidates {
   #the smallest one.
 
   my %redundantCandidates = ();
+
   open (my $blasth, "<", $blastOutFile) || die $!;
   while (<$blasth>) {
 
@@ -375,6 +401,7 @@ sub remove_redundant_candidates {
 	$redundantCandidates{$sbj} = 1;
       }
       else {
+
 	#Same length: sort by accession and keep the first one
 	my $redAcc = (sort {$a cmp $b} ($qry, $sbj))[0];
 	$redundantCandidates{$redAcc} = 1;
@@ -695,7 +722,7 @@ sub read_command_line_arguments {
       "bdb|blastdb=s"          => \$tcblastdb,
       "p|proteome=s"           => \$proteomeFile,
       "tms|min-tms=s"          => \$minTMS,
-      "e|min-evalue=f"        => \$greaterThanEvalue,
+      "e|min-evalue=f"         => \$greaterThanEvalue,
       "re|redundant-evalue=f"  => \$redundantEvalue,
       "h|help"                 => sub { print_help(); },
       "<>"                     => sub { die "Error: Unknown argument: $_[0]\n"; }
@@ -778,15 +805,16 @@ sub print_help {
     Full path to the TCDB blast database that will be used.
 
  -p, --proteome {path}  (Mandatory)
-    File in fasta format with the proteome that will be analyzed.
+    File in fasta format with the proteome that will be analyzed
+    (the proteome file can be compressed in gz or bz2 format)
     Fasta headers must contain the ID (accession) of the
-    protein followed by a space and the functional description 
+    protein followed by a space and the functional description
     (e.g. >AKM78775.1 AP4A hydrolase ...).
 
  -tms, --min-tms {integer}  (Default: 4)
     Minimum number of TMS that candidate transporters should have.
 
- -e, --min-evalue {float}  (default: 0.01)
+ -e, --min-evalue {float}  (default: 1e-3)
     Proteins with E-value greater than this value will be considered.
 
  -re,  --redundancy-evalue {float}  (default: 1e-5)

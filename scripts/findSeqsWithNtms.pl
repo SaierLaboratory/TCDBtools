@@ -60,8 +60,8 @@ my $evalue   = 1e-10;
 my $coverage = 70;
 my $covControl = "X";
 my $cdhit      = 1;
-my $clustID    = 0.8;  #Clustering identity value for cd-hit
-my $runGBLAST  = "T";
+my $clustID    = 0.9;  #Clustering identity value for cd-hit
+my $runGBLAST  = "F";
 
 read_command_line();
 
@@ -342,7 +342,7 @@ sub localNCBIseqExtract {
 
   my $randNum = int(rand(10000));
   my $tmpFile ="$miscDir/seqs${randNum}.faa";
-  my $cmd = qq(blastdbcmd -db $db -entry_batch $in -target_only -outfmt '\%f' -out $tmpFile);
+  my $cmd = qq(/usr/local/biotools/ncbi-blast-2.9.0+/bin/blastdbcmd -db $db -entry_batch $in -target_only -outfmt '\%f' -out $tmpFile);
   system $cmd unless (-f $tmpFile && !(-z $tmpFile));
 
 
@@ -674,13 +674,13 @@ sub print_help {
    List of protein accessions from TCDB or UniProt for which to identify
    homologous. Option -d must also be given with this option.
 
-
  -d, --fxpandir {directory} (optional)
    Directory holding the results of famXpander. This option must be given
    if option -p is given.
 
- -n, --tms {integer >= 0}  (Mandatory)
-   Desired nubmer of TMS in the target sequences.
+ -n, --tms {integer >= 0}  (Optional; Default: any number of TMS)
+   Desired nubmer of TMS in the target sequences. If not given,
+   The program will take all sequences into consideration.
 
  -o, --outdir {directory}
    Output directory where results will be organized. If directory does not
@@ -690,18 +690,25 @@ sub print_help {
  -e, --evalue {FLOAT >= 0.0) (Optional)
    E-value cutoff to identify sequence matches (Default: 1e-10).
 
- -c, --coverage {FLOAT < 100.0) (optional)
+ -c, --coverage {FLOAT < 100.0) (Optional; Default: 70)
    Minimum coverage for the smaller protein (query or subject) in percentage
-   values (Default: 70).
+   values
+
+-cc, --cov-control {char} (Optional. Defaul: X)
+   Controls how the coverage threshold will be applied to the alignments
+   (case insensitive):
+   X:  Coverage applies to at least one protein.
+   B:  Coverage applies to both proteins.
+   Q:  Coverage applies to the query protein only.
+   S:  Coverage applies to the subject protein only.
 
  --full  (Optional)
    Flag that indicates that the input file (passed through the -i option) 
    contains full sequences and not the aligned fragments.
    (Default: --no-full; assume input file contains only aligned fragments)
 
- -g, --gblast {FLAG: T/F} (Optional)
+ -g, --gblast {FLAG: T/F} (Optional; Default: F)
    Flag indicating whether GBLAST should run for the extracted sequences.
-   (Default: T)
 
  -h, --help
    Display this help. Also displayed if script is run without arguments.

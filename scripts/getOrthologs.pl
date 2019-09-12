@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 ## a little program to extract orthologs from a homologs file
 ## using the reciprocal best hits definition
@@ -9,30 +9,32 @@ use Getopt::Long;
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
 
-#my @pwprogram = qw(
-#                      blastp
-#                      diamond
-#              );
-#
-#my $pwmatch = join("|",@pwprogram);
+my @pwProgs = qw(
+                      blastp
+                      diamond
+            );
+my $matchProg = join("|",@pwProgs);
 
 my $cov1       = 60;
 my $cov2       = 99;
 my $defCov     = 60;
 my $defAln     = "F";
+my $defPW      = 'blastp';
 ###### assignable:
 my $faaQuery   = '';
 my $faaSubject = '';
-my $pwDir      = "blastRuns";
+my $pwDir      = "compRuns";
 my $rbhDir     = "RBHs";
 my $minCov     = $defCov;
 my $maxOverlap = 0.1; # maximum overlap in fused proteins/genes
 my $maxEvalue  = 1e-6;
-my $alnSeqs    = 'F';
+my $alnSeqs    = $defAln;
+my $pwProg     = $defPW;
 
 my $options = GetOptions(
     "i=s" => \$faaQuery,
     "s=s" => \$faaSubject,
+    "m=s" => \$pwProg,
     "p=s" => \$pwDir,
     "o=s" => \$rbhDir,
     "c=s" => \$minCov,
@@ -43,46 +45,64 @@ my $options = GetOptions(
 
 my $ownName = $0;
 $ownName =~ s{.*/}{};
+my $helpBrief
+    = qq(about:\n)
+    . qq(  This program produces files with reciprocal best hits\n\n)
+    . qq(usage: $ownName [options]\n)
+    . qq(example:\n)
+    . qq(       $ownName -i [filename1.faa] -s [filename2.faa]\n)
+    . qq(\noptions:\n)
+    . qq(   -i query file in fasta format, required\n)
+    . qq(       (files can be compressed with gzip or bzip2)\n)
+    . qq(   -s subject file in fasta format, required\n)
+    . qq(       (files can be compressed with gzip or bzip2)\n)
+    . qq(   -m program for pairwise comparisons [$matchProg],\n)
+    . qq(       default: $defPW\n)
+    . qq(   -p comparison results directory, default compRuns\n)
+    . qq(   -o RBH directory, default RBHs\n)
+    . qq(   -c minimum coverage of shortest sequence [60 - 99],\n)
+    . qq(       default $defCov\n)
+    . qq(   -f maximum overlap between fused sequences [0 - 0.2],\n)
+    . qq(       default 0.1\n)
+    . qq(   -e maximum e-value, default 1e-6\n)
+    . qq(   -a include aligned sequences in comparison results [T/F],\n)
+    . qq(       default $defAln\n)
+    . qq(\n)
+    . qq(requirements:\n)
+    . qq(  This program requires either blastp or diamond\n)
+    . qq(  to cpmpare protein sequences, or appropriately\n)
+    . qq(  formatted comparison results for the query/subject\n)
+    . qq(  genomes\n\n)
+    ;
+
+
 if( !$faaQuery || !$faaSubject ) {
-    print qq(about:\n);
-    print qq(  This program produces files with reciprocal best hits\n\n);
-    print "usage: " . $ownName . " [options]\n";
-    print "\noptions:\n";
-    print "   -i query file in fasta format, required\n";
-    print "   -s subject file in fasta format, required\n";
-    print "   -p blastp results directory, default blastRuns\n";
-    print "   -o RBH directory, default RBHs\n";
-    print "   -c minimum coverage of shortest sequence [60 - 99],\n"
-        . "       default $defCov\n";
-    print "   -f maximum overlap between fused sequences [0 - 0.2],\n"
-        . "       default 0.1\n";
-    print "   -e maximum e-value, default 1e-6\n";
-    print "   -a include aligned sequences in blast results [T/F],\n"
-        . "       default $defAln\n";
-    print "\n";
-    print qq(requirements:\n)
-        . qq(  This program requires either appropriately formatted\n)
-        . qq(  blast results for the query/subject genomes, or the\n)
-        . qq(  NCBI blastp program suite to produce them\n\n)
-        ;
+    print $helpBrief;
     exit;
+}
+unless( -f "$faaQuery" ) {
+    print "Error: There's no $faaQuery file\n\n",$helpBrief;
+}
+unless( -f "$faaQuery" ) {
+    print "Error: There's no $faaSubject file\n\n",$helpBrief;
 }
 
 #### directories where to find files:
 ### in case we need to run blastp
 ### temporary working directory:
-my $query_gnm   = nakedName($faaQuery);
-my $subject_gnm = nakedName($faaSubject);
+my $queryGnm   = nakedName($faaQuery);
+my $subjectGnm = nakedName($faaSubject);
 my $cwd         = qx(pwd);
 my $tempFolder  = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
-my $tmpFile     = $tempFolder . "/$query_gnm.$subject_gnm.rbh";
-my $blastDB     = $tempFolder . "/$subject_gnm";
-my $alnFile     = $pwDir      . "/$query_gnm.$subject_gnm.blastp.bz2";
+my $pwDB        = $tempFolder . "/$subjectGnm";
+my $alnFile
+    = $pwDir      . "/$queryGnm.$subjectGnm." . $pwProg . ".bz2";
 ### directory for RBHs:
 unless( -d "$rbhDir" ) {
     mkdir("$rbhDir");
 }
-
+my $pwProg = $pwProg =~ m{^($matchProg)$} ? lc($1) : $defPW;
+print "comparing sequences with $pwProg\n";
 my $minCov = $minCov >= $cov1 && $minCov <= $cov2 ? $minCov : $defCov;
 print "minimum coverage of shortest sequence: $minCov\n";
 my $maxOverlap
@@ -93,9 +113,9 @@ my $alnSeqs = $alnSeqs =~ m{^(T|F)$}i ? uc($1) : $defAln;
 print "include aligned seqs in blast results: $alnSeqs\n";
 
 ##### the table format below is more informative than the default
-my @blastTbl = qw(
-                     qaccver
-                     saccver
+my @pwTbl = qw(
+                     qseqid
+                     sseqid
                      evalue
                      bitscore
                      score
@@ -110,23 +130,33 @@ my @blastTbl = qw(
              );
 ##### add alignments to blast results table?
 if( $alnSeqs eq "T" ) {
-    push(@blastTbl,"qseq","sseq");
+    push(@pwTbl,"qseq","sseq");
 }
 
-my $blastTbl = join(" ",@blastTbl);
+my $pwTbl
+    = $pwProg eq "blastp" ? join(" ","7",@pwTbl)
+    : join(" ","6",@pwTbl);
 my $blastOptions
-    = qq( -query - -db $blastDB -evalue $maxEvalue -max_hsps 1 )
+    = qq( -query - -db $pwDB -evalue $maxEvalue -max_hsps 1 )
     . qq( -seg yes -soft_masking true )
-    . qq( -outfmt '7 $blastTbl' );
+    . qq( -outfmt '$pwTbl' );
+my $diamondOptions
+    = qq( --db $pwDB --evalue $maxEvalue --masking 0 --sensitive )
+    . qq( --quiet --outfmt $pwTbl );
 unless( -f "$alnFile" ) {
-    runBlastp("$faaQuery","$faaSubject");
+    if( $pwProg eq "blastp" ) {
+        runBlastp("$faaQuery","$faaSubject");
+    }
+    else {
+        runDiamond("$faaQuery","$faaSubject");
+    }
 }
 
 #########################################################################
 ######### reciprocal best hits
 #########################################################################
-my $orthQuery   = "$query_gnm.$subject_gnm.rbh.bz2";
-my $orthSubject = "$subject_gnm.$query_gnm.rbh.bz2";
+my $orthQuery   = "$queryGnm.$subjectGnm.rbh.bz2";
+my $orthSubject = "$subjectGnm.$queryGnm.rbh.bz2";
 my $tmpQuery    = $tempFolder . "/" . $orthQuery;
 my $tmpSubject  = $tempFolder . "/" . $orthSubject;
 
@@ -271,7 +301,6 @@ sub produceRBH {
                           );
         if( length($query_best_hits{"$query"}) > 0 ) {
             if( $query_bitsc{"$query"} == $bit_score ) {
-                #    && $query_E_value{"$query"} == $evalue ) {
                 $query_best_hits{"$query"}        .= "," . $subject;
                 $print_line{"$query.$subject"}     = $print_line;
                 $init_subject{"$query.$subject"}   = $s_start;
@@ -342,11 +371,15 @@ sub produceRBH {
     ##### count printed lines (to ensure content)
     my $printedOrths = 0;
     open( my $ORTHS,"|-","bzip2 -9 >$tmpFile" );
+    print {$ORTHS} "#",join("\t",
+                            "Query","Subject",
+                            "Evalue","bitScore",
+                            "queryStart","queryEnd","queryCoverage",
+                            "subjectStart","subjectEnd","subjectCoverage",
+                            "Qualifier"
+                        ),"\n";
     ###### first print identicals:
     for my $query ( sort { $a <=> $b || $a cmp $b } keys %ident_bitsc ) {
-        #my ( $query,$subject,@stats ) = split(/\s+/,$ident_line{"$query"});
-        #print {$ORTHS} join("\t",$query,$$subject,
-        #                    @stats,"Identical"),"\n";
         print {$ORTHS} join("\t",$ident_line{"$query"},"Identical"),"\n";
         $printedOrths++;
     }
@@ -514,6 +547,18 @@ sub formatDB {
             system("$mkblastdb 1>/dev/null");
         }
     }
+    elsif( $dbType eq "diamond" ) {
+        if( -f "$dbfile.dmnd" ) {
+            print "  the diamond DB file is already there\n";
+        }
+        else {
+            print "producing diamondDB: $dbfile\n";
+            my $mkdiamondDB
+                = qq($opener $file |)
+                . qq( diamond makedb -d $dbfile --quiet);
+            system("$mkdiamondDB 1>/dev/null");
+        }
+    }
     else { ### lastal for now
         if( -f "$dbfile.bck" ) {
             print "  the lastal DB is already there\n";
@@ -551,17 +596,55 @@ sub runBlastp {
     }
     my $catFile
         = $queryFile =~ m{\.bz2$} ? "bzip2 -qdc $queryFile"
-        : $queryFile =~ m{\.gz$}  ? "gzip -qdc  $queryFile"
+        : $queryFile =~ m{\.gz$}  ? "gzip  -qdc $queryFile"
         : "cat $queryFile";
     my $blcommand = qq($catFile | blastp $blastOptions);
-    system qq( $blcommand | bzip2 -9 > $tempFolder/blast.bz2);
-    if( -s "$tempFolder/blast.bz2" ) {
+    my $lineCount = 0;
+    open( my $PWBLAST,"|-","bzip2 -9 > $tempFolder/blast.bz2" );
+    for my $blastLine ( qx($blcommand) ) {
+        $lineCount++;
+        print {$PWBLAST} $blastLine;
+    }
+    close($PWBLAST);
+    if( $lineCount > 0 ) {
         system qq(mv $tempFolder/blast.bz2 $alnFile &>/dev/null);
         print "   ",nakedName("$queryFile"),
             " vs ",nakedName("$subjectFile")," done\n";
     }
     else {
         print "   blastp failed (empty file)\n";
+        signalHandler();
+    }
+}
+
+sub runDiamond {
+    my($queryFile,$subjectFile) = @_;
+    my $dbfile = nameDB("$subjectFile");
+    formatDB("$subjectFile","$dbfile","diamond");
+    print "running diamond:\n   ",nakedName("$queryFile"),
+        " vs ",nakedName("$subjectFile"),"\n";
+    unless( -d "$pwDir" ) {
+        mkdir("$pwDir");
+    }
+    my $catFile
+        = $queryFile =~ m{\.bz2$} ? "bzip2 -qdc $queryFile"
+        : $queryFile =~ m{\.gz$}  ? "gzip  -qdc $queryFile"
+        : "cat $queryFile";
+    my $dmcommand = qq($catFile | diamond blastp $diamondOptions);
+    my $lineCount = 0;
+    open( my $PWDMD,"|-","bzip2 -9 > $tempFolder/diamond.bz2" );
+    for my $dmLine ( qx($dmcommand) ) {
+        $lineCount++;
+        print {$PWDMD} $dmLine;
+    }
+    close($PWDMD);
+    if( $lineCount > 0 ) {
+        system qq(mv $tempFolder/diamond.bz2 $alnFile &>/dev/null);
+        print "   ",nakedName("$queryFile"),
+            " vs ",nakedName("$subjectFile")," done\n";
+    }
+    else {
+        print "   diamond failed (empty file)\n";
         signalHandler();
     }
 }

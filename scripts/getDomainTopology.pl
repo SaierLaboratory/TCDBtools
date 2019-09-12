@@ -32,6 +32,7 @@ my $tcdbSeqsFile         = "/ResearchData/pfam/download/tcdb.faa";
 my $pfamFile             = "/ResearchData/pfam/tcdb.pfam-a.hmmscan.bz2";
 my $blastdb              = "$ENV{HOME}/db/blastdb/tcdb";
 my $prog                 = "ssearch36";
+my @candProjProts        = ();
 my $analysisLevel        = 'system';
 
 
@@ -45,9 +46,9 @@ die "TCDB hmmscan output file not found --> $pfamFile\n" unless (-f $pfamFile &&
 
 
 #print Data::Dumper->Dump([\@fams, $treatAsSuperfamily,  $rootDir, $tcdbSeqsFile, $pfamFile, $blastdb, $prog, $domain_cov,
-#			  $prot_cov, $evalue, $prop_prots_w_domain],
+#			  $prot_cov, $evalue, $prop_prots_w_domain, \@candProjProts],
 #			 [qw(*fams *treatAsSuperfamily *rootDir *tcdbSeqsFile *pfamFile *blastdb *prog *domain_cov
-#			     *prot_cov *evalue *prop_prots_w_domain)]);
+#			     *prot_cov *evalue *prop_prots_w_domain *candProjProts)]);
 #exit;
 
 
@@ -115,8 +116,8 @@ else {
 
     my $tcids = getSystemAccessions($tcdbSeqsFile, 'both', $analysisLevel, [$fam], $treatAsSuperfamily);
 
-    #print Data::Dumper->Dump([$tcids ], [qw(*tcids )]);
-    #exit;
+#    print Data::Dumper->Dump([$tcids ], [qw( *tcids )]);
+#    exit;
 
 
 
@@ -185,7 +186,7 @@ sub read_command_line_arguments {
   #Parse command line arguments
 
   my $status = GetOptions(
-      "f|family=s"           => \&read_fams,       #TCIDs of families to analyze (comma separated)
+      "f|family=s"           => \&read_fams,           #TCIDs of families to analyze (comma separated)
 
       #Options for TCDB::Domain::PfamParser
       "dc|domain-cov=f"      => \$domain_cov,
@@ -194,6 +195,7 @@ sub read_command_line_arguments {
       "m|prots-w-domain=f"   => \$prop_prots_w_domain,
 
       #Options for TCDB::Domain::Characterize
+      "pt|proj-targets=s"    => \&read_proj_targets,    #Target Proteins, NOT in TCDB, to project domains onto
       "o|outdir=s"           => \&read_root_dir,        #Ouput root directory
       "s|tcdb-seqs=s"        => \&read_tcdb_seqs,       #File with all sequences in TCDB
       "sf|superfamily!"      => \$treatAsSuperfamily,	#File with the sequences of the reference family
@@ -211,8 +213,135 @@ sub read_command_line_arguments {
   #Validate command line arguments
 
 
-  die "Error: at least one TCID is mandatory!\n" unless (@fams);
+  die "Error: Options -f and -pt are incompatible" if (@fams && @candProjProts);
+  die "Error: either -f or -pt must be given" unless (@fams || @candProjProts);
+
+  if (@candProjProts) {
+    prepare_seqs_for_projection();
+  }
+
 }
+
+
+#==========================================================================
+#Setup the environment for projection of domains onto sequences that are
+#not present in TCDB.
+
+sub prepare_seqs_for_projection {
+
+  my $tcdbDir = "$rootDir/tcdb";
+  system "mkdir -p $tcdbDir" unless (-d $tcdbDir);
+
+  #generate an empty TCDB sequence file
+  $tcdbSeqsFile = "$tcdbDir/tcdb.faa";
+  system "cat /dev/null > $tcdbSeqsFile";
+
+
+  #----------------------------------------------------------------------
+  #generate the new TCDB database relevant for the projection
+
+  foreach my $pair (@candProjProts) {
+
+    my $tcid = $pair->[0];
+    my $tgtF = $pair->[1];
+
+
+    #Add family to the main array (as if provided by the -f commandline option)
+    push (@fams, $tcid);
+
+
+    #extracts the tcids of the systems under reference family
+    my $tcdbSeqs = "$ENV{HOME}/db/blastdb/tcdb.faa";
+    my $sysHash = TCDB::Assorted::getSystemAccessions($tcdbSeqs, 'both', 'system', [$tcid], 0);
+
+
+    #determine the TCID that will be used as reference for the target sequences
+    my @systems = @{ $sysHash->{$tcid} };
+    my $tgtTC = $systems[-1]->[0];
+    $tgtTC =~ s/\.\d+$/\.10000/;
+
+
+    #Replace the TCID in the file corresponding to the target proteins
+    my $cmd1 = qq(perl -i.orig -pe 's/\\>([a-zA-Z0-9_-]+).*/\\>${tgtTC}-\$1/;' $tgtF);
+    system $cmd1 unless (-f "${tgtF}.orig");
+
+
+    #Extract sequences for reference family
+    my $outFile = "$tcdbDir/family-${tcid}.faa";
+    my $cmd2 = qq(extractFamily.pl -i $tcid -o $tcdbDir);
+    system $cmd2 unless (-f $outFile);
+    die "Could not generate sequence file: $outFile" unless (-f $outFile);
+
+
+    #Add family and target sequences to the new TCDB family
+    my $cmd3 = qq(cat $outFile $tgtF >> $tcdbSeqsFile);
+    system $cmd3;
+  }
+
+  #----------------------------------------------------------------------
+  #Generate the PFam database
+
+  my $pfamD   = "$rootDir/pfam";
+  system "mkdir -p $pfamD" unless (-d $pfamD);
+
+  my $pfamTMPfile = "$pfamD/tcdb_pfam.out";
+  $pfamFile = "${pfamTMPfile}.bz2";
+
+  #run Pfam
+  my $cmd4 = qq (hmmscan --cpu 4 --noali --cut_ga -o /dev/null --domtblout $pfamTMPfile /ResearchData/pfam/pfamdb/Pfam-A.hmm $tcdbSeqsFile);
+  system $cmd4 unless (-f $pfamTMPfile || -f $pfamFile);
+
+  #compress pfam file
+  my $cmd5 = qq(bzip2 $pfamTMPfile);
+  system $cmd5 unless (-f $pfamFile);
+
+
+  #----------------------------------------------------------------------
+  #now generate the blast DB
+
+  my $blastD = "$rootDir/blastdb";
+  system "mkdir -p $blastD" unless (-d $blastD);
+
+  $blastdb = "$blastD/tcdb";
+
+  my $cmd6 = qq(extractFamily.pl -i tcdb -o $blastD -f blast -d $tcdbSeqsFile);
+  system $cmd6 unless (-f "${blastdb}.pin");
+
+}
+
+
+
+
+
+#==========================================================================
+#Read the -pt option. It is expected that the user provides the family to which
+#the target proteins are expected to belong. Example format should is:
+# -pt {tcid_1},{file with target sequences 1}:{tcid_2},{file with target sequences 2}.
+#
+#NOTE: This option is incompatible with -f
+
+sub read_proj_targets {
+
+  my ($opt, $value) = @_;
+
+  my @pairs = split (/:/, $value);
+  die "No significant argument passed to option -pt" unless (@pairs);
+
+  foreach my $pair (@pairs) {
+    my ($tc, $file) = split (/,/, $pair);
+    die "Error: not a valid {tcid},{file} pair: $pair" unless ($tc && $file);
+
+    TCDB::Assorted::validate_tcdb_id([$tc]);
+
+    unless (-f $file && !(-z $file)) {
+      die "File with projection targets for $tc was not found or empty: $file";
+    }
+
+    push (@candProjProts, [$tc, $file]);
+
+  }
+}
+
 
 
 #==========================================================================
@@ -307,11 +436,25 @@ sub print_help {
 
 Identify the main protein domains in a family.
 
- -f, --family {string} (Mandatory)
+ -f, --family {string} 
   TCID of the family for which Pfam domain analysis will be carried out.
   If multiple TCIDs are given, they whould be comma-separated. The analysis
   will be performed individually for each family, unless the flag -sf is
   given, in which case all TCIDs will be treated as a superfamily.
+  This option is incompatible with option -pt. But either -f or -pt
+  must be given.
+
+-pt, --proj-targets {string}
+  Project the characteristic domains of a reference family onto
+  candidate protein(s) not in TCDB that might belong to the family.
+  The format indicates pairs tcid,targets separated by ':'. That is:
+
+  {tcid_1},{seq_file_1}:{tcid_2},{seq_file_2}:... {tcid_n},{seq_file_n}
+
+  where tcid_n is the reference family that will project its domains onto
+  the sequences in seq_file_n
+  This option is incompatible with option -f. But either -f or -pt
+  must be given.
 
  -dc, --domain-cov {float} (Optional; Default: 0.7)
   Minimum coverage of the Pfam domain to consider it a match. If coverage
@@ -349,7 +492,7 @@ Identify the main protein domains in a family.
   Pfam domains.
 
  -sf, --superfamily {flag} (default: negated as --no-superfamily)
-  This indicates that all families passed to option -f will be
+  This indicates that all families passed to option -f or -pt will be
   treated as a superfamily (i.e. as a single family) for the purpose of
   the Pfam domain  analysis. This is useful when a superfamily is
   composed of two or more different family TCIDs.

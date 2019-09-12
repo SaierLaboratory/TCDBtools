@@ -391,7 +391,7 @@ sub getSystemAccessions {
 
       my @hits = ();
 
-      #Number of cmpnents in user's tcids
+      #Number of components in user's tcids
       my $userCmp = scalar split (/\./, $tcid);
 
       if ($userCmp <= 4) {

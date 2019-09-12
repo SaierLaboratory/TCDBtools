@@ -264,7 +264,17 @@ sub getDomainStats {
     $regex = $self->get_regex_for_tcids($tcid);
   }
 
-  $perlGrep = "bzcat " . $self->pfamFile . " | perl -ne 'print if (/($regex)/);'";
+
+  #Two type of compression supported plus plain text
+  if ($self->pfamFile =~ /\.bz2$/) {
+    $perlGrep = "bzcat " . $self->pfamFile . " | perl -ne 'print if (/($regex)/);'";
+  }
+  elsif ($self->pfamFile =~ /\.gz$/) {
+    $perlGrep = "zcat " . $self->pfamFile . " | perl -ne 'print if (/($regex)/);'";
+  }
+  else {
+    $perlGrep = "perl -ne 'print if (/($regex)/);' " . $self->pfamFile;
+  }
 
 #  print "$perlGrep\n";
 #  exit;

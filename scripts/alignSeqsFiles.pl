@@ -41,7 +41,9 @@ $CheckDep_obj -> checkDependencies;
 #Read command line arguments
 
 my $qfile      = "";
+my $qProt      = "";
 my $sfile      = "";
+my $sProt      = "";
 my $qlabel     = "Query";
 my $slabel     = "Subject";
 my $outdir     = "";
@@ -55,31 +57,26 @@ my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
 my $subMatrix  = 'BL50';
 
+
+#internal directories
+my $filesDir = "";
+my $plotsDir = "";
+my $seqDir   = "";
+my $blastDir = "";
+
+
 read_command_line();
 
-#print Data::Dumper->Dump([$qfile, $sfile, $qlabel, $slabel, $outdir, $prog,
+#print Data::Dumper->Dump([$qfile, $qProt, $sfile, $sProt, $qlabel, $slabel, $outdir, $prog,
 #                          $evalue, $coverage, $covControl, $blastComp, $segFilter],
-#                        [qw(*qfile *sfile *qlabel *slabel *outdir *prog
+#                        [qw(*qfile *qProt *sfile *sProt *qlabel *slabel *outdir *prog
 #                         *evalue *coverage *covControl *blastComp *segFilter)]);
 #exit;
 
 
 
 #==========================================================================
-#Create work directories
-
-my $filesDir = "$outdir/files";
-system "mkdir $filesDir" unless (-d $filesDir);
-
-my $plotsDir = "$outdir/plots";
-system "mkdir $plotsDir" unless (-d $plotsDir);
-
-my $seqDir = "$outdir/seqs";
-system "mkdir $seqDir" unless (-d $seqDir);
-
-my $blastDir = "$outdir/blastdb";
-system "mkdir $blastDir" unless (-d $blastDir);
-
+#Output files
 
 #The alignment file by blastp or ssearch36
 my $alnFile = "$filesDir/${prog}.out";
@@ -451,11 +448,24 @@ sub run_quod {
   #-----------------------------------------------------------------
   #Run quod for the alignment
 
-  my $alnFig = "$plotsDir/${q}_vs_${s}_qs${qs}_qe${qe}_ss${ss}_se${se}";
-  my $cmd1 = qq(quod.py --grid -q -s -l "$q (red) and $s (blue)"  -o $alnFig --xticks 25 --width 15 -- $qseq $sseq);
+  #First save aligned sements to files
+  my $qalnFile ="$seqDir/${q}_aln.faa";
+  open(my $qfh, '>', $qalnFile) || die $!;
+  print $qfh ">$q alignment\n$qseq\n";
+  close $qfh;
+
+  my $salnFile ="$seqDir/${s}_aln.faa";
+  open(my $sfh, '>', $salnFile) || die $!;
+  print $sfh ">$s alignment\n$sseq\n";
+  close $sfh;
+
+
+  #Note alnquod requires to add the extension to the image name
+  my $alnFig = "$plotsDir/${q}_vs_${s}_qs${qs}_qe${qe}_ss${ss}_se${se}.png";
+  my $cmd1 = qq(alnquod.py --grid -q -l "$q (red) and $s (blue)"  -o $alnFig --xticks 25 --width 15 -- $qalnFile  $seqDir/${q}.faa $salnFile  $seqDir/${s}.faa);
   #print "$cmd1\n\n";
-  system $cmd1 unless (-f "${alnFig}.png");
-  return undef unless (-f "${alnFig}.png");
+  system $cmd1 unless (-f "${alnFig}");
+  return undef unless (-f "${alnFig}");
 
 
   #-----------------------------------------------------------------
@@ -518,7 +528,7 @@ sub get_pfam_coords_for_quod {
   if  (exists $pfamHits{$prot}) {
     my @Doms = keys %{ $pfamHits{$prot} };
     my $dcnt = 0;
-    $str = "-ar ";
+    $str = "--region-font 12 -ar ";
     foreach my $d (@Doms) {
 
       my @hits = @{ $pfamHits{$prot}{$d} };
@@ -664,7 +674,6 @@ sub run_pfam_hmmtop {
   #Parse hmmtop output
   TCDB::Assorted::parse_hmmtop($hmmtopOut, $hmmtopFile);
 
-
 }
 
 
@@ -676,6 +685,10 @@ sub parse_ssearch {
   my $out = shift;
 
   my $parser = new Bio::SearchIO (-format => 'fasta', -file => $alnFile);
+
+  my $formatTmp = $parser->format();
+#  print Data::Dumper->Dump([$formatTmp ], [qw(*fileFormat )]);
+#  exit;
 
   while (my $result = $parser->next_result) {
 
@@ -790,7 +803,7 @@ sub run_alignment {
     close $fh;
   }
   elsif ($prog eq 'ssearch36') {
-    $cmd = qq(ssearch36 -z 11 -k 1000 -s $subMatrix -E $evalue -W 10 -m 0  $qfile $sfile > $alnFile );
+    $cmd = qq(ssearch36 -z 11 -k 1000 -s $subMatrix -E $evalue -W 0 -m 0  $qfile $sfile > $alnFile );
     print "$cmd\n";
     system $cmd unless (-f $alnFile && !(-z $alnFile));
   }
@@ -830,27 +843,79 @@ sub read_command_line {
   exit unless ($status);
 
 
+  #The output directories
+  $outdir = "${prog}_${qlabel}_vs_${slabel}" unless ($outdir);
+  system "mkdir -p $outdir" unless (-d $outdir);
+
+  $filesDir = "$outdir/files";
+  system "mkdir $filesDir" unless (-d $filesDir);
+
+  $plotsDir = "$outdir/plots";
+  system "mkdir $plotsDir" unless (-d $plotsDir);
+
+  $seqDir = "$outdir/seqs";
+  system "mkdir $seqDir" unless (-d $seqDir);
+
+  $blastDir = "$outdir/blastdb";
+  system "mkdir $blastDir" unless (-d $blastDir);
+
+
+  #Get sequences if an accession was given by the user.
+  if ($qProt) {
+    $qfile = "$seqDir/${qProt}.faa";
+    get_sequence ('nr', $qProt, $qfile);
+  }
+
+  if ($sProt) {
+    $sfile = "$seqDir/${sProt}.faa";
+    get_sequence ('nr', $sProt, $sfile);
+  }
+
   #Check for incompatibilities and errors
   die "Error: options -q and -s are mandatory!\n" unless ($sfile && $qfile);
 
-  #The output directory
-  $outdir = "${prog}_${qlabel}_vs_${slabel}" unless ($outdir);
-  system "mkdir -p $outdir" unless (-d $outdir);
 
 }
 
 
 #==========================================================================
-#Option -f1
+#Extract a sequence from blastdb
+
+
+sub get_sequence {
+  my ($db, $acc, $outfile) = @_;
+
+  my $cmd = qq(/usr/local/biotools/ncbi-blast-2.9.0+/bin/blastdbcmd -db $db -entry $acc -target_only > $outfile);
+  system $cmd;
+
+  unless (-f $outfile && !(-z $outfile)) {
+    die "Could not extract protein ($acc) from blast DB ($db)";
+  }
+}
+
+
+
+
+
+#==========================================================================
+#Option -q (Query can be a file or a RefSeq accession)
 
 sub read_qfile {
   my ($opt, $value) = @_;
 
-  unless (-f $value && !(-z $value)) {
-    die "Error in option -$opt: File with sequences does not exist or is empty --> $value\n";
+  if (-f $value) {
+
+    unless (!(-z $value)) {
+      die "Error in option -$opt: Query file is empty --> $value\n";
+    }
+    $qfile = $value;
+    return;
   }
 
-  $qfile = $value;
+  #Not a file, assume protein accession
+  else {
+    $qProt = $value;
+  }
 }
 
 
@@ -858,15 +923,23 @@ sub read_qfile {
 #Option -f2
 
 sub read_sfile {
-    my ($opt, $value) = @_;
+  my ($opt, $value) = @_;
 
-  unless (-f $value && !(-z $value)) {
-    die "Error in option -$opt: File with sequences does not exist or is empty --> $value\n";
+    if (-f $value) {
+
+    unless (!(-z $value)) {
+      die "Error in option -$opt: Subject file is empty --> $value\n";
+    }
+    $sfile = $value;
+    return;
   }
 
-  $sfile = $value;
-
+  #Not a file, assume protein accession
+  else {
+    $sProt = $value;
+  }
 }
+
 
 #==========================================================================
 #Check if a user provided label chas legal characters
@@ -1003,10 +1076,10 @@ alignments and domain content for each sequence.
 Options:
 
 -q, --qfile {file} (Mandatory)
-   Query file with sequences in fasta format.
+   Query sequence file (in FASTA format) or NCBI accession.
 
 -s, --sfile {file} (Mandatory)
-   Subject file with sequences in fasta format.
+   Subject sequence file (in FASTA format) or NCBI accession.
 
 -ql, --qlabel {string} (Optional. Default: Query)
    Short ilabel identifying the query file. Valid characters are numbers, dots,

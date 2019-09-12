@@ -22,9 +22,10 @@ my $sTC   = "";
 my $outdir = ".";
 my $owBlastDB = 0;
 my $subMatrix = "BL50";
+my $qblastdb = 'nr';
 
 read_command_line_arguments();
-#print Data::Dumper->Dump([$query, $sAcc, $sTC, $outdir, $owBlastDB],
+#print Data::Dumper->Dump([$query, $sAcc, $sTC, $outdir, $owBlastDB], $qblastdb,
 #                        [qw(*query *sAcc *sTC *outdir *owBlastDB)]);
 #exit;
 
@@ -44,8 +45,9 @@ system $cmd1 if ($owBlastDB || !(-f "$blastDir/tcdb.pin"));
 #First download the query sequence
 
 my $qSeqFile = "$outdir/${query}.faa";
-my $cmd2 = qq(blastdbcmd -db nr  -entry $query -target_only > $qSeqFile);
+my $cmd2 = qq(blastdbcmd -db $qblastdb  -entry $query -target_only > $qSeqFile);
 system $cmd2 unless (-f $qSeqFile);
+die "Could not extract query sequence: $query" unless (-f $qSeqFile && !(-z $qSeqFile));
 
 
 #==========================================================================
@@ -55,6 +57,7 @@ my $sSeqFile = "$outdir/${sAcc}.faa";
 my $sID = "${sTC}-$sAcc";
 my $cmd3 = qq(blastdbcmd -db tcdb -entry $sID -target_only > $sSeqFile);
 system $cmd3 unless (-f $sSeqFile);
+die "Could not extract TCDB sequence: $sID" unless (-f $sSeqFile && !(-z $sSeqFile));
 
 
 #==========================================================================
@@ -87,6 +90,7 @@ sub read_command_line_arguments {
       "s=s"    => \&read_sAcc,
       "t=s"    => \$sTC,
       "o=s"    => \$outdir,
+      "bdb=s"  => \&read_qblastdb,
       "w=s"    => \&read_owBlastDB,
       "m=s"    => \&read_subMatrix,
       "h|help" => sub { print_help(); },
@@ -149,6 +153,28 @@ sub read_owBlastDB {
   }
 }
 
+
+#==========================================================================
+#Read the -bdb option. BlastDB for extracting query sequences
+
+sub read_qblastdb {
+
+  my ($opt, $value) = @_;
+
+  my $tmp = "${value}.pin";
+
+  unless  ($value eq 'nr') {
+    unless (-f $tmp  && !(-z $tmp)) {
+      die "BlastDB for query search not found: $value";
+    }
+  }
+  $qblastdb = $value;
+}
+
+
+
+
+
 #==========================================================================
 #Option -m (Any matrix supported by ssearch)
 
@@ -196,6 +222,10 @@ Options:
 -m  {string} (Optional. Default: BL50)
    Substitution matrix to use in the alignments. Any matrix supported by
    ssearch36 can be used.
+
+-bdb {string} (Optional. Dafault: nr)
+   Blast database that will be used to extract the sequence of the query
+   protein.
 
 -h, --help
   Print this help. This option takes precedence over anyother option.

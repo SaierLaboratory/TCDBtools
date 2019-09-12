@@ -148,11 +148,12 @@ sub run_quod {
     last;
   }
 
-  my $qstring = ($quiet)? "-q" : "";
-  my $iString = ($interactive)? "--show" : "";
+  my $outPlot = "$outdir/${accession}_map_frag.png";
+  my $qstring = ($quiet)? "-q -o $outPlot" : "-o $outPlot";
+  my $iString = ($interactive)? "-o $outPlot --show" : "";
 
   my $cmd = qq(quod.py $qstring $iString -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
-#  print "$cmd\n";
+  print "$cmd\n";
   system $cmd;
 }
 
