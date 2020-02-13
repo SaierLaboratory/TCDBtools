@@ -12,6 +12,13 @@ use Getopt::Long;
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
 
+### Directory to the bin directory where blast 2.9.0 is located.
+### This version avoids some problems found with blast 2.6.0 blastdbcmd
+### to extract full sequences from the NR database.... temporary fix
+### that should be removed when a blast version does not produces
+### crashes in MacOS
+my $blastBin = "/usr/local/biotools/ncbi-blast-2.9.0+/bin";
+
 my $commandLine = join(" ",$0,@ARGV);
 
 ### ensure that external programs (psiblastp, makeblastdb, cd-hit) exist
@@ -35,9 +42,9 @@ if( $cntMissing > 0 ) {
 ### check if there's more than one processor or assume there's 2.
 my $cpuNumber
     = qx(sysctl -a | grep 'cpu.thread_count')
-        =~ m{\.cpu\.thread_count:\s+(\d+)} ? $1
+    =~ m{\.cpu\.thread_count:\s+(\d+)} ? $1
     : qx(sysctl -a 2>/dev/null | grep 'max-threads')
-        =~ m{\.max-threads\s+=\s+(\d+)} ? $1
+    =~ m{\.max-threads\s+=\s+(\d+)} ? $1
     : 2;
 
 ####### default values for options
@@ -194,10 +201,14 @@ sub PasteSeqToFiles {
         if ( $cutRange eq 'F' ) {
             my $entryList = "$tempFolder/entry.list";
             open( my $ENTRYLS,">","$entryList" );
-            print {$ENTRYLS} join("\n",@$refIDArrayRef),"\n";
+            print {$ENTRYLS} join("\n",sort @{ $refIDArrayRef }),"\n";
             close($ENTRYLS);
+            # blasdbcmd of version 2.9.0 does not break when extracting
+            # sequences from nr... version 2.6.0 breaks with
+            # the error:
+            # "[blastdbcmd] Error: oid headers do not contain target gi/seq_id."
             my $get_seqs
-                = qq(blastdbcmd -entry_batch $entryList -target_only )
+                = qq($blastBin/blastdbcmd -entry_batch $entryList -target_only )
                 . qq(-outfmt "%a %i %t %s");
             print "   extracting $seqNum full sequences from NR database:\n";
             for my $seqLine ( qx($get_seqs) ) {
@@ -212,7 +223,7 @@ sub PasteSeqToFiles {
         }
         else { # $cutRange eq 'T'
             print "   saving $seqNum sequence segments:\n";
-            for my $refID ( @$refIDArrayRef ) {
+            for my $refID ( sort @{ $refIDArrayRef } ) {
                 my $hr = $blastOutputHashRef->{$refID};
                 my $fullname = $hr->{'sn'};
                 my ( $s_start, $s_end ) = ( $hr->{'ss'}, $hr->{'se'} );
@@ -552,7 +563,7 @@ sub prepareRemoteIter {
     my @accs = keys %cAcc;
     my $cAcc = @accs;
     if( $cAcc < 10 ) {
-        print "        not results to produce pssms\n";
+        print "        no results to produce pssms\n";
         return();
     }
     else {
@@ -561,7 +572,7 @@ sub prepareRemoteIter {
         close($LIST);
         ### now build a blast database
         my $buildDBCmd
-            = qq(blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
+            = qq($blastBin/blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
             . qq( | makeblastdb -dbtype prot -out $dbFile -title "dbFile");
         system("$buildDBCmd &>/dev/null");
         ### now run psiblast to build pssm files as necessary

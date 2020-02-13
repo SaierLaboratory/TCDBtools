@@ -35,6 +35,13 @@ my @pairWise = qw(
              );
 my $pairWiseMatch = join("|",@pairWise);
 
+
+### Amino acid substitution matrix to be used with ssearch36
+my $ssearchMatrix    = undef;  #ssearch36 option -s
+my $ssearchAlgorithm = undef;  #ssearch36 option -z
+my $sserachShuffles  = undef;  #ssearch36 option -k
+
+
 ### check if there's more than one processor or assume there's 2.
 my $cpuNumber = 2;
 #my $cpuNumber
@@ -46,7 +53,7 @@ my $cpuNumber = 2;
 
 my $queryFile    = '';
 my $outputFolder = 'Clusters';
-my $pwprogram    = 'blastp';
+my $pwprogram    = 'ssearch36';
 my $aggMethod    = 'ward';
 
 my $options = GetOptions(
@@ -54,6 +61,9 @@ my $options = GetOptions(
     "o=s" => \$outputFolder,
     "p=s" => \$pwprogram,
     "c=s" => \$aggMethod,
+    "s=s" => \$ssearchMatrix,
+    "z=s" => \$ssearchAlgorithm,
+    "k=n" => \$sserachShuffles,
 );
 
 my $ownName = $0;
@@ -62,12 +72,18 @@ if ( !$queryFile ) {
     print "usage: " . $ownName . " [options]\n";
     print "\noptions:\n";
     print "   -i query filename in fasta format, required\n";
-    print "   -o output folder, default: Clusters\n";
+    print "   -o output folder. Default: Clusters\n";
     print "   -p program for pairwise comparisons\n"
-        . "        [$pairWiseMatch], default: blastp\n";
+      . "        [$pairWiseMatch]. Default: ssearch36\n";
+    print "   -s Amino acid substitution matrix that wil be used\n";
+    print "      by ssearch36. Default: ssearch36 default for option -s\n";
+    print "   -z Algorithm to be used by ssearch36 to calculate E-values,\n";
+    print "      default: ssearch36 default for option -z \n";
+    print "   -k Number of shuffles to be used by ssearch36 in the\n";
+    print "      calculation of E-values. Default: ssearch36 default for option -k\n";
     print "   -c agglomerative clustering method\n"
-        . "        [$aggMethodsMatch],\n"
-        . "         default: ward\n";
+        . "        [$aggMethodsMatch].\n"
+        . "         Default: ward\n";
     print "\n";
     print "requirements:\n"
         . qq(   ) . qq(blastp from NCBI's blast suite\n)
@@ -75,6 +91,22 @@ if ( !$queryFile ) {
         . qq(   ) . qq(   ) . qq(R packages: cluster, MCMCpack and ape\n\n);
     exit;
 }
+
+
+### Prepare the arguments for ssearch36. If no -z, -k, -s options are given,
+### alignments will use the pre-established defaults of ssearch36.
+my $ssearchOptions = "";
+if ($ssearchMatrix) {
+  $ssearchOptions .= "-s $ssearchMatrix ";
+}
+if ($ssearchAlgorithm) {
+  $ssearchOptions .= "-z $ssearchAlgorithm ";
+}
+if ($sserachShuffles) {
+  $ssearchOptions .= "-k $sserachShuffles ";
+}
+
+
 
 ### test that the method is spelled correctly:
 if( $aggMethod =~ m{^($aggMethodsMatch)$}i ) {
@@ -85,6 +117,8 @@ else {
     die "   the agglomerative method [$aggMethod] does not exist\n"
         . "   try any of [$aggMethodsMatch] (default: ward)\n\n";
 }
+
+
 
 ### test that the method is spelled correctly:
 if( $pwprogram =~ m{^($pairWiseMatch)$}i ) {
@@ -100,7 +134,7 @@ my %cmd = ();
 $cmd{"blastp"}
     = qq(blastp -outfmt 7 -max_hsps 1 -parse_deflines -use_sw_tback -out );
 $cmd{"fasta36"}   = qq(fasta36   -m 8C );
-$cmd{"ssearch36"} = qq(ssearch36 -m 8C );
+$cmd{"ssearch36"} = qq(ssearch36 -m 8C $ssearchOptions );
 $cmd{"ublast"}    = qq(usearch -ublast );
 
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
@@ -271,7 +305,7 @@ sub runPairWise {
     }
     else {
         print "      running $program\n";
-        #print "$pwCmd\n";
+        print "      $pwCmd\n";
         system("$pwCmd");
         system("bzip2 -f -9 $tmpFile");
         system("mv $tmpFile.bz2 $outFile 2>/dev/null");

@@ -23,19 +23,19 @@ my $defPW      = 'blastp';
 ###### assignable:
 my $faaQuery   = '';
 my $faaSubject = '';
-my $pwDir      = "compRuns";
-my $rbhDir     = "RBHs";
+my $rbhDir     = "RBH";
 my $minCov     = $defCov;
 my $maxOverlap = 0.1; # maximum overlap in fused proteins/genes
 my $maxEvalue  = 1e-6;
 my $alnSeqs    = $defAln;
 my $pwProg     = $defPW;
+my $pwDir      = "compRuns";
 
 my $options = GetOptions(
     "i=s" => \$faaQuery,
     "s=s" => \$faaSubject,
-    "m=s" => \$pwProg,
-    "p=s" => \$pwDir,
+    "p=s" => \$pwProg,
+    "d=s" => \$pwDir,
     "o=s" => \$rbhDir,
     "c=s" => \$minCov,
     "f=s" => \$maxOverlap,
@@ -56,10 +56,10 @@ my $helpBrief
     . qq(       (files can be compressed with gzip or bzip2)\n)
     . qq(   -s subject file in fasta format, required\n)
     . qq(       (files can be compressed with gzip or bzip2)\n)
-    . qq(   -m program for pairwise comparisons [$matchProg],\n)
+    . qq(   -p program for pairwise comparisons [$matchProg],\n)
     . qq(       default: $defPW\n)
-    . qq(   -p comparison results directory, default compRuns\n)
-    . qq(   -o RBH directory, default RBHs\n)
+    . qq(   -d pw-comparison results directory, default compRuns\n)
+    . qq(   -o RBH directory, default RBH\n)
     . qq(   -c minimum coverage of shortest sequence [60 - 99],\n)
     . qq(       default $defCov\n)
     . qq(   -f maximum overlap between fused sequences [0 - 0.2],\n)
@@ -69,10 +69,9 @@ my $helpBrief
     . qq(       default $defAln\n)
     . qq(\n)
     . qq(requirements:\n)
-    . qq(  This program requires either blastp or diamond\n)
-    . qq(  to cpmpare protein sequences, or appropriately\n)
-    . qq(  formatted comparison results for the query/subject\n)
-    . qq(  genomes\n\n)
+    . qq(  This program requires either appropriately formatted\n)
+    . qq(  comparison results for the query/subject genomes, or\n)
+    . qq(  blastp / diamond to compare protein sequences\n\n)
     ;
 
 
@@ -92,17 +91,13 @@ unless( -f "$faaQuery" ) {
 ### temporary working directory:
 my $queryGnm   = nakedName($faaQuery);
 my $subjectGnm = nakedName($faaSubject);
-my $cwd         = qx(pwd);
-my $tempFolder  = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
-my $pwDB        = $tempFolder . "/$subjectGnm";
-my $alnFile
-    = $pwDir      . "/$queryGnm.$subjectGnm." . $pwProg . ".bz2";
-### directory for RBHs:
-unless( -d "$rbhDir" ) {
-    mkdir("$rbhDir");
-}
+my $cwd        = qx(pwd);
+my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
+my $pwDB       = $tempFolder . "/$subjectGnm";
+my $alnFile    = $pwDir . "/$queryGnm/$subjectGnm." . $pwProg . ".bz2";
+
+### check if we have pairwise comparison results
 my $pwProg = $pwProg =~ m{^($matchProg)$} ? lc($1) : $defPW;
-print "comparing sequences with $pwProg\n";
 my $minCov = $minCov >= $cov1 && $minCov <= $cov2 ? $minCov : $defCov;
 print "minimum coverage of shortest sequence: $minCov\n";
 my $maxOverlap
@@ -133,17 +128,20 @@ if( $alnSeqs eq "T" ) {
     push(@pwTbl,"qseq","sseq");
 }
 
-my $pwTbl
-    = $pwProg eq "blastp" ? join(" ","7",@pwTbl)
-    : join(" ","6",@pwTbl);
+my $pwTbl = join(" ","6",@pwTbl);
 my $blastOptions
     = qq( -query - -db $pwDB -evalue $maxEvalue -max_hsps 1 )
     . qq( -seg yes -soft_masking true )
     . qq( -outfmt '$pwTbl' );
+#    . qq( -comp_based_stats 0 )
 my $diamondOptions
     = qq( --db $pwDB --evalue $maxEvalue --masking 0 --sensitive )
     . qq( --quiet --outfmt $pwTbl );
+#    . qq( --comp-based-stats 0 )
+
+#### run pw comparison
 unless( -f "$alnFile" ) {
+    print "comparing sequences with $pwProg\n";
     if( $pwProg eq "blastp" ) {
         runBlastp("$faaQuery","$faaSubject");
     }
@@ -155,11 +153,6 @@ unless( -f "$alnFile" ) {
 #########################################################################
 ######### reciprocal best hits
 #########################################################################
-my $orthQuery   = "$queryGnm.$subjectGnm.rbh.bz2";
-my $orthSubject = "$subjectGnm.$queryGnm.rbh.bz2";
-my $tmpQuery    = $tempFolder . "/" . $orthQuery;
-my $tmpSubject  = $tempFolder . "/" . $orthSubject;
-
 ## learn top homologs
 print "   learning homologies\n";
 ##### first learn lines and their scores from query genome:
@@ -183,6 +176,8 @@ while(<$IN>) {
         $sstart,$send,$slen,
         $qalnseq,$salnseq
     ) = split;
+    $query   = cleanID("$query");
+    $subject = cleanID("$subject");
     ## percent coverages
     my $qcov = calcCoverage($qstart,$qend,$qlen);
     my $scov = calcCoverage($sstart,$send,$slen);
@@ -256,16 +251,31 @@ for my $pair ( @pretend_reciprocal ) {
 }
 
 ###### now orthology
+### directories for RBHs:
+my $qRBH = "$rbhDir/$queryGnm";
+my $sRBH = "$rbhDir/$subjectGnm";
+my $tmpQuery    = $tempFolder . "/$queryGnm.$subjectGnm.rbh.bz2";
+my $tmpSubject  = $tempFolder . "/$subjectGnm.$queryGnm.rbh.bz2";
 print "   extracting orthologs\n";
 ###### making this into a subroutine to allow working both ways:
 produceRBH($tmpQuery,\@query_lines,\@reciprocal_lines);
 if( -s "$tmpQuery" ) {
-    system( "mv $tmpQuery $rbhDir/$orthQuery 2>/dev/null" );
+    for my $checkDir ( "$rbhDir","$qRBH" ) {
+        unless( -d "$checkDir" ) {
+            mkdir("$checkDir");
+        }
+    }
+    system( "mv $tmpQuery $qRBH/$subjectGnm.rbh.bz2 2>/dev/null" );
 }
 
 produceRBH($tmpSubject,\@reciprocal_lines,\@query_lines);
 if( -s "$tmpSubject" ) {
-    system( "mv $tmpSubject $rbhDir/$orthSubject 2>/dev/null" );
+    for my $checkDir ( "$rbhDir","$sRBH" ) {
+        unless( -d "$checkDir" ) {
+            mkdir("$checkDir");
+        }
+    }
+    system( "mv $tmpSubject $sRBH/$queryGnm.rbh.bz2 2>/dev/null" );
 }
 
 #########################################################################
@@ -277,6 +287,9 @@ if( -d "$tempFolder" ) {
 }
 print "      Done with $ownName!\n\n";
 
+#################################################################
+######################## subroutines ############################
+#################################################################
 sub produceRBH {
     my ($outFile,$rqLines,$rsLines) = @_;
     my $tmpFile = $outFile . ".tmp";
@@ -455,9 +468,6 @@ sub produceRBH {
     }
 }
 
-#################################################################
-######################## subroutines ############################
-#################################################################
 sub nakedName {
     my $inName  = $_[0];
     my $outName = $inName;
@@ -520,7 +530,7 @@ sub how2open {
 
 sub inflateFile {
     my $origfile = $_[0];
-    my( $opener ) = how2open($origfile);
+    my( $opener ) = how2open("$origfile");
     my $rootName = nakedName("$origfile");
     my $inflated = "$tempFolder/$rootName.faa";
     unless( -f "$inflated" ) {
@@ -540,7 +550,7 @@ sub formatDB {
             print "producing blastDB: $dbfile\n";
             my $mkblastdb
                 = qq($opener $file |)
-                . qq( makeblastdb -parse_seqids )
+                . qq( makeblastdb )
                 . qq( -dbtype prot )
                 . qq( -title $dbfile )
                 . qq( -out $dbfile );
@@ -559,17 +569,8 @@ sub formatDB {
             system("$mkdiamondDB 1>/dev/null");
         }
     }
-    else { ### lastal for now
-        if( -f "$dbfile.bck" ) {
-            print "  the lastal DB is already there\n";
-        }
-        else {
-            print "producing lastDB: $dbfile\n";
-            my $mklastdb
-                = qq( $opener $file | )
-                . qq(lastdb $dbfile );
-            system("$mklastdb 1>/dev/null");
-        }
+    else {
+        print "I need a database format [blast|diamond]\n\n";
     }
 }
 
@@ -589,27 +590,28 @@ sub runBlastp {
     my($queryFile,$subjectFile) = @_;
     my $dbfile = nameDB("$subjectFile");
     formatDB("$subjectFile","$dbfile","blast");
-    print "running blastp:\n   ",nakedName("$queryFile"),
-        " vs ",nakedName("$subjectFile"),"\n";
-    unless( -d "$pwDir" ) {
-        mkdir("$pwDir");
-    }
-    my $catFile
-        = $queryFile =~ m{\.bz2$} ? "bzip2 -qdc $queryFile"
-        : $queryFile =~ m{\.gz$}  ? "gzip  -qdc $queryFile"
-        : "cat $queryFile";
-    my $blcommand = qq($catFile | blastp $blastOptions);
+    my $nkQuery   = nakedName("$queryFile");
+    my $nkSubject = nakedName("$subjectFile");
+    print "running blastp:\n   ",$nkQuery," vs ",$nkSubject,"\n";
+    my( $opener,$file ) = how2open($queryFile);
+    my $blcommand = qq($opener $file | blastp $blastOptions);
     my $lineCount = 0;
     open( my $PWBLAST,"|-","bzip2 -9 > $tempFolder/blast.bz2" );
+    print {$PWBLAST} "# ",join("\t",@pwTbl),"\n";
     for my $blastLine ( qx($blcommand) ) {
         $lineCount++;
         print {$PWBLAST} $blastLine;
     }
     close($PWBLAST);
     if( $lineCount > 0 ) {
+        unless( -d "$pwDir" ) {
+            mkdir("$pwDir");
+        }
+        unless( -d "$pwDir/$nkQuery" ) {
+            mkdir("$pwDir/$nkQuery");
+        }
         system qq(mv $tempFolder/blast.bz2 $alnFile &>/dev/null);
-        print "   ",nakedName("$queryFile"),
-            " vs ",nakedName("$subjectFile")," done\n";
+        print "   ",$nkQuery," vs ",$nkSubject," done\n";
     }
     else {
         print "   blastp failed (empty file)\n";
@@ -621,30 +623,38 @@ sub runDiamond {
     my($queryFile,$subjectFile) = @_;
     my $dbfile = nameDB("$subjectFile");
     formatDB("$subjectFile","$dbfile","diamond");
-    print "running diamond:\n   ",nakedName("$queryFile"),
-        " vs ",nakedName("$subjectFile"),"\n";
-    unless( -d "$pwDir" ) {
-        mkdir("$pwDir");
-    }
-    my $catFile
-        = $queryFile =~ m{\.bz2$} ? "bzip2 -qdc $queryFile"
-        : $queryFile =~ m{\.gz$}  ? "gzip  -qdc $queryFile"
-        : "cat $queryFile";
-    my $dmcommand = qq($catFile | diamond blastp $diamondOptions);
+    my $nkQuery   = nakedName("$queryFile");
+    my $nkSubject = nakedName("$subjectFile");
+    print "running diamond:\n   ",$nkQuery," vs ",$nkSubject,"\n";
+    my( $opener,$file ) = how2open("$queryFile");
+    my $dmcommand = qq($opener $file | diamond blastp $diamondOptions);
     my $lineCount = 0;
     open( my $PWDMD,"|-","bzip2 -9 > $tempFolder/diamond.bz2" );
+    print {$PWDMD} "# ",join("\t",@pwTbl),"\n";
     for my $dmLine ( qx($dmcommand) ) {
         $lineCount++;
         print {$PWDMD} $dmLine;
     }
     close($PWDMD);
     if( $lineCount > 0 ) {
+        unless( -d "$pwDir" ) {
+            mkdir("$pwDir");
+        }
+        unless( -d "$pwDir/$nkQuery" ) {
+            mkdir("$pwDir/$nkQuery");
+        }
         system qq(mv $tempFolder/diamond.bz2 $alnFile &>/dev/null);
-        print "   ",nakedName("$queryFile"),
-            " vs ",nakedName("$subjectFile")," done\n";
+        print "   ",$nkQuery," vs ",$nkSubject," done\n";
     }
     else {
         print "   diamond failed (empty file)\n";
         signalHandler();
     }
+}
+
+sub cleanID {
+    my $toClean = $_[0];
+    $toClean =~ s{^\S+?\|(\S+)}{$1};
+    $toClean =~ s{\|$}{};
+    return("$toClean");
 }

@@ -35,6 +35,8 @@ $CheckDep_obj -> dependencies_list(\@dependencies);
 $CheckDep_obj -> checkDependencies;
 
 
+#This will prevent quod and alnquod from going into interactive mode
+$ENV{"MPLBACKEND"} = "agg";
 
 
 #==========================================================================
@@ -448,7 +450,7 @@ sub run_quod {
   #-----------------------------------------------------------------
   #Run quod for the alignment
 
-  #First save aligned sements to files
+  #First save aligned segments to files
   my $qalnFile ="$seqDir/${q}_aln.faa";
   open(my $qfh, '>', $qalnFile) || die $!;
   print $qfh ">$q alignment\n$qseq\n";
@@ -609,6 +611,7 @@ sub run_pfam_hmmtop {
 
   #Generate blastdb ...assuming there are no duplicate sequences.
   my $cmd1 = qq(makeblastdb -dbtype prot -in $allSeqsFile -title '$qlabel plus $slabel' -parse_seqids -hash_index -out $blastdb);
+  print "$cmd1\n";
   system $cmd1 unless (-f "${blastdb}.pin");
   system "rm $allSeqsFile" if (-f $allSeqsFile);
 
@@ -645,7 +648,7 @@ sub run_pfam_hmmtop {
 
   print "\nRunning hmmscan and parsing output....\n";
 
-  my $pfamDB = ($ENV{PFAMDB})? $ENV{PFAMDB} : "/ResearchData/pfam/pfamdb/Pfam-A.hmm";
+  my $pfamDB = ($ENV{PFAMDB})? $ENV{PFAMDB} : "$ENV{RESEARCH_DATA}/pfam/pfamdb/Pfam-A.hmm";
   my $cmd2 = qq(hmmscan --cpu 4 --noali --cut_ga -o /dev/null --domtblout $pfamFile $pfamDB  $topHitsSeqs);
   system $cmd2 unless (-f $pfamFile && !(-z $pfamFile));
 

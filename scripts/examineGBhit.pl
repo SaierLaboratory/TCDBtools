@@ -24,6 +24,8 @@ my $owBlastDB = 0;
 my $subMatrix = "BL50";
 my $qblastdb = 'nr';
 
+my $blastBin = "/usr/local/biotools/ncbi-blast-2.9.0+/bin";
+
 read_command_line_arguments();
 #print Data::Dumper->Dump([$query, $sAcc, $sTC, $outdir, $owBlastDB], $qblastdb,
 #                        [qw(*query *sAcc *sTC *outdir *owBlastDB)]);
@@ -45,7 +47,7 @@ system $cmd1 if ($owBlastDB || !(-f "$blastDir/tcdb.pin"));
 #First download the query sequence
 
 my $qSeqFile = "$outdir/${query}.faa";
-my $cmd2 = qq(blastdbcmd -db $qblastdb  -entry $query -target_only > $qSeqFile);
+my $cmd2 = qq($blastBin/blastdbcmd -db $qblastdb  -entry $query -target_only > $qSeqFile);
 system $cmd2 unless (-f $qSeqFile);
 die "Could not extract query sequence: $query" unless (-f $qSeqFile && !(-z $qSeqFile));
 
@@ -55,7 +57,7 @@ die "Could not extract query sequence: $query" unless (-f $qSeqFile && !(-z $qSe
 
 my $sSeqFile = "$outdir/${sAcc}.faa";
 my $sID = "${sTC}-$sAcc";
-my $cmd3 = qq(blastdbcmd -db tcdb -entry $sID -target_only > $sSeqFile);
+my $cmd3 = qq($blastBin/blastdbcmd -db tcdb -entry $sID -target_only > $sSeqFile);
 system $cmd3 unless (-f $sSeqFile);
 die "Could not extract TCDB sequence: $sID" unless (-f $sSeqFile && !(-z $sSeqFile));
 

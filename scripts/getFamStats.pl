@@ -66,7 +66,8 @@ my $covControl = "X";
 my $cdhit      = 1;
 my $clustID    = 0.8;  #Clustering identity value for cd-hit
 my $runGBLAST  = "T";
-my $lenCutoff  = undef; #Cutoff for the length histogram to remove outliers
+my $lenCutoff  = undef; #Cutoff for the length histogram to remove high outliers
+my $lowCutoff  = undef; #Cutoff for the length histogram to remove high outliers
 
 read_command_line();
 
@@ -125,11 +126,20 @@ sub getStatisticsFile {
 #    print Data::Dumper->Dump([$acc, $length ], [qw(*acc *length )]);
 #    <STDIN>;
 
-    if ($lenCutoff) {
-      $lengths{$acc} = $length if (length $acc > 4 && $length < $lenCutoff);
+
+    next if (length $acc < 3);
+
+    if ($lowCutoff && $lenCutoff) {
+      $lengths{$acc} = $length if ($length >= $lowCutoff && $length < $lenCutoff);
+    }
+    elsif ($lowCutoff) {
+      $lengths{$acc} = $length if ($length >= $lenCutoff);
+    }
+    elsif ($lenCutoff) {
+      $lengths{$acc} = $length if ($length <= $lenCutoff);
     }
     else {
-      $lengths{$acc} = $length if (length $acc > 4);
+      $lengths{$acc} = $length;
     }
   }
 
@@ -531,7 +541,8 @@ sub read_command_line {
 	"i|infile=s"       => \&read_infile,
 	"f|family=s"       => \&read_family,
 	"p|proteins=s"     => \&read_proteins,
-	"l|lenCuotoff=i"   => \$lenCutoff,
+        "l|highCutoff=i"    => \$lenCutoff,
+	"s|lowCutoff=i"    => \$lowCutoff,
 	"d|fxpandir=s"     => \&read_fxpandir,
 	"o|outdir=s"       => \&read_outdir,
 	"e|evalue=f"       => \$evalue,

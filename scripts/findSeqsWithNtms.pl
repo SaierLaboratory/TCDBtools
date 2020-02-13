@@ -60,7 +60,7 @@ my $evalue   = 1e-10;
 my $coverage = 70;
 my $covControl = "X";
 my $cdhit      = 1;
-my $clustID    = 0.9;  #Clustering identity value for cd-hit
+my $clustID    = 0.8;  #Clustering identity value for cd-hit
 my $runGBLAST  = "F";
 
 read_command_line();
@@ -342,7 +342,7 @@ sub localNCBIseqExtract {
 
   my $randNum = int(rand(10000));
   my $tmpFile ="$miscDir/seqs${randNum}.faa";
-  my $cmd = qq(/usr/local/biotools/ncbi-blast-2.9.0+/bin/blastdbcmd -db $db -entry_batch $in -target_only -outfmt '\%f' -out $tmpFile);
+  my $cmd = qq(blastdbcmd -db $db -entry_batch $in -target_only -outfmt '\%f' -out $tmpFile);
   system $cmd unless (-f $tmpFile && !(-z $tmpFile));
 
 

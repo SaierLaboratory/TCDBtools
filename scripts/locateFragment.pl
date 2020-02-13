@@ -23,6 +23,11 @@ use TCDB::Assorted;
 #
 ###########################################################################
 
+
+#This will prevent quod and alnquod from going into interactive mode
+$ENV{"MPLBACKEND"} = "agg";
+
+
 #==========================================================================
 #Check dependencies
 
@@ -159,19 +164,28 @@ sub run_quod {
 
 
 
+
 sub getSequences {
 
   my ($frag, $acc) = @_;
 
+  #Sequence for full protein
   my $accSeq = "$outdir/${acc}.faa";
 
 
   #Save fragment to file
   my $tmpFile = "$outdir/${acc}_frag.faa";
-  unless (-f $tmpFile) {
-    open (my $fh, ">", $tmpFile) || die $!;
-    print $fh ">${acc} fragment\n$frag\n";
-    close $fh;
+
+
+  if (-f $frag) {
+    system "mv $frag $tmpFile" unless (-f $tmpFile);
+  }
+  else {
+    unless (-f $tmpFile) {
+      open (my $fh, ">", $tmpFile) || die $!;
+      print $fh ">${acc} fragment\n$frag\n";
+      close $fh;
+    }
   }
 
   unless (-f $accSeq) {
