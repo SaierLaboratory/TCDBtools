@@ -12,13 +12,6 @@ use Getopt::Long;
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
 
-### Directory to the bin directory where blast 2.9.0 is located.
-### This version avoids some problems found with blast 2.6.0 blastdbcmd
-### to extract full sequences from the NR database.... temporary fix
-### that should be removed when a blast version does not produces
-### crashes in MacOS
-my $blastBin = "/usr/local/biotools/ncbi-blast-2.9.0+/bin";
-
 my $commandLine = join(" ",$0,@ARGV);
 
 ### ensure that external programs (psiblastp, makeblastdb, cd-hit) exist
@@ -49,65 +42,72 @@ my $cpuNumber
 
 ####### default values for options
 my $inputSeqFile = '';
+my $nrDB         = 'nr';
 my $outputFolder = 'famXOut';
 my $maxSubject   = 10000;
 my $Evalue       = "1e-7";
 my $iEvalue      = "1e-5";
 my $iters        = 1;
 my $cutRange     = 'T';
-my $min_coverage = 0.8;
+my $minCoverage  = 0.8;
 my $eitherCov    = 'F';
-my $min_size     = 0.8;
-my $max_size     = 1.25;
+my $minSize      = 0.8;
+my $maxSize      = 1.25;
 my $filter       = 0.8;
 my $cpus         = $cpuNumber;
 my $rewrite      = 'T';
 my $remote       = 'F';
 
+my $ownName = $0;
+$ownName =~ s{.*/}{};
+my $helpMsg
+    = qq(usage: " . $ownName . " [options]\n)
+    . qq(\noptions:\n)
+    . qq(   -i input filename in fasta format, required\n)
+    . qq(   -d non-redundant database, default $nrDB\n)
+    . qq(   -o output folder, default $outputFolder\n)
+    . qq(   -n max number of aligned sequences to keep, default $maxSubject\n)
+    . qq(   -e evalue threshold, default $Evalue\n)
+    . qq(   -f psiblast evalue threshold, default $iEvalue\n)
+    . qq(   -t psiblast iterations, default $iters\n)
+    . qq(   -h keep only aligned region [T/F], default $cutRange\n)
+    . qq(   -c minimum alignment coverage of query sequence,\n)
+    . qq(       default $minCoverage\n)
+    . qq(   -x coverage applies to either sequence, default $eitherCov\n)
+    . qq(   -s minimal subject seq length relative to query seq length,\n)
+    . qq(       default $minSize (ignored if -h T)\n)
+    . qq(   -l maximal subject seq length relative to query seq length,\n)
+    . qq(       default $maxSize (ignored if -h T)\n)
+    . qq(   -r identity redundancy threshold (for cd-hit), default $filter\n)
+    . qq(   -a number of cpus to use, default in this machine: $cpuNumber\n)
+    . qq(   -w overwrite previous psiblast.tbl (if it exists) [T/F],\n)
+    . qq(       default $rewrite\n)
+    . qq(   -p run remotely (at ncbi) [T/F], default $remote\n)
+    . qq(\n);
+
+
 my $options
     = GetOptions(
         "i=s" => \$inputSeqFile,
+        "d=s" => \$nrDB,
         "o=s" => \$outputFolder,
         "n=f" => \$maxSubject,
         "e=s" => \$Evalue,
         "f=s" => \$iEvalue,
         "t=s" => \$iters,
         "h=s" => \$cutRange,
-        "c=f" => \$min_coverage,
+        "c=f" => \$minCoverage,
         "x=s" => \$eitherCov,
-        "s=f" => \$min_size,
-        "l=f" => \$max_size,
+        "s=f" => \$minSize,
+        "l=f" => \$maxSize,
         "r=f" => \$filter,
         "a=s" => \$cpus,
         "w=s" => \$rewrite,
         "p=s" => \$remote,
     );
 
-my $ownName = $0;
-$ownName =~ s{.*/}{};
 if ( !$inputSeqFile ) {
-    print "usage: " . $ownName . " [options]\n";
-    print "\noptions:\n";
-    print "   -i input filename in fasta format, required\n";
-    print "   -o output folder, default faaOut\n";
-    print "   -n max number of aligned sequences to keep, default 10000\n";
-    print "   -e evalue threshold, default 1e-7\n";
-    print "   -f psiblast evalue threshold, default 1e-5\n";
-    print "   -t psiblast iterations, default 1\n";
-    print "   -h keep only aligned region [T/F], default T\n";
-    print "   -c minimum alignment coverage of query sequence,\n"
-        . "       default 0.8\n";
-    print "   -x coverage applies to either sequence, default F\n";
-    print "   -s minimal subject seq length relative to query seq length,\n"
-        . "       default 0.8\n";
-    print "   -l maximal subject seq length relative to query seq length,\n"
-        . "       default 1.25 (ignored if -h T)\n";
-    print "   -r identity redundancy threshold (for cd-hit), default 0.8\n";
-    print "   -a number of cpus to use, default in this machine: $cpuNumber\n";
-    print "   -w overwrite previous psiblast.tbl (if it exists) [T/F],\n"
-        . "       default T\n";
-    print "   -p run remotely (at ncbi) [T/F], default F\n";
-    print "\n";
+    print $helpMsg;
     exit;
 }
 
@@ -117,6 +117,9 @@ $cutRange  = $cutRange  =~ m{^(T|F)$}i ? uc($1) : "T";
 $rewrite   = $rewrite   =~ m{^(T|F)$}i ? uc($1) : "T";
 $eitherCov = $eitherCov =~ m{^(T|F)$}i ? uc($1) : "F";
 if( $remote eq "T" && $iters > 2) {
+    if( $nrDB ne "nr" ) {
+        die "$nrDB is not available at NCBI for remote psiblast runs\n\n";
+    }
     print qq(    can run only two iterations at NCBI, -t reset to "2"\n);
 }
 
@@ -147,9 +150,9 @@ else {
 
 #### make sure coverage is a percent
 my $pc_min_cover
-    = ( $min_coverage >= 1 && $min_coverage <= 100 ) ? $min_coverage
-    : $min_coverage > 100 ? 80
-    : 100 * $min_coverage;
+    = ( $minCoverage >= 1 && $minCoverage <= 100 ) ? $minCoverage
+    : $minCoverage > 100 ? 80
+    : 100 * $minCoverage;
 print "   Coverage: $pc_min_cover%\n";
 
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
@@ -203,14 +206,10 @@ sub PasteSeqToFiles {
             open( my $ENTRYLS,">","$entryList" );
             print {$ENTRYLS} join("\n",sort @{ $refIDArrayRef }),"\n";
             close($ENTRYLS);
-            # blasdbcmd of version 2.9.0 does not break when extracting
-            # sequences from nr... version 2.6.0 breaks with
-            # the error:
-            # "[blastdbcmd] Error: oid headers do not contain target gi/seq_id."
             my $get_seqs
-                = qq($blastBin/blastdbcmd -entry_batch $entryList -target_only )
+                = qq(blastdbcmd -entry_batch $entryList -target_only )
                 . qq(-outfmt "%a %i %t %s");
-            print "   extracting $seqNum full sequences from NR database:\n";
+            print "   extracting $seqNum full sequences from $nrDB database:\n";
             for my $seqLine ( qx($get_seqs) ) {
                 $seqLine =~ s{^(\w+)\.\d+}{$1};
                 $seqLine =~ s{(\S+)\n}{\n$1\n};
@@ -249,6 +248,9 @@ sub PasteSeqToFiles {
         system("$cdhit_command >& /dev/null");
         print "       cleaning redundancy out ($filter)\n";
         system("mv $tmp_file.cdhit $out_file 2>/dev/null");
+
+        #Include cd-hit cluster file in results directory
+        system("mv $tmp_file.cdhit.clstr  $outputFolder 2>/dev/null"); 
     }
     else {
         system("mv $tmp_file $out_file 2>/dev/null");
@@ -275,7 +277,10 @@ sub runBlast {
     else {
         #### if running locally, check for BLASTDB and nr within it
         if( $remote eq "F" ) {
-            if( length($ENV{"BLASTDB"}) > 0 ) {
+            if( -f "$nrDB.pal" ) {
+                print "   working with $nrDB\n";
+            }
+            elsif( length($ENV{"BLASTDB"}) > 0 ) {
                 my @blastdbs = split(/:/,$ENV{"BLASTDB"});
                 my $trueDBs  = @blastdbs;
                 my $verifDir = 0;
@@ -283,7 +288,7 @@ sub runBlast {
                 for my $testDir ( @blastdbs ) {
                     if( -d $testDir ) {
                         $verifDir++;
-                        my $nr_sure = $testDir . "/nr.pal";
+                        my $nr_sure = $testDir . "/" . $nrDB . ".pal";
                         if( -f "$nr_sure" ) {
                             $vefirNR++;
                         }
@@ -291,11 +296,14 @@ sub runBlast {
                 }
                 unless( $verifDir == $trueDBs ) {
                     system "rm -r $tempFolder";
-                    die qq(\n\tno BLASTDB directory:\n\t$ENV{"BLASTDB"}\n\n);
+                    my $diefor
+                        = qq(\n\tproblems with BLASTDB directories:\n)
+                        . qq(\t$ENV{"BLASTDB"}\n\n);
+                    die "$diefor";
                 }
-                unless( $vefirNR > 0 ) {
+                if( $vefirNR < 1 ) {
                     system "rm -r $tempFolder";
-                    die qq(\n\tno NR database in:\n\t$ENV{"BLASTDB"}\n\n);
+                    die qq(\n\tno $nrDB database in:\n\t$ENV{"BLASTDB"}\n\n);
                 }
             }
             else {
@@ -304,7 +312,7 @@ sub runBlast {
             }
         }
         my $blastRootCmd
-            = qq(psiblast -query $tempSeqFile -db nr )
+            = qq(psiblast -query $tempSeqFile -db $nrDB )
             . qq( -max_target_seqs $maxSubject )
             . qq( -max_hsps 1 )
             . qq( -evalue $Evalue -inclusion_ethresh $iEvalue )
@@ -428,10 +436,10 @@ sub parseBlast {
             next BLASTRESULT;
         }
         my $rel_size = $slen/$qlen;
-        if( $rel_size < $min_size ) {
+        if( $rel_size < $minSize ) {
             next BLASTRESULT;
         }
-        if( $rel_size > $max_size ) {
+        if( $rel_size > $maxSize ) {
             if( $cutRange eq "F" ) {
                 next BLASTRESULT;
             }
@@ -572,10 +580,12 @@ sub prepareRemoteIter {
         close($LIST);
         ### now build a blast database
         my $buildDBCmd
-            = qq($blastBin/blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
+            = qq(blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
             . qq( | makeblastdb -dbtype prot -out $dbFile -title "dbFile");
         system("$buildDBCmd &>/dev/null");
         ### now run psiblast to build pssm files as necessary
+        ### here it cannot use a specific nr because it runs with
+        ### databases at NCBI
         $blastPssm =~ s{db\s+nr\s+}{db $dbFile };
         $blastPssm
             .= qq( -save_pssm_after_last_round )

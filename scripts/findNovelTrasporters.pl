@@ -550,7 +550,7 @@ sub getProteinsWithMinNumberOfTMS {
 
   my $cmd = "";
   if ($proteomeFile =~ /.+\.gz$/) {
-    $cmd = qq(zcat $proteomeFile | hmmtop -if=--);
+    $cmd = qq(gunzip -c $proteomeFile | hmmtop -if=--);
   }
   elsif ($proteomeFile =~ /.+\.bz2$/) {
      $cmd = qq(bzcat $proteomeFile | hmmtop -if=--);
@@ -680,7 +680,7 @@ sub create_proteome_blastdb {
 
   my $cmd = "";
   if ($proteomeFile =~ /.+\.gz$/) {
-    $cmd = qq(zcat $proteomeFile | makeblastdb -in -);
+    $cmd = qq(gunzip -c $proteomeFile | makeblastdb -in -);
   }
   elsif ($proteomeFile =~ /.+\.bz2$/) {
      $cmd = qq(bzcat $proteomeFile | makeblastdb -in -);

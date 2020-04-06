@@ -31,15 +31,14 @@ my @pairWise = qw(
                      blastp
                      fasta36
                      ssearch36
-                     ublast
              );
 my $pairWiseMatch = join("|",@pairWise);
 
 
 ### Amino acid substitution matrix to be used with ssearch36
-my $ssearchMatrix    = undef;  #ssearch36 option -s
-my $ssearchAlgorithm = undef;  #ssearch36 option -z
-my $sserachShuffles  = undef;  #ssearch36 option -k
+my $ssearchMatrix    = undef; #ssearch36 option -s
+my $ssearchAlgorithm = undef; #ssearch36 option -z
+my $sserachShuffles  = undef; #ssearch36 option -k
 
 
 ### check if there's more than one processor or assume there's 2.
@@ -135,7 +134,6 @@ $cmd{"blastp"}
     = qq(blastp -outfmt 7 -max_hsps 1 -parse_deflines -use_sw_tback -out );
 $cmd{"fasta36"}   = qq(fasta36   -m 8C );
 $cmd{"ssearch36"} = qq(ssearch36 -m 8C $ssearchOptions );
-$cmd{"ublast"}    = qq(usearch -ublast );
 
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
 print "   working in temp folder:\n\t$tempFolder\n";
@@ -295,9 +293,6 @@ sub runPairWise {
         ? $rootCmd . "$fastaFile $fastaFile > $tmpFile"
         : $pwprogram eq "ssearch36"
         ? $rootCmd . "$fastaFile $fastaFile > $tmpFile"
-        : $pwprogram eq "ublast"
-        ? $rootCmd . "$fastaFile -qmask none -dbmask none"
-        . " -db $fastaFile -evalue 10 -blast6out $tmpFile"
         : "none";
     if( $pwCmd eq "none" ) {
         print "there's something wrong with the $pwprogram\n";
