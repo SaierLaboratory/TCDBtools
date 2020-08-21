@@ -34,7 +34,7 @@ use TCDB::CheckDependencies;
 #==========================================================================
 #Check dependencies
 
-my $blastdbcmd = "/usr/local/biotools/ncbi-blast-2.9.0+/bin/blastdbcmd";
+my $blastdbcmd = "/usr/local/bin/blastdbcmd";
 
 
 my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'psiblast', 'famXpander.pl', 'cd-hit');
@@ -543,7 +543,7 @@ sub getSequencesForCandTransporters {
 
 
   #Now extract the sequences based on the extracted list of accessions
-  my $cmd2 = qq($blastdbcmd -db $gnmBlastDB -outfmt '\%f' -entry_batch $tmpIDs -target_only -out $seqFile  &> /dev/null);
+  my $cmd2 = qq(blastdbcmd -db $gnmBlastDB -outfmt '\%f' -entry_batch $tmpIDs -target_only -out $seqFile  &> /dev/null);
   print "$cmd2\n";
 
   system $cmd2 unless (-f $seqFile);
@@ -650,7 +650,7 @@ sub retrieve_superkingdom {
 
   #Extract the superkingdom data
   my $skingdomFile = "$outDir/superkingdom.txt";
-  my $cmd2 = qq($blastdbcmd -db nr -outfmt '\%a \%K' -entry_batch $accFile -target_only -out $skingdomFile  &> /dev/null);
+  my $cmd2 = qq(blastdbcmd -db nr -outfmt '\%a \%K' -entry_batch $accFile -target_only -out $skingdomFile  &> /dev/null);
 
   system $cmd2 unless (-f $skingdomFile);
   die "Error: empty file with Superkingdom data" if (-z $skingdomFile);
@@ -685,7 +685,7 @@ sub run_ncbi_blast {
 
   #Extract sequence
   my $seqFile = "$sDir/${query}.faa";
-  my $cmd1 = qq($blastdbcmd -db $gnmBlastDB -entry $query -target_only -out $seqFile  &> /dev/null);
+  my $cmd1 = qq(blastdbcmd -db $gnmBlastDB -entry $query -target_only -out $seqFile  &> /dev/null);
   system $cmd1 unless (-f $seqFile);
 
   #No sequence extracted for: $query
@@ -984,7 +984,7 @@ sub get_seqs_from_ncbi {
 
   my ($qacc, $accFile, $seqsFile) = @_;
 
-  my $cmd = qq($blastdbcmd -db nr -entry_batch $accFile -target_only -out $seqsFile &> /dev/null);
+  my $cmd = qq(blastdbcmd -db nr -entry_batch $accFile -target_only -out $seqsFile &> /dev/null);
   system $cmd unless (-f $seqsFile);
 
   die "No sequences extracted: $seqsFile" unless (-f $seqsFile || !(-z $seqsFile));
