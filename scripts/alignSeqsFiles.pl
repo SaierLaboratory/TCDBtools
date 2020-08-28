@@ -723,10 +723,10 @@ sub parse_ssearch {
 	next HSP if (length($qtmp) < $minLength || length($stmp) < $minLength);
 
 	#Calculate coverages properly (do not use alignment length as it includes gaps
-	my $qCov_tmp = ($qend - $qstart) / $qlen * 100;
+	my $qCov_tmp = ($qend - $qstart + 1) / $qlen * 100;
 	my $qcov     = ($qCov_tmp > 100.0)? 100 : $qCov_tmp;
 
-	my $sCov_tmp = ($send - $sstart) / $slen * 100;
+	my $sCov_tmp = ($send - $sstart + 1) / $slen * 100;
 	my $scov = ($sCov_tmp > 100.0)? 100 : $sCov_tmp;
 
 
@@ -888,7 +888,7 @@ sub read_command_line {
 sub get_sequence {
   my ($db, $acc, $outfile) = @_;
 
-  my $cmd = qq(/usr/local/biotools/ncbi-blast-2.9.0+/bin/blastdbcmd -db $db -entry $acc -target_only > $outfile);
+  my $cmd = qq(blastdbcmd -db $db -entry $acc -target_only > $outfile);
   system $cmd;
 
   unless (-f $outfile && !(-z $outfile)) {

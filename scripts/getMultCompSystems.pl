@@ -77,9 +77,9 @@ my $blastOverWrite  = 0;            #Recreate the blastDB of all TCDB proteins
 my $outFmt          = "tsv";        #can also be "csv"
 my $prog            = "ssearch36";  #Alignment program to use (blastp|ssearch36)
 my $subMatrix       = 'BL50';       #Substitution matrix fro ssearch36
-my $outdir          = "./MultiComponentSystemsAnalysis";
+my $outdir          = "./MultiComponentSystems";
+my $blastdb_dir     = "$outdir/blastdb";  #directory with proteome blastdb
 my $tcdbFaa         = undef;
-my $blastBinDir     = '/usr/local/biotools/ncbi-blast-2.9.0+/bin';
 
 #Variables that will be used to select good blastp hits (Candidates)
 my $geneDis         = 20;    #How many genes away to look for neighbors
@@ -128,7 +128,6 @@ read_command_line();
 #==========================================================================
 #Create working directories and declare
 
-my $blastdb_dir = "$outdir/blastdb";
 system "mkdir $blastdb_dir" unless (-d $blastdb_dir);
 
 my $plotDir = "$outdir/plots";
@@ -250,11 +249,11 @@ my $bdb_cmd =
 unless (-f "${blastdb}.phr") {
 
   if ($file_proteome =~ /.+\.gz$/) {
-    print qq(gzcat $file_proteome | $bdb_cmd -in - \n);
-    system qq(gzcat $file_proteome | $bdb_cmd -in -);
+    print qq(gunzip -c $file_proteome | $bdb_cmd -in - \n);
+    system qq(gunzip -c $file_proteome | $bdb_cmd -in -);
   }
   elsif ($file_proteome =~ /.+\.bz2$/) {
-    system qq(bzcat $file_proteome | $bdb_cmd -in -);
+    system qq(bunzip -c $file_proteome | $bdb_cmd -in -);
   }
   else {
     system qq($bdb_cmd -in $file_proteome);
@@ -267,6 +266,8 @@ unless (-f "${blastdb}.phr") {
 
 #print "Check blastdb: $blastdb\n";
 #exit;
+
+
 
 
 
@@ -318,8 +319,6 @@ else {
 
   $blast_file = "$blastoutDir/ssearch.out";
 
-  my $proteome = 
-
 
   #----------------------------------------------------------------------
   #Prepare the ssearch command
@@ -327,7 +326,8 @@ else {
   print "Aligning multi-component systems against the genome with $prog!\n";
 
   my $params = qq(-z 11 -k 1000 -m 0 -W 0 -E $minEvalDiscard -s $subMatrix );
-  my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query '$blastdb 12' > $blast_file);
+  #my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query '$blastdb 12' > $blast_file);
+  my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query $file_proteome > $blast_file);
 
   print "   $ssearch_cmd\n";
   system $ssearch_cmd unless (-f $blast_file && !(-z  $blast_file));
@@ -377,9 +377,10 @@ runHMMTOP(\%filteredBlast, \%TMS);
 #in the genome under analysis.
 
 print "Analyzing genome context\n";
-verify_neighborhood(\%filteredBlast, $gnmFeatTable);
+my %gnmAnnotations = ();
+verify_neighborhood(\%filteredBlast, $gnmFeatTable, \%gnmAnnotations);
 
-#print Data::Dumper->Dump([\%filteredBlast ], [qw(*results )]);
+#print Data::Dumper->Dump([\%gnmAnnotations ], [qw(*gnmAnnotations )]);
 #exit;
 
 
@@ -393,7 +394,7 @@ verify_neighborhood(\%filteredBlast, $gnmFeatTable);
 
 print "Saving results to text and html reports\n";
 
-generate_reports(\%filteredBlast);
+generate_reports(\%filteredBlast, \%gnmAnnotations);
 
 print "Done!\n";
 
@@ -416,7 +417,7 @@ print "Done!\n";
 
 sub generate_reports {
 
-  my $systems = shift;
+  my ($systems, $annotations) = @_;
 
   my $outfile  = "$outdir/reportMulticomponentSystems.$outFmt";
   my $htmlFile = "$outdir/reportMulticomponentSystems.html";
@@ -439,7 +440,7 @@ sub generate_reports {
   my @hHeader = qw (tcid  query_accession  status  subject_accession  hydropathy
 		    query_length  subject_length  query_tms subject_tms evalue  perc_idenity
 		    alignment_length  query_coverage  subject_coverage
-		    neighbors);
+		    neighbors gnm_annotation);
   my $htmlHeader = <<HEADER;
 <html>
   <head><title>Multicomponent Systems Analysis</title></head>
@@ -459,7 +460,7 @@ HEADER
   #Get the text header
   my @tHeader = qw (tcid  query_accession  status  subject_accession query_length  subject_length
                     query_tms subject_tms evalue  perc_idenity alignment_length  query_coverage
-                    subject_coverage neighbors);
+                    subject_coverage neighbors gnm_annotation);
 
   my $txtHeader = join ($sep, @tHeader) . "\n";
 
@@ -508,6 +509,7 @@ HEADER
 	my $qcov      = "";
 	my $scov      = "";
 	my $neighbors = "";
+	my $annot     = " ";
 
 
 	my $qtcid = $tcid . '-' . $tcAcc;
@@ -533,6 +535,7 @@ HEADER
 	  $qcov      = $hit->{qcov};
 	  $scov      = sprintf("%.1f", $hit->{scov});
 	  $neighbors = $hit->{neighbors};
+	  $annot     = (exists $annotations->{$sacc})? $annotations->{$sacc} : die "No name annotation for gene: $sacc";
 
 	  unless (exists $TMS{$sacc}) {
 	    print "No number of TMSs for subject: $sacc\n";
@@ -545,7 +548,7 @@ HEADER
 
 
 	#print the text version of the row
-	print $outh "$tcid${sep}$tcAcc${sep}$status${sep}$sacc${sep}$qlen${sep}$slen${sep}$qtms${sep}$stms${sep}$eval${sep}$ident${sep}$aln${sep}$qcov${sep}$scov${sep}$neighbors\n";
+	print $outh "$tcid${sep}$tcAcc${sep}$status${sep}$sacc${sep}$qlen${sep}$slen${sep}$qtms${sep}$stms${sep}$eval${sep}$ident${sep}$aln${sep}$qcov${sep}$scov${sep}$neighbors${sep}$annot\n";
 
 
 	#Instead of running quod as before, now run xgbhit.sh for each match.
@@ -558,12 +561,12 @@ HEADER
 
 	  my $good = run_quod($tcid, $tcAcc, $sacc);
 	  unless ($good) {
-	    print Data::Dumper->Dump([$tcid, $tcAcc, $sacc, $hit->{qstart}, $hit->{qend}, $hit->{sstart}, $hit->{send}, $hit->{qseq},$hit->{sseq} ],
-				     [qw(*tcid *tcAcc *sacc *qstart *qend *sstart *send *qseq *sseq )]);
+	    print Data::Dumper->Dump([$tcid, $tcAcc, $sacc, $hit->{qstart}, $hit->{qend}, $hit->{sstart}, $hit->{send}, $hit->{qseq},$hit->{sseq}, $annotations->{$sacc}],
+				     [qw(*tcid *tcAcc *sacc *qstart *qend *sstart *send *qseq *sseq *annotation)]);
 	    die "Could not generate plot for: ${tcid}-$tcAcc vs $sacc -> ";
 	  }
 
-	  my @data = ($tcid, $tcAcc, $status, $sacc, $qlen, $slen, $qtms, $stms, $eval, $ident, $aln, $qcov, $scov, $neighbors);
+	  my @data = ($tcid, $tcAcc, $status, $sacc, $qlen, $slen, $qtms, $stms, $eval, $ident, $aln, $qcov, $scov, $neighbors, $annot);
 	  my $hitRaw = getMatchRowHTMLstring($sysURL, $accURL, $ncbiURL, $plotFile, $rowColor, \@data);
 
 	  print $htmh $hitRaw;
@@ -643,7 +646,7 @@ sub getMatchRowHTMLstring {
   my ($sysURL, $accURL, $ncbiURL, $plotFile, $color, $data) = @_;
 
 
-  my ($tcid, $tcAcc, $status, $sacc, $qlen, $slen, $qtms, $stms, $eval, $ident, $aln, $qcov, $scov, $neighbors) = @$data;
+  my ($tcid, $tcAcc, $status, $sacc, $qlen, $slen, $qtms, $stms, $eval, $ident, $aln, $qcov, $scov, $neighbors, $annot) = @$data;
 
   my $identity = sprintf ("%.1f", $ident);
 
@@ -666,6 +669,7 @@ sub getMatchRowHTMLstring {
       <td style='text-align:right;  background-color:$color;'>$qcov</td>
       <td style='text-align:right;  background-color:$color;'>$scov</td>
       <td style='text-align:center; background-color:$color;'>$neighbors</td>
+      <td style='text-align:center; background-color:$color;'>$annot</td>
     </tr>
 NOHIT
 
@@ -699,6 +703,7 @@ sub getNoHitRowHTMLstring {
       <td style='text-align:right;  background-color:$color;'></td>
       <td style='text-align:right;  background-color:$color;'></td>
       <td style='text-align:right;  background-color:$color;'></td>
+      <td style='text-align:center; background-color:$color;'></td>
       <td style='text-align:center; background-color:$color;'></td>
     </tr>
 NOHIT
@@ -814,7 +819,7 @@ sub by_status2 {
 
 sub verify_neighborhood {
 
-  my ($systems, $featuresFile) = @_;
+  my ($systems, $featuresFile, $annot) = @_;
 
   #
   # $systems contains the filtered blast ouput
@@ -824,7 +829,7 @@ sub verify_neighborhood {
   #-----------------------------------------------------------------
   #Parse genome feature table
 
-  open (my $fh1, "-|",  "/sw/bin/zcat $featuresFile") || die $!;
+  open (my $fh1, "-|",  "gunzip -c $featuresFile") || die $!;
 
   my @cds = ();
   my %pos2cds = ();
@@ -850,7 +855,7 @@ sub verify_neighborhood {
     #10) product_accession
     #11) non-redundant_refseq
     #12) related_accession
-    #13) name
+    #13) name (functional annotation)
     #14) symbol
     #15) GeneID
     #16) locus_tag
@@ -869,6 +874,7 @@ sub verify_neighborhood {
 
     my $line = { scaffacc=>$scaffacc, acc=>$acc, start=>$d[7], end=>$d[8], strand=>$d[9], name=>$d[13], gene=>$d[14] };
     push (@{ $protPerScaffold{$scaffacc} }, $line);
+    $annot->{$acc} = $line->{name};
   }
   close $fh1;
 
@@ -1283,7 +1289,7 @@ sub getSeqs4hmmtop {
 
 
   #Extract sequences
-  my $cmd = qq($blastBinDir/blastdbcmd -db $db -entry_batch $accFile -target_only >> $seqFile);
+  my $cmd = qq(blastdbcmd -db $db -entry_batch $accFile -target_only >> $seqFile);
   system $cmd;
   die "Failed to extract sequences: $seqFile" unless (-f $seqFile && !(-z $seqFile));
 
@@ -1759,7 +1765,7 @@ sub downloadSeqsForMCS {
       #extract the sequences associated with this system
       my $seqFile = "$seqDir/family-${system}.faa";
       unless (-f $seqFile && ! (-z  $seqFile)) {
-	system "extractFamily.pl -i $system -o $seqDir -f fasta";
+	system "extractFamily.pl -i $system -o $seqDir -f fasta -d $tcdbFaa";
       }
       die "Could not download sequences for system:  $system" unless  (-f $seqFile && ! (-z  $seqFile));
     }
@@ -1816,8 +1822,10 @@ sub read_command_line {
       "rs|replicon-structure=s" => \$repForm,
       "gb|gblast=s"             => \&read_gblast_file,
       "dbn|blastdb-name=s"      => \&read_blastdb_name,
+      "gbd|gnm-blastdb-dir=s"   => \$blastdb_dir,
       "tcs|tcdb-faa=s"          => \$tcdbFaa,
       "bo|tcblast-overwrite!"   => \$blastOverWrite,
+      "pf|proteome-file=s"      => \$file_proteome,
       "of|output-format=s"      => \$outFmt,
       "p|prog=s"                => \&read_prog,
       "o|outdir=s"              => \$outdir,
@@ -1850,11 +1858,12 @@ sub read_command_line {
 
 
     #Check that proteome file exists
-    $file_proteome = "$gnmDir/${gnmAcc}_protein.faa.gz";
+    $file_proteome = "$gnmDir/${gnmAcc}_protein.faa.gz" unless (-f $file_proteome);
     die "Proteome file not found: $file_proteome -> " unless (-f $file_proteome);
 
     system "mkdir -p $outdir" unless (-d $outdir);
-}
+
+  }
 
 
 
@@ -1965,6 +1974,11 @@ Options:
   The prefix of all the files in the genome directory. This is normally the name of
   the folder in NCBI. For example:  GCA_000995795.1_ASM99579v1
 
+-pf, --proteome-file { path } (Optional; Default: taken from assemply directory)
+  File with the proteome of the reference genome in fasta format. This could be
+  usefule when the genome accessions require special formatting. For example, 
+  when default accessions are replaced with locus tags.
+
 -rs, --replicon-structure {string}  (Optional; Default: circular)
   The structure of the replicon under analysis. Only the following values
   are accepted: circular or linear
@@ -1975,9 +1989,19 @@ Options:
 -gb, --gblast { file } (Mandatory)
    The GBLAST output file in tab-separated format.
 
+-gbd, --gnm-blastdb-dir { path } (Optional; Default: generated with assemply proteome).
+   If there is already a BlastDB for the proteome under underanalysis, you can
+   provide it here.
+
 -dbn, --blastdb-name {string}  (Optional; Default: proteome)
   Name of the blast database that will be generated with the proteome
   of the genome.
+
+-tcs, --tcdb-faa { file } (Optional; Default: download from TCDB)
+  File with all the proteins in tcdb in the format generated by extractFamily.pl
+  This is useful to freeze the version of TCDB for a given project. This will
+  guarantee that no new TCDB proteins are incorporated in the analysis unless
+  the user wants it.
 
 -bo, --tcblast-overwrite  (Optional; by default the DB is not overwritten)
   If given, the blast DB with all the protein content in TCDB will be overwritten.
@@ -1989,7 +2013,7 @@ Options:
   By default the output is tab-separated values (tsv), but it can also be
   comma-separated values (csv).
 
--o, --outdir { path } (Optional; Default: MultiComponentSystemsAnalysis)
+-o, --outdir { path } (Optional; Default: MultiComponentSystems)
   Directory where the results of the program will be stored.
 
 -d, --max-gene-dist { int } (Optional; Default: 20)

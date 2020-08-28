@@ -6,7 +6,7 @@ use Data::Dumper;
 
 use Getopt::Long;
 
-use R2::CheckDependencies;
+use TCDB::CheckDependencies;
 use Bio::DB::SwissProt;
 
 
@@ -85,7 +85,7 @@ use Bio::DB::SwissProt;
 
 my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'blastp');
 
-my $CheckDep_obj = new R2::CheckDependencies();
+my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
 $CheckDep_obj -> checkDependencies;
 

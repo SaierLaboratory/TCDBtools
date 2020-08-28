@@ -243,10 +243,10 @@ library(MCMCpack)
 library(ape)
 
 fampairw <- read.table("$outputFolder/$family.$pwprogram.distances.bz2",
-        header=T)
+        header=T,sep="\\t")
 
 #### make into a matrix
-number.fam<-length(levels(fampairw[,2]))
+number.fam<-length(levels(as.factor(fampairw[,2])))
 fam.names<-fampairw[1:number.fam,2]
 fammat<-xpnd(fampairw[,3])
 rownames(fammat)<-fam.names

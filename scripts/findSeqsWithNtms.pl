@@ -27,6 +27,7 @@ use TCDB::Assorted;
 #
 ###########################################################################
 
+
 #==========================================================================
 #Check dependencies
 
@@ -60,7 +61,7 @@ my $evalue   = 1e-10;
 my $coverage = 70;
 my $covControl = "X";
 my $cdhit      = 1;
-my $clustID    = 0.8;  #Clustering identity value for cd-hit
+my $clustID    = 0.90;  #Clustering identity value for cd-hit
 my $runGBLAST  = "F";
 
 read_command_line();
@@ -123,17 +124,19 @@ sub extractHomologsForProteins {
 
   #Get the list of non-redundant accessions from fasta file
   my %nrAccs = ();
-  readNRaccessions($faaFile, \%nrAccs);
+#  readNRaccessions($faaFile, \%nrAccs);
 
 
   #Get the accessions for non-redundant homologs for the query proteins
   my %nrHom = ();
-  map { $nrHom{$_} = 1 if (exists $nrAccs{$_}); } keys %accs;
+#
+#  map { $nrHom{$_} = 1 if (exists $nrAccs{$_}); } keys %accs;
 
 
   #save accessions to a file so their full sequences can be extracted.
   my $accFile1 = "$miscDir/acc1.txt";
-  my @tmpAcc = keys %nrHom;
+  #  my @tmpAcc = keys %nrHom;
+  my @tmpAcc = keys %accs;
   saveAccToFile(\@tmpAcc, $accFile1);
 
 
@@ -201,6 +204,9 @@ sub findGoodMatches {
     }
   }
   close $fh;
+
+#  print Data::Dumper->Dump([$out], [qw(*out )]);
+#  exit;
 }
 
 
@@ -416,7 +422,7 @@ sub remoteNCBIseqExtract {
 
 
   #stantiate the user agent object
-  my $browser = LWP::UserAgent->new;
+  my $browser = LWP::UserAgent->new(timeout=>900);
   $browser->show_progress(1);
 
 
@@ -515,6 +521,7 @@ sub read_command_line {
 	"e|evalue=f"       => \$evalue,
 	"c|coverage=f"     => \$coverage,
 	"cc|cov-control=s" => \&read_covControl,
+	"r|redundnacy=f"   => \$clustID,
 	"full!"            => \$fullSeqs,
 	"n|tms=i"          => \$nTMS,
 	"g|gblast=s"       => \&read_gblast,
@@ -634,6 +641,7 @@ sub read_gblast {
   $runGBLAST = $tmp;
 }
 
+
 #==========================================================================
 #Option -o
 
@@ -652,7 +660,7 @@ sub print_help {
 
     my $help = <<'HELP';
 
- earch the famXpander results of a family for sequences with a
+ Search the famXpander results of a family for sequences with a
  specific number of TMS. The purpose is to search for evidence
  indicating which TMS were lost/gained when repeat units are not
  complete.
@@ -693,6 +701,9 @@ sub print_help {
  -c, --coverage {FLOAT < 100.0) (Optional; Default: 70)
    Minimum coverage for the smaller protein (query or subject) in percentage
    values
+
+ -r, --redundnacy {FLOAT: 0.65-1.0) (Optional; Default: 0.9)
+  Identity threshold for cd-hit to remove redundant sequences.
 
 -cc, --cov-control {char} (Optional. Defaul: X)
    Controls how the coverage threshold will be applied to the alignments

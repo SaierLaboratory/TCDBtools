@@ -24,7 +24,7 @@ my $owBlastDB = 0;
 my $subMatrix = "BL50";
 my $qblastdb = 'nr';
 
-my $blastBin = "/usr/local/biotools/ncbi-blast-2.9.0+/bin";
+my $blastBin = "/usr/local/bin";
 
 read_command_line_arguments();
 #print Data::Dumper->Dump([$query, $sAcc, $sTC, $outdir, $owBlastDB], $qblastdb,
@@ -46,10 +46,24 @@ system $cmd1 if ($owBlastDB || !(-f "$blastDir/tcdb.pin"));
 #==========================================================================
 #First download the query sequence
 
-my $qSeqFile = "$outdir/${query}.faa";
+#
+#NOTE: If $query and $sAcc are the same accession, it will be necessary to modify
+#      the accession of the query in the sequence file to prevent an error in
+#      alignSeqFiles.pl
+#
+
+my $tmpAcc = ($query eq $sAcc)? "${query}_tmp" : $query;
+
+
+my $qSeqFile = "$outdir/${tmpAcc}.faa";
 my $cmd2 = qq($blastBin/blastdbcmd -db $qblastdb  -entry $query -target_only > $qSeqFile);
 system $cmd2 unless (-f $qSeqFile);
 die "Could not extract query sequence: $query" unless (-f $qSeqFile && !(-z $qSeqFile));
+
+
+if ($query eq $sAcc) {
+  my $cmd = qq(perl -i.bkp -pe 's/$query\\.*\\d*/$tmpAcc/;' $qSeqFile);
+}
 
 
 #==========================================================================

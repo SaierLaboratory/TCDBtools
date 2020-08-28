@@ -16,7 +16,7 @@ use TCDB::Assorted;
 
 my $gbResultsFile = "";
 my $qblastdb  = "nr";
-my $outdir    = ".";
+my $outdir    = "./xgbhit";
 my $subMatrix = "BL50";
 my $owTCblastDB = 0; #Overwrite TC blastdb flag
 
@@ -53,7 +53,7 @@ while (<$fh>) {
   print "Examining hit: $gacc vs ${tcid}-$tcacc\n";
 
   #now run examine GBhit
-  my $cmd = qq(examineGBhit.pl -q $gacc -s $tcacc -t $tcid -o xgbhit/$gacc -bdb  $qblastdb);
+  my $cmd = qq(examineGBhit.pl -q $gacc -s $tcacc -t $tcid -o $outdir/$gacc -bdb  $qblastdb);
   system $cmd unless (-d "xgbhit/$gacc");
 
 }
@@ -89,7 +89,6 @@ sub read_command_line_arguments {
       "<>"     => sub { die "Error: Unknown argument: $_[0]\n"; }
   );
   die "\n" unless ($status);
-
 
   system "mkdir -p $outdir" unless (-d $outdir);
 }
@@ -178,7 +177,7 @@ Options:
      This is requiered if the accessions used in the genome are not in the
      NCBI redundant database (e.g. locus tags).
 
--o   {PATH} (Default: .)
+-o   {PATH} (Default: ./xgbhit)
      Output directory where results will be stored.
 
 -ow  {FLAG} (Optional. Default: inactive)

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use Data::Dumper;
 use Getopt::Long;
 
-use R2::CheckDependencies;
+use TCDB::CheckDependencies;
 
 
 #
@@ -19,7 +19,7 @@ use R2::CheckDependencies;
 #Check dependencies
 
 my @dependencies = ("seqboot", "protdist", "neighbor", "fitch", "proml");
-my $CheckDep_obj = new R2::CheckDependencies();
+my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
 $CheckDep_obj -> checkDependencies;
 
