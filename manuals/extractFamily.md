@@ -39,5 +39,6 @@ script without arguments to display the options:
                  sequences.
     -d  path to a fasta file with all sequences in TCDB,
         as in previous runs of 'extractFamily.pl -i tcdb -f fasta'
+        This allows to work with frozen version of TCDB.
         Default: tcdb  (online database).
 
