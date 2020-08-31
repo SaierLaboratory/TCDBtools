@@ -196,15 +196,17 @@ sub print_help {
 
   my $help = <<'HELP';
 
-This script takes a file with multiple protein sequences and generates many
-files were each files has proteins with the same number of predictes TMS.
+This script takes a file with multiple protein sequences in FASTA fromat
+and generates multiple files were each files has proteins with a given
+number of HMMTOP-predictes TMSs.
 
 -s, --seqs-file={string}
-    File with the proteins sequences that will be organized.
+    Fasta file with the proteins sequences that will be organized.
     Argument is mandatory.
 
 -o, --outdir={string}
-    Directory where the output files will be located.
+    Directory where the output files will be located. If the directory
+    does not exist, it will be created.
 
 -h, --help
     Print this help.

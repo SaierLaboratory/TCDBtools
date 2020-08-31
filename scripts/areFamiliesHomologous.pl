@@ -974,7 +974,8 @@ The script accepts the following command line options:
 
  -gip, --gsat-ignore-proteins {string}
       List of comma-separated protein accessions that will be ignored
-      when parsing Protocol2 hits and select hits on which to run GSAT.
+      when parsing Protocol2 hits. This allows to skip protein matches
+      for which the user does not want to run GSAT.
       By default no hits are ignored.
 
  -gsh, --gsat-shuffles {integer >= 500}

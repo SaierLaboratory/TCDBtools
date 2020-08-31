@@ -2053,7 +2053,7 @@ sub get_clans {
 
   my ($out, $tmpDir) = @_;
 
-  my $clansDB = ($ENV{PFAMCLANSDB})? $ENV{PFAMCLANSDB} : "/ResearchData/pfam/download/Pfam-A.clans.tsv.gz";
+  my $clansDB = ($ENV{PFAMCLANSDB})? $ENV{PFAMCLANSDB} : "$ENV{RESEARCH_DATA}/pfam/download/Pfam-A.clans.tsv.gz";
 
   #Temporal file to store PFAM accessions
   my $tmpFile = ($tmpDir)? "$tmpDir/pfam_acc.txt" : "/tmp/pfam_acc.txt";
@@ -2116,8 +2116,17 @@ sub parse_pfam {
 
   my ($infile, $out, $clans) = @_;
 
+  my $fh = undef;
+  if ($infile =~ /\.bz2$/) {
+    open ($fh, "-|", "bunzip2 -c $infile") || die $!;
+  }
+  elsif ($infile =~ /\.gz$/) {
+    open ($fh, "-|", "gunzip -c $infile") || die $!;
+  }
+  else {
+    open ($fh, "<", $infile) || die $!;
+  }
 
-  open (my $fh, "<", $infile) || die $!;
   while (<$fh>) {
 
     chomp;

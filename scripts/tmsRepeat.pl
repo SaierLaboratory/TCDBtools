@@ -65,7 +65,7 @@ read_command_line_arguments();
 #			     *coverage *identity $gsatShuffles *compStatFlag *compStats)]);
 #exit;
 
-# ssearch36 -p -k 10000 -E 1.0 -s BL62 -W 0 4.B.1_4tms_all/sequences/4.B.1.1.2-Q4QLL1_bundle1.faa 4.B.1_4tms_all/sequences/lib_4.B.1.1.2-Q4QLL1_bundle1.faa
+# ssearch36 -p -k 1000 -z 11 -E 1.0 -s BL62 -W 0 4.B.1_4tms_all/sequences/4.B.1.1.2-Q4QLL1_bundle1.faa 4.B.1_4tms_all/sequences/lib_4.B.1.1.2-Q4QLL1_bundle1.faa
 
 
 #==========================================================================
@@ -383,7 +383,7 @@ CLOSE
 
 
 #==========================================================================
-#Run sssearch36 between the different bundles in a sequence
+#Run ssearch36 between the different bundles in a sequence
 
 sub align_bundles {
 
@@ -969,7 +969,7 @@ sub read_command_line_arguments {
   #Option -f
   $gs_idFormat = lc $gs_idFormat;
   unless ($gs_idFormat =~ /^(tc|tca|o)$/) {
-    die "Error: invalid option ($gs_idFormat)\nThere are 3 Valid options for -f (tc, tca, o)\n";
+    die "Error: There are 3 Valid options for -f (tc, tca, o)\n";
   }
 
 
@@ -1000,7 +1000,7 @@ sub read_command_line_arguments {
 
 
   #option -cs
-  $compStats  = "-k 10000 -z 21" if ($compStatsFlag);
+  $compStats  = "-k 1000 -z 11" if ($compStatsFlag);
 }
 
 
@@ -1009,28 +1009,30 @@ sub print_help {
 
   my $help = <<'HELP';
 
-This script searches for sets of TMS repeated in a full protein.
+This script searches for regions of TMSs repeated in a full protein.
 
 -i, --infile {path}
    Input file with id/accession(s) of the protein(s) to analyze and the coordinates
-   of the TMSs in that protein(s).
+   of the TMSs in that protein(s). Use option -if to specify the format of this
+   file.
    (Argument is mandatory).
 
 -if, --infile-format {string} (optional)
-  Format of the TMS coordenates. It can be either tms or hmmtop.
-  (default hmmtop)
+  Format of the TMS coordenates. It can be either 'tms' or 'hmmtop'.
+  (Default: hmmtop)
 
 -o, --outdir {path}
   Output directory where results will be saved.
-  (default: repeats)
+  (Default: repeats)
 
 -s, --seqs {path}
-  Directory to access the sequences in FASTA formate that will be used to 
-  search for repeats.
+  Directory to access the sequences in FASTA format that will be used to 
+  search for repeats. One file per sequence, and the name of the file is
+  the accession of the protein followed by '.faa'
   (Argument is mandatory)
 
 -f, --id-format {string}
-   format of identifier used:
+   Acceptable formats for identifiers:
    tc    plain tcdb identifier of a system (e.g., 2.A.1.8.1)
    tca   tcdb id and accession separated by dash (e.g. 2.A.1.8.3-Q9R6U5)
    o     other, it can be refSeq, uniprot or custom, but it is requried
@@ -1050,17 +1052,31 @@ This script searches for sets of TMS repeated in a full protein.
    Maximum evalue to consider an alignment between two TMS bundles significant.
    (Default: 0.1);
 
+-cs, --comp-stats {FLAG}
+   If present, this flag indicates that  E-values will be corrected using
+   compositional statistics.
+   (Default: not corrected).
+
 -c, --coverage {float}
    Minimum alignment coverage of the smallest bundle to consider an alignment
    signifiant.
-   (default: 0.8)
+   (Default: 0.8)
 
--id, --perc-identity {float}
-   Minimum identity in the alignemnt to consider alignments signficant.
-   (defatul 0.3);
+-id, --identity {float}
+   Minimum identity, expressed as a float in the 0-1 range, to consider an
+   alignment signficant.
+   (Defatul: 0.25);
 
 -gs, --gsat-shuffles {int}
   Number of shuffles that will be used to run GSAT on good matches.
+  (Default: 1000);
+
+-z, --gsat-cutoff {int}
+  Minimum GSAT score cutoff to select good hits. 
+  (Default: 4.0)
+
+-h, --help
+  Print this help message. It takes precedence to any other option.
 
 HELP
 
