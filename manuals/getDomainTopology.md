@@ -58,7 +58,7 @@ script without arguments to display the options:
       given, in which case all TCIDs will be treated as a superfamily.
       This option is incompatible with option -pt. But either -f or -pt
       must be given.
-  
+      
    -pt, --proj-targets {string}
       Project the characteristic domains of a reference family onto
       candidate protein(s) not in TCDB that might belong to the family.
