@@ -42,7 +42,8 @@ was not tested with more recent versions of perl.
 The following options are available. You can also run the 
 script without arguments to display the options:
 
-    -i  input filename in fasta format (required)  
+    -i  input filename in fasta format (Required)
+    -d  non-redundant database (Default: nr)
     -o  output folder (default: faaOut)  
     -n  max number of aligned sequences to keep (default: 10000)  
     -e  evalue threshold (default: 1e-7)  
@@ -50,12 +51,15 @@ script without arguments to display the options:
     -t  psiblast iterations (default: 1)  
     -h  keep only aligned region [T/F] (default: T)  
     -c  minimum alignment coverage of original sequence 
-        (default: 0.8)  
+        (default: 0.8) 
+    -x  coverage applies to either sequence (Default: F)
     -s  minimal subject seq length relative to query seq length 
         (default: 0.8)
     -l  maximal subject seq length relative to query seq length.
         Option is ignored if -h T  (default: 1.25)
     -r  identity redundancy threshold for cd-hit (default: 0.8)  
-    -a  number of cpus to use.  
-    -p  run remotely at ncbi [T/F] (default F)  
+    -a  number of cpus to use. (Default: all available).
+    -w  overwrite previous psiblast.tbl file, if it exists [T/F].
+        (Default: F)
+    -p  run remotely at ncbi [T/F] (Default F)  
 
