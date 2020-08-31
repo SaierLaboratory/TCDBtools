@@ -51,12 +51,25 @@ The following options are available. You can also run the
 script without arguments to display the options:
 
 
-    -f, --family {string} (Mandatory)
+    -f, --family {string} (Optional)
       TCID of the family for which Pfam domain analysis will be carried out.
       If multiple TCIDs are given, they whould be comma-separated. The analysis
       will be performed individually for each family, unless the flag -sf is
       given, in which case all TCIDs will be treated as a superfamily.
+      This option is incompatible with option -pt. But either -f or -pt
+      must be given.
+  
+   -pt, --proj-targets {string}
+      Project the characteristic domains of a reference family onto
+      candidate protein(s) not in TCDB that might belong to the family.
+      The format indicates pairs tcid,targets separated by ':'. That is:
 
+      {tcid_1},{seq_file_1}:{tcid_2},{seq_file_2}:... {tcid_n},{seq_file_n}
+
+      where tcid_n is the reference family that will project its domains onto
+      the sequences in seq_file_n. This option is incompatible with option 
+      -f. But either -f or -pt must be given.
+  
     -dc, --domain-cov {float} (Default: 0.7)
       Minimum coverage of the Pfam domain to consider it a match. If coverage
       is less than the specified threshold, the coverage must apply to the
