@@ -63,11 +63,11 @@ script without arguments to display the options:
       Project the characteristic domains of a reference family onto
       candidate protein(s) not in TCDB that might belong to the family.
       The format indicates pairs tcid,targets separated by ':'. That is:
-
+      
       {tcid_1},{seq_file_1}:{tcid_2},{seq_file_2}:... {tcid_n},{seq_file_n}
-
+      
       where tcid_n is the reference family that will project its domains onto
-      the sequences in seq_file_n. This option is incompatible with option 
+      the sequences in seq_file_n. This option is incompatible with option
       -f. But either -f or -pt must be given.
   
     -dc, --domain-cov {float} (Default: 0.7)
