@@ -30,7 +30,7 @@ must be available locally through the environment varaible _$BLASTDB_.
 You can download NR from the NCBI FTP site:  
 ftp://ftp.ncbi.nlm.nih.gov/blast/db/
 
-3. **_cd-hit 4.6_**  
+3. **_cd-hit 4.8_**  
 Visit the [official website](http://weizhongli-lab.org/cd-hit/) to 
 download the latest version.
 
