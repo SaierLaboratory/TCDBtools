@@ -13,7 +13,7 @@ program to run properly:
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
-2. **_BioPerl and perl module TCDB::CheckDependencies_**
+2. **_BioPerl and perl module TCDB::CheckDependencies_**  
 To instal bioperl visit the [official website](https://bioperl.org/). 
 The TCDB module is part of the distribution
 
