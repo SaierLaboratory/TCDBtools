@@ -20,7 +20,7 @@ The TCDB module is part of the distribution
 3. **_hmmtop_**  
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
 
-G
+
 ## Command line options
 The following options are available. You can also run the 
 script without arguments to display the options:
