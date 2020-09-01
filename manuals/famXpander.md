@@ -11,6 +11,11 @@ performed  first for all protein queries and the redundant sequences are removed
 at the end only once; and **3)** famXpander can extract either the full sequence 
 of the top hits or just the aligned regions.
 
+
+## Contributor
+Gabriel Moreno-Hagelsieb
+
+
 ## How to cite this program
 If you find this program useful, please cite the paper:  
 
