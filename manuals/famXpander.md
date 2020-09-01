@@ -4,8 +4,8 @@
 This program performs _blastp_ or _psiblast_ searches of query proteins 
 against the NCBI non-redundant database. The sequences of top matches
 are extracted and redundant sequences filtered out. This program is 
-similar to protocol1 from the [BioV suite](https://github.com/SaierLaboratory/BioVx), 
-but there are three main differences: **1)** famXpander performs blast searches 
+similar to and substitutes _protocol1_ from the [BioV suite](https://github.com/SaierLaboratory/BioVx). 
+There are three main differences between these 2 programs: **1)** famXpander performs blast searches 
 locally, although it can also run them remotely; **2)** blast searches are 
 performed  first for all protein queries and the redundant sequences are removed 
 at the end only once; and **3)** famXpander can extract either the full sequence 
