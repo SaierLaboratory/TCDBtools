@@ -16,9 +16,8 @@ Each program has its own help file:
 **5.** tmsRepeat.pl ([manual](manuals/tmsRepeat.md))  
 **6.** getDomainTopology.pl ([manual](manuals/getDomainTopology.md))   
 **7.** getMultCompSystems.pl ([manual](manuals/getMultCompSystems.md))  
-**8.** findNovelTransporters.pl ([manual](manuals/findNovelTransporters.md))
-**9.** organizeSeqsByTMS.pl ([manual](manuals/organizeSeqsByTMS.md))
-
+**8.** findNovelTransporters.pl ([manual](manuals/findNovelTransporters.md))  
+**9.** organizeSeqsByTMS.pl ([manual](manuals/organizeSeqsByTMS.md))  
 
 
 ---
