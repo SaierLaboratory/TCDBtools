@@ -2,14 +2,15 @@
 
 ## Summary
 This program characterizes the Pfam domain composition of a TCDB family. It first runs 
-HMMSCAN on every protein sequence. If not all proteins in the family have a direct hit 
-with a Pfam domain, the fragments of the sequences with direct hits are extracted and 
-aligned to the sequences without direct hits using the Smith-Waterman algorithm as 
-implemented in SSEARCH. This is equivalent to projecting the domains of sequences with 
-direct PFAM hits onto sequences without Pfam hits. The expectation is that all sequences 
-in a family should share at least one domain or have domains that belong to the same 
-Pfam clan. This can further be used to relate families based on the overlap of shared 
-domains. 
+_HMMSCAN_ on every protein sequence against [Pfam](https://pfam.xfam.org/). If not all 
+proteins in the family have a direct hit with a Pfam domain, the fragments of the 
+sequences with direct hits are extracted and aligned to the sequences without direct hits 
+using the Smith-Waterman algorithm as implemented in [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
+This is equivalent to projecting the domains of sequences with direct PFAM hits onto 
+sequences without Pfam hits. The expectation is that all sequences in a family should 
+share at least one domain or have domains that belong to the same Pfam clan. This can 
+further be used to relate families based on the overlap of shared domains. 
+
 
 ## How to cite this program
 The rational for this program was published in two of our publications: 
@@ -30,19 +31,22 @@ The following dependencies need to be available in your enviroment for this
 program to run properly:
 
 1. **Perl Module: _TCDB::Assorted_**  
-This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
 2. **Perl Module: _TCDB::Domain::PfamParser_**  
-This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
 3. **Perl Module: _TCDB::Domain::Characterize_**  
-This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
 4. **_ssearch36 version: 36.3.8e_**  
 Other versions of ssearch may require minor adaptations. Visit the
 [download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
-5. **_PERL 5.18_**  
+5. **_HHMER 3.2.1_**  
+You can download this suite of programs from its [official site](http://hmmer.org/).  
+
+6. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
