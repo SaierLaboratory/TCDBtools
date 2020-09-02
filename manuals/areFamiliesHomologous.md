@@ -101,7 +101,7 @@ script without arguments to display the options:
       extracted the sequences and they are available in the path provided by
       the -d option (optional)
 
-   -ox, --only-extract-seqs
+    -ox, --only-extract-seqs
       Flag instructing only to download the sequences of the input families
       from TCDB. This is useful when prior to running protocol1 and protocol2
       the user wants to limit or edit the protein sequnces. The program
