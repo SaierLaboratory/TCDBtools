@@ -6,6 +6,9 @@ have little or no significant similarity to any protein in TCDB. The
 user can specify the minimal number of TMS in the expected transporters, 
 the alignment coverage and the E-value cutoff.
 
+## Contributor
+Arturo Medrano-Soto
+
 ## Dependencies
 The following programs need to be available in your path for this 
 program to run properly:
