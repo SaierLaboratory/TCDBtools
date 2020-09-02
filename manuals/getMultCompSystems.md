@@ -11,23 +11,28 @@ within a system by identifying genes in close neighborhood, thus aiding in the p
 components that may be parts of the same operon.
 
 
+## Contributor
+Arturo Medrano-Soto
+
+
 ## Dependencies
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.6.0 to 2.10.0_**  
+1. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl. The fllowing modules are required
+  a) [Bioperl](https://bioperl.org/)
+  b) TCDB::Assorted (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)). 
+
+2. **_blast+ 2.6.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-2. **Perl Module: _TCDB::Assorted_**  
-This module is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
-
 3. **_extractFamily.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+This program is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
-4. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
+
 
 ## Command line options
 The following options are available. You can also run the 
