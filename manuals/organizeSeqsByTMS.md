@@ -3,7 +3,7 @@
 ## Summary
 This script takes a file with multiple protein sequences in FASTA fromat
 and generates outfile files where each file has proteins with a given
-number of HMMTOP-predictes TMSs.
+number of HMMTOP-predicted TMSs.
 
 
 ## Contributor
@@ -18,8 +18,8 @@ program to run properly:
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl. The following modules
 are required:  
-  a) [Bioperl](https://bioperl.org/)
-  b) TCDB::CheckDependencies (included in the [TCDBtools distribution](..)
+  a) [Bioperl](https://bioperl.org/)  
+  b) TCDB::CheckDependencies (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)  
 
 2. **_hmmtop_**  
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
