@@ -20,10 +20,10 @@ The following programs need to be available in your path for this
 program to run properly:
 
 1. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl. The fllowing modules are required
-  a) [Bioperl](https://bioperl.org/)
-  b) TCDB::Assorted (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)). 
+Visit the [official website](https://www.perl.org/). This program was not tested with more recent 
+versions of perl. The fllowing modules are required:  
+  a) [Bioperl](https://bioperl.org/)  
+  b) TCDB::Assorted (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)).  
 
 2. **_blast+ 2.6.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
