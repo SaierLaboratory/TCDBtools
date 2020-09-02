@@ -21,7 +21,7 @@ If you find this program useful, please cite the paper:
   * Medrano-Soto A, Ghazi F, Hendargo KJ, Moreno-Hagelsieb G, Myers S, Saier MH Jr. 
   _Expansion of the Transporter-Opsin-G protein-coupled receptor superfamily with five 
   new protein families._ 2020. PLoS One. **15**(4):e0231085. 
-  **PMID:** [18951645](https://www.ncbi.nlm.nih.gov/pubmed/?term=18951645)  
+  **PMID:** [32320418](https://www.ncbi.nlm.nih.gov/pubmed/?term=32320418)  
 
 
 ## Dependencies
