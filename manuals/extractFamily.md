@@ -4,10 +4,16 @@
 This program extracts the protein sequences of any transport family, etc. in TCDB; 
 including the complete TCDB database. The sequences can downloaded in several formats.
 
+
+## Contributor
+Gabriel Morneo-Hagelsieb
+
+
 ## How to cite this program
 If you find this program useful, please cite the paper:  
 
   * Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr. _Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated ion channels and lipid scramblases._  2018. PLoS One. **13**(3):e0192851  **PMID:** [29579047](https://www.ncbi.nlm.nih.gov/pubmed/?term=29579047)  
+
 
 ## Dependencies
 The following programs need to be available in your path for this 
@@ -23,6 +29,7 @@ Sequences are downloaded from the TCDB server using [wget](https://www.gnu.org/s
 3. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
+
 
 ## Command line options
 The following options are available. You can also run the 
