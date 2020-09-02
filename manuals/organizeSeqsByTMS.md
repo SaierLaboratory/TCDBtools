@@ -19,7 +19,7 @@ Visit the [official website](https://www.perl.org/). This program
 was not tested with more recent versions of perl. The following modules
 are required:  
   a) [Bioperl](https://bioperl.org/)  
-  b) TCDB::CheckDependencies (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)  
+  b) TCDB::CheckDependencies (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))
 
 2. **_hmmtop_**  
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
