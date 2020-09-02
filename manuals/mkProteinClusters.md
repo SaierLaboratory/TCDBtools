@@ -2,11 +2,12 @@
 
 ## Summary
 This program performs hierarchical clustering of a set of proteins based on 
-their BLAST scores and reports a dendogram. The scores can also be estimated 
-using other programs, such as UBLAST, or the Smith-Waterman algorithm as 
-implemented in SSEARCH. Several methods for merging clusters are 
-supported (e.g., Ward, single-linkage, average linkage, etc.). The clustering 
-is performed using the R statistical computing environment.
+their [_BLAST_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) 
+scores and reports a dendogram. The scores can also be estimated using other programs, such as 
+[_UBLAST_](https://www.drive5.com/usearch/manual/ublast_algo.html), or the Smith-Waterman algorithm as 
+implemented in [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_class.shtml). 
+Several methods for merging clusters are supported (e.g., Ward, single-linkage, average linkage, etc.). The clustering 
+is performed using the [_R_](https://www.r-project.org/) statistical computing environment.
 
 
 ## Contributor
