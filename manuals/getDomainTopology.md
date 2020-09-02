@@ -2,8 +2,8 @@
 
 ## Summary
 This program characterizes the Pfam domain composition of a TCDB family. It first runs 
-_HMMSCAN_ on every protein sequence against [Pfam](https://pfam.xfam.org/). If not all 
-proteins in the family have a direct hit with a Pfam domain, the fragments of the 
+[_HMMSCAN_](http://hmmer.org/) on every protein sequence against [Pfam](https://pfam.xfam.org/). 
+If not all proteins in the family have a direct hit with a Pfam domain, the fragments of the 
 sequences with direct hits are extracted and aligned to the sequences without direct hits 
 using the Smith-Waterman algorithm as implemented in [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 This is equivalent to projecting the domains of sequences with direct PFAM hits onto 
