@@ -8,6 +8,11 @@ implemented in SSEARCH. Several methods for merging clusters are
 supported (e.g., Ward, single-linkage, average linkage, etc.). The clustering 
 is performed using the R statistical computing environment.
 
+
+## Contributor
+Gabriel Moreno-Hagelsieb  
+
+
 ## How to cite this program
 If you find this program useful, please cite the paper:  
 
@@ -36,6 +41,7 @@ packages are installed: cluster, MCMCpack and ape.
 4. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
+
 
 ## Command line options
 The following options are available. You can also run the 
