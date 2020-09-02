@@ -11,6 +11,8 @@ sequences without Pfam hits. The expectation is that all sequences in a family s
 share at least one domain or have domains that belong to the same Pfam clan. This can 
 further be used to relate families based on the overlap of shared domains. 
 
+## Contributor
+Arturo Medrano-Soto
 
 ## How to cite this program
 The rational for this program was published in two of our publications: 
