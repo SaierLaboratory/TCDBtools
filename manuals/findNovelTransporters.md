@@ -18,7 +18,7 @@ Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
 2. **_extractFamily.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+This program is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
 3. **_hmmtop_**  
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
