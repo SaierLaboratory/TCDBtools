@@ -13,19 +13,23 @@ Arturo Medrano-Soto
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.6.0 to 2.10.0_**  
+1. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl.
+
+2. **_blast+ 2.6.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-2. **_extractFamily.pl_**  
+3. **_extractFamily.pl_**  
 This program is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
-3. **_hmmtop_**  
+4. **_hmmtop_**  
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
 
-4. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
+5. **quod.py**  
+This program in included in the [BioVx distribution](https://github.com/SaierLaboratory/BioVx). 
+
 
 ## Command line options
 The following options are available. You can also run the 
