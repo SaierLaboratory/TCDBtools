@@ -1,10 +1,11 @@
 # Documentation for script: _prepNewIMPs4TCDBupload.pl_
 
 ## Summary
-After running [_findNovelTrasporters_](findNovelTrasporters.md) with and obtaining a list of proteins
+After running [_findNovelTrasporters_](findNovelTrasporters.md)  and obtaining a list of proteins
 in a reference genome with little or no similarity to any protein in TCDB, this programs extracts 
 homologs from NCBI for each of the new candidate transporters that will be used to expand current families
-or create new families in TCDB. This list will make the job of TCDB curators much easier.
+or create new families in TCDB. This list will significantly optimize  TCDB curators' time.
+
 
 ## Contributor
 Arturo Medrano-Soto
@@ -26,56 +27,54 @@ TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmm
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-3. **_cd-hit 4.8_**  
+4. **_cd-hit 4.8_**  
 Visit the [official website](http://weizhongli-lab.org/cd-hit/) to 
 download the latest version.
 
-
-2. **_famXpander.pl_**  
+4. **_famXpander.pl_**  
 This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
-
 
 
 ## Command line options
 The following options are available. You can also run the 
 script without arguments to display the options:
 
- -i, --input {list|file}  (Mandatory)
-    An Accession, comma-separated list of accessions, or a file with the
-    accessions (first columns) on which the perform the analysis.
+    -i, --input {list|file}  (Mandatory)
+      An Accession, comma-separated list of accessions, or a file with the
+      accessions (first columns) on which the perform the analysis.
 
- -wd, --workdir {path}  (Defalut: ./newIMPs4tcdb)
-    Path to the directory where the ouput and temporary files will be stored.
+    -wd, --workdir {path}  (Defalut: ./newIMPs4tcdb)
+      Path to the directory where the ouput and temporary files will be stored.
 
- -t, --tcblastdb {path}  (Default: ~/db/blastdb/tcdb)
-    Full path to the TCDB blast database that will be used.
+    -t, --tcblastdb {path}  (Default: ~/db/blastdb/tcdb)
+      Full path to the TCDB blast database that will be used.
 
- -gdb, --gnm-blastdb {string} (Default: nr)
-    Full path to the blast DB of the whole proteome of the reference
-    genome. This is necessary when proteins are not annotated with proper
-    RefSeq accessions (e.g. locus_tags).
+    -gdb, --gnm-blastdb {string} (Default: nr)
+      Full path to the blast DB of the whole proteome of the reference
+      genome. This is necessary when proteins are not annotated with proper
+      RefSeq accessions (e.g. locus_tags).
 
- -e, --evalue {float}  (default: 1e-3)
-    NCBI proteins with E-value greater than this cutoff will be ignored.
+    -e, --evalue {float}  (default: 1e-3)
+      NCBI proteins with E-value greater than this cutoff will be ignored.
 
- -re,  --redundancy-evalue {float}  (Default: 1e-15)
-    Evalue threshold to consider two proteins redundant for the
-    the purpose of presenting final results.
+    -re,  --redundancy-evalue {float}  (Default: 1e-15)
+      Evalue threshold to consider two proteins redundant for the
+      the purpose of presenting final results.
 
- -c, --coverage {float} (Default: 0.5)
-    Minimum alignment coverage in pairwise alignments.
+    -c, --coverage {float} (Default: 0.5)
+      Minimum alignment coverage in pairwise alignments.
 
- -m, --mode {L|R} (Default: R)
-    Indicate whether blast will be run locally (L) or remotely
-    at NCBI (R).
+    -m, --mode {L|R} (Default: R)
+      Indicate whether blast will be run locally (L) or remotely
+      at NCBI (R).
 
- -nm, --num-members {int} (Defatult: 3)
-   Number of non-redundant homologs to create a family in TCDB,
-   or to add them to an existing family as remote homologs.
+    -nm, --num-members {int} (Defatult: 3)
+     Number of non-redundant homologs to create a family in TCDB,
+     or to add them to an existing family as remote homologs.
 
- -nh, --ncbi-hom {int} (Default: 25)
-    Minimum number of homologs in NCBI to qualify for this analysis.
+    -nh, --ncbi-hom {int} (Default: 25)
+      Minimum number of homologs in NCBI to qualify for this analysis.
 
- -h, --help
-    Display this help. This argument takes precedence over any other
-    argument.
+    -h, --help
+      Display this help. This argument takes precedence over any other
+      argument.
