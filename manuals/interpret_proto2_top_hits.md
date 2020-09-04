@@ -1,4 +1,4 @@
-# Documentation for script: interpret_proto2_top_hits.pl_
+# Documentation for script: _interpret_proto2_top_hits.pl_
 
 ## Summary
 After running [_areFamiliesHomologous_](areFamiliesHomologous.md) with the option (-gr) and 
