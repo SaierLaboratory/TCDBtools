@@ -36,6 +36,11 @@ $Data::Dumper::Deepcopy = 1;
 # for the alignment and the full sequence of the query (TCDB protein) and
 # the subject (protein in the reference genome).
 #
+# BUG Report:
+# When one smaller protein has multiple hits with another because the
+# larger protein is a repeat of the smaller the program only shows the
+# plots for the last match. This needs to be fixed so that there is a plot
+# for every match.
 #--------------------------------------------------------------------------
 #
 # Writen by: Arturo Medrano
@@ -77,9 +82,9 @@ my $blastOverWrite  = 0;            #Recreate the blastDB of all TCDB proteins
 my $outFmt          = "tsv";        #can also be "csv"
 my $prog            = "ssearch36";  #Alignment program to use (blastp|ssearch36)
 my $subMatrix       = 'BL50';       #Substitution matrix fro ssearch36
-my $outdir          = "./MultiComponentSystems";
-my $blastdb_dir     = "$outdir/blastdb";  #directory with proteome blastdb
+my $outdir          = "./MultiComponentSystemsAnalysis";
 my $tcdbFaa         = undef;
+my $blastBinDir     = '/usr/local/bin';
 
 #Variables that will be used to select good blastp hits (Candidates)
 my $geneDis         = 20;    #How many genes away to look for neighbors
@@ -128,6 +133,7 @@ read_command_line();
 #==========================================================================
 #Create working directories and declare
 
+my $blastdb_dir = "$outdir/blastdb";
 system "mkdir $blastdb_dir" unless (-d $blastdb_dir);
 
 my $plotDir = "$outdir/plots";
@@ -237,6 +243,24 @@ if ($blastOverWrite || !(-f $blastTestFile)) {
 print "Creating blast database for genome!\n";
 
 
+my $internalProteome = "$seqDir/proteome.faa";
+
+if ($file_proteome =~ /.+\.gz$/) {
+  system qq(gunzip -c $file_proteome > $internalProteome);
+}
+elsif ($file_proteome =~ /.+\.bz2$/) {
+  system qq(bunzip2 -c $file_proteome > $internalProteome);
+}
+else {
+  system qq(cp $file_proteome > $internalProteome);
+}
+
+
+unless (-f $internalProteome && !(-z $internalProteome)) {
+  die "Could not get extract sequences for proteome:  $file_proteome -> $internalProteome";
+}
+
+
 
 #Prepare command
 my $blastdb = "$blastdb_dir/$blastdb_name";
@@ -246,23 +270,12 @@ my $bdb_cmd =
 
 
 #generate the database
-unless (-f "${blastdb}.phr") {
+print qq($bdb_cmd -in $internalProteome \n);
+system qq($bdb_cmd -in $internalProteome);
 
-  if ($file_proteome =~ /.+\.gz$/) {
-    print qq(gunzip -c $file_proteome | $bdb_cmd -in - \n);
-    system qq(gunzip -c $file_proteome | $bdb_cmd -in -);
-  }
-  elsif ($file_proteome =~ /.+\.bz2$/) {
-    system qq(bunzip -c $file_proteome | $bdb_cmd -in -);
-  }
-  else {
-    system qq($bdb_cmd -in $file_proteome);
-  }
+#Verify that the database was successfully generated
+die "Blast databse $blastdb_name was not created" unless (-f "${blastdb}.phr");
 
-
-  #Verify that the database was successfully generated
-  die "Blast databse $blastdb_name was not created" unless (-f "${blastdb}.phr");
-}
 
 #print "Check blastdb: $blastdb\n";
 #exit;
@@ -319,6 +332,8 @@ else {
 
   $blast_file = "$blastoutDir/ssearch.out";
 
+  my $proteome = 
+
 
   #----------------------------------------------------------------------
   #Prepare the ssearch command
@@ -327,7 +342,7 @@ else {
 
   my $params = qq(-z 11 -k 1000 -m 0 -W 0 -E $minEvalDiscard -s $subMatrix );
   #my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query '$blastdb 12' > $blast_file);
-  my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query $file_proteome > $blast_file);
+  my $ssearch_cmd = qq(ssearch36 $params $file_blastp_query $internalProteome > $blast_file);
 
   print "   $ssearch_cmd\n";
   system $ssearch_cmd unless (-f $blast_file && !(-z  $blast_file));
@@ -1289,7 +1304,7 @@ sub getSeqs4hmmtop {
 
 
   #Extract sequences
-  my $cmd = qq(blastdbcmd -db $db -entry_batch $accFile -target_only >> $seqFile);
+  my $cmd = qq($blastBinDir/blastdbcmd -db $db -entry_batch $accFile -target_only >> $seqFile);
   system $cmd;
   die "Failed to extract sequences: $seqFile" unless (-f $seqFile && !(-z $seqFile));
 
@@ -1765,7 +1780,7 @@ sub downloadSeqsForMCS {
       #extract the sequences associated with this system
       my $seqFile = "$seqDir/family-${system}.faa";
       unless (-f $seqFile && ! (-z  $seqFile)) {
-	system "extractFamily.pl -i $system -o $seqDir -f fasta -d $tcdbFaa";
+	system "extractFamily.pl -i $system -o $seqDir -f fasta";
       }
       die "Could not download sequences for system:  $system" unless  (-f $seqFile && ! (-z  $seqFile));
     }
@@ -1822,10 +1837,8 @@ sub read_command_line {
       "rs|replicon-structure=s" => \$repForm,
       "gb|gblast=s"             => \&read_gblast_file,
       "dbn|blastdb-name=s"      => \&read_blastdb_name,
-      "gbd|gnm-blastdb-dir=s"   => \$blastdb_dir,
       "tcs|tcdb-faa=s"          => \$tcdbFaa,
       "bo|tcblast-overwrite!"   => \$blastOverWrite,
-      "pf|proteome-file=s"      => \$file_proteome,
       "of|output-format=s"      => \$outFmt,
       "p|prog=s"                => \&read_prog,
       "o|outdir=s"              => \$outdir,
@@ -1858,12 +1871,11 @@ sub read_command_line {
 
 
     #Check that proteome file exists
-    $file_proteome = "$gnmDir/${gnmAcc}_protein.faa.gz" unless (-f $file_proteome);
+    $file_proteome = "$gnmDir/${gnmAcc}_protein.faa.gz";
     die "Proteome file not found: $file_proteome -> " unless (-f $file_proteome);
 
     system "mkdir -p $outdir" unless (-d $outdir);
-
-  }
+}
 
 
 
@@ -1974,11 +1986,6 @@ Options:
   The prefix of all the files in the genome directory. This is normally the name of
   the folder in NCBI. For example:  GCA_000995795.1_ASM99579v1
 
--pf, --proteome-file { path } (Optional; Default: taken from assemply directory)
-  File with the proteome of the reference genome in fasta format. This could be
-  usefule when the genome accessions require special formatting. For example, 
-  when default accessions are replaced with locus tags.
-
 -rs, --replicon-structure {string}  (Optional; Default: circular)
   The structure of the replicon under analysis. Only the following values
   are accepted: circular or linear
@@ -1989,19 +1996,9 @@ Options:
 -gb, --gblast { file } (Mandatory)
    The GBLAST output file in tab-separated format.
 
--gbd, --gnm-blastdb-dir { path } (Optional; Default: generated with assemply proteome).
-   If there is already a BlastDB for the proteome under underanalysis, you can
-   provide it here.
-
 -dbn, --blastdb-name {string}  (Optional; Default: proteome)
   Name of the blast database that will be generated with the proteome
   of the genome.
-
--tcs, --tcdb-faa { file } (Optional; Default: download from TCDB)
-  File with all the proteins in tcdb in the format generated by extractFamily.pl
-  This is useful to freeze the version of TCDB for a given project. This will
-  guarantee that no new TCDB proteins are incorporated in the analysis unless
-  the user wants it.
 
 -bo, --tcblast-overwrite  (Optional; by default the DB is not overwritten)
   If given, the blast DB with all the protein content in TCDB will be overwritten.
@@ -2013,7 +2010,7 @@ Options:
   By default the output is tab-separated values (tsv), but it can also be
   comma-separated values (csv).
 
--o, --outdir { path } (Optional; Default: MultiComponentSystems)
+-o, --outdir { path } (Optional; Default: MultiComponentSystemsAnalysis)
   Directory where the results of the program will be stored.
 
 -d, --max-gene-dist { int } (Optional; Default: 20)
