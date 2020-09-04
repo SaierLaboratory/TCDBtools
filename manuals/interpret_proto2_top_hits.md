@@ -7,7 +7,7 @@ After running [_areFamiliesHomologous_](areFamiliesHomologous.md) with the optio
 and generate hydropathy plots (including [_Pfam_](https://pfam.xfam.org/) matches) across 
 the homology transitivity path. This will substantially help with the interpretation of 
 [_protocol2_](https://github.com/SaierLaboratory/BioVx/blob/master/manuals/BioV_manual.pdf) 
-results for each ppair of families analyzed. 
+results for each pair of families analyzed. 
 
 
 ## Contributor
