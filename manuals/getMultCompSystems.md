@@ -32,6 +32,9 @@ Other versions of blast may require minor adaptations. Visit the
 3. **_extractFamily.pl_**  
 This program is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
+4. **quod.py**  
+This program in included in the [BioVx distribution](https://github.com/SaierLaboratory/BioVx). 
+
 
 
 ## Command line options
