@@ -13,6 +13,7 @@ Each program has its own help file:
 **2.** extractFamily.pl ([Manual](manuals/extractFamily.md))    
 **3.** areFamiliesHomologous.pl ([Manual](manuals/areFamiliesHomologous.md))  
 **4.** list_top_gsat_hits.pl ([Manual](manuals/list_top_gsat_hits.md))  
+**5.** interpret_proto2_top_hits.pl ([Manual](manuals/interpret_proto2_top_hits.md))  
 **6.** mkProteinClusters.pl  ([Manual](manuals/mkProteinClusters.md))  
 **7.** tmsRepeat.pl ([manual](Manuals/tmsRepeat.md))  
 **8.** getDomainTopology.pl ([Manual](manuals/getDomainTopology.md))   
