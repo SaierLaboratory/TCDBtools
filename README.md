@@ -11,13 +11,14 @@ Each program has its own help file:
 
 **1.** famXpander.pl ([Manual](manuals/famXpander.md))  
 **2.** extractFamily.pl ([Manual](manuals/extractFamily.md))    
-**3.** areFamiliesHomologous.pl ([Manual](manuals/areFamiliesHomologous.md))   
-**4.** mkProteinClusters.pl  ([Manual](manuals/mkProteinClusters.md))  
-**5.** tmsRepeat.pl ([manual](Manuals/tmsRepeat.md))  
-**6.** getDomainTopology.pl ([Manual](manuals/getDomainTopology.md))   
-**7.** getMultCompSystems.pl ([Manual](manuals/getMultCompSystems.md))  
-**8.** findNovelTransporters.pl ([Manual](manuals/findNovelTransporters.md))  
-**9.** organizeSeqsByTMS.pl ([Manual](manuals/organizeSeqsByTMS.md))  
+**3.** areFamiliesHomologous.pl ([Manual](manuals/areFamiliesHomologous.md))  
+**4.** list_top_gsat_hits.pl ([Manual](manuals/list_top_gsat_hits.md))  
+**6.** mkProteinClusters.pl  ([Manual](manuals/mkProteinClusters.md))  
+**7.** tmsRepeat.pl ([manual](Manuals/tmsRepeat.md))  
+**8.** getDomainTopology.pl ([Manual](manuals/getDomainTopology.md))   
+**9.** getMultCompSystems.pl ([Manual](manuals/getMultCompSystems.md))  
+**10.** findNovelTransporters.pl ([Manual](manuals/findNovelTransporters.md))  
+**11.** organizeSeqsByTMS.pl ([Manual](manuals/organizeSeqsByTMS.md))  
 
 
 ---
