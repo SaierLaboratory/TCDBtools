@@ -58,7 +58,7 @@ script without arguments to display the options:
     -v, --validate
       If given, this option will extract the full length sequences
       of protein pairs involved in signficant protocol2 and gsat hits. 
-      Then runs protocol2 again in these two sets of full-lengthproteins. 
+      Then runs protocol2 again in these two sets of full-length proteins. 
       This is because some times protocol2 runs with the aligned blast 
       regions reported by famXpander and the TMS numbers do not reflect 
       the order of the TMS in the entire protein, just the region that 
