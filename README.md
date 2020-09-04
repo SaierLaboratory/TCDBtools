@@ -20,7 +20,7 @@ Each program has its own help file:
 **9.** getMultCompSystems.pl ([Manual](manuals/getMultCompSystems.md))  
 **10.** findNovelTransporters.pl ([Manual](manuals/findNovelTransporters.md))  
 **11.** prepNewIMPs4TCDBupload.pl ([Manual](manuals/prepNewIMPs4TCDBupload.md))  
-**11.** organizeSeqsByTMS.pl ([Manual](manuals/organizeSeqsByTMS.md))  
+**12.** organizeSeqsByTMS.pl ([Manual](manuals/organizeSeqsByTMS.md))  
 
 
 ---
