@@ -25,8 +25,12 @@ Each program has its own help file:
 
 ---
 
-* **Note:**  
+* **Note 1:**  
 Make sure you download the perl modules and point your _$PERL5LIB_ 
 enviroment variable to the destination directory.
+
+* **Note 2:**  
+People contributing software to this repository are: Gabriel Moreno-Hagelsieb and 
+Arturo Medrano-Soto.    
 
 
