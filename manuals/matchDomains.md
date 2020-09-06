@@ -40,15 +40,14 @@ need to be locally available.
 The following options are available. You can also run the 
 script without arguments to display the options:
 
- SYNOPSIS
-     matchDomains.pl -q [fastaFile] -f [cog|cdd|pfam|tigrfam] [options]
+    SYNOPSIS
+       matchDomains.pl -q [fastaFile] -f [cog|cdd|pfam|tigrfam] [options]
 
- EXAMPLE
-     matchDomains.pl -q GCF_000005845.faa.gz -f pfam -p mmseqs -o PFAM
+    EXAMPLE
+       matchDomains.pl -q GCF_000005845.faa.gz -f pfam -p mmseqs -o PFAM
+       matchDomains.pl -q fastaFiles/*.faa.gz -f cdd -o CDD
 
-     matchDomains.pl -q fastaFiles/*.faa.gz -f cdd -o CDD
-
- OPTIONS
+    OPTIONS
      -q  query fasta file(s), required
 
      -f  domain database: file or [cog|cdd|pfam|tigrfam], required
@@ -67,3 +66,6 @@ script without arguments to display the options:
      -x  number of CPUs to use, default: 1 (max: 4)
 
      -c  running in computer cluster [T|F], default 'F'
+     
+     -h  display this help message.
+     
