@@ -24,7 +24,9 @@ Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
 3. **_HHMER 3.2.1_**  
-You can download this suite of programs from its [official site](http://hmmer.org/). 
+Package suite used for searching sequence databases for sequence homologs, and for making 
+sequence alignments based on probabilistic models called profile hidden Markov models 
+(profile HMMs). You can download this suite of programs from its [official site](http://hmmer.org/). 
 
 4. **_MMseqs_**  
 Open-source software suite for very fast, parallelized protein sequence searches
