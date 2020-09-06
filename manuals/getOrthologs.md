@@ -21,7 +21,9 @@ Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
 3. **_Diamond_**  
-Visit the [official website](http://www.diamondsearch.org/) for details on this program.
+Efficient sequence aligner for protein and translated DNA searches, designed for high performance 
+analysis of big sequence data. Visit the [official website](http://www.diamondsearch.org/) for 
+details on this program.
 
 4. **_MMseqs_**  
 Open-source software suite for very fast, parallelized protein sequence searches
