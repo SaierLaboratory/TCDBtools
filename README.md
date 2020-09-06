@@ -21,6 +21,9 @@ Each program has its own help file:
 **10.** findNovelTransporters.pl ([Manual](manuals/findNovelTransporters.md))  
 **11.** prepNewIMPs4TCDBupload.pl ([Manual](manuals/prepNewIMPs4TCDBupload.md))  
 **12.** organizeSeqsByTMS.pl ([Manual](manuals/organizeSeqsByTMS.md))  
+**13.** getOrthologs.pl ([Manual](manuals/getOrthologs.md)  
+**14.** matchDomains.pl ([Manual](manuals/matchDomains.md)  
+**15.** cleanDomains.pl ([Manual](manuals/cleanDomains.md)  
 
 
 ---
