@@ -28,8 +28,8 @@ Open-source software suite for very fast, parallelized protein sequence searches
 and clustering of huge protein sequence data sets. For more information, visit the
 [official repository](https://github.com/soedinglab/MMseqs2).
 
-5. **_Lastal_**  
-THis program finds similar regions between sequences and aligns them. Visit the
+5. **_lastal_**  
+This program finds similar regions between sequences and aligns them. Visit the
 [Official website](http://last.cbrc.jp/) for more details.
 
 
