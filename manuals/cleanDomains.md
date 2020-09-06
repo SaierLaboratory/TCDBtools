@@ -2,7 +2,7 @@
 
 
 ## Summary
-This program extracts results from[_hmmscan_](http://hmmer.org/), 
+This program extracts results from [_hmmscan_](http://hmmer.org/), 
 [_rpsblast_](https://www.perl.org/), or [_mmseqs_](https://github.com/soedinglab/MMseqs2)
 normally obtained using [matchDomains.pl](matchDomains.md)
 
@@ -46,3 +46,5 @@ script without arguments to display the options:
 
      -a  append annotations (T|F). If 'T' the program will produce a file with
          annotations appended (only works with cdd|cog|cd), default F
+         
+     -h  Display this help message.
