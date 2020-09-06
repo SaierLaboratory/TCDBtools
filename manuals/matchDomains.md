@@ -6,8 +6,10 @@ This program scans protein sequences against a database domain profiles (i.e.,
 cog, cdd, pfam, and tigrfam) using either of [_hmmscan_](http://hmmer.org/), 
 [_rpsblast_](https://www.perl.org/), or [_mmseqs_](https://github.com/soedinglab/MMseqs2).
 
+
 ## Contributor
 Gabriel Moreno-Hagelsieb
+
 
 ## Dependencies
 The following programs need to be available in your path for this 
@@ -29,7 +31,9 @@ Open-source software suite for very fast, parallelized protein sequence searches
 and clustering of huge protein sequence data sets. For more information, visit the
 [official repository](https://github.com/soedinglab/MMseqs2).
 
-
+5. **_Domain profile databases_**  
+Download following profile databases _Pfam_, _CDD_, _COG_, and _tigrfam_ as they 
+need to be locally available.
 
 
 ## Command line options
@@ -51,11 +55,8 @@ script without arguments to display the options:
 
      -p  program [hmmscan|rpsblast|mmseqs], except for mmseqs, can be guessed
          from database:
-
          -   rpsblast for cog and cdd
-
          -   hmmscan for Pfam and TIGRFAM
-
          -   mmseqs has to be specified in command line
 
      -o  output folder, default: scanDomains
