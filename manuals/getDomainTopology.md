@@ -46,7 +46,10 @@ Other versions of ssearch may require minor adaptations. Visit the
 [download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
 5. **_HHMER 3.2.1_**  
-You can download this suite of programs from its [official site](http://hmmer.org/).  
+Package suite used for searching sequence databases for sequence homologs, and for making 
+sequence alignments based on probabilistic models called profile hidden Markov models 
+(profile HMMs). You can download this suite of programs from its [official site](http://hmmer.org/). 
+
 
 6. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
