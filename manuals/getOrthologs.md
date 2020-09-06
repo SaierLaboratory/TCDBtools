@@ -80,6 +80,9 @@ script without arguments to display the options:
         shortest sequence.
 
     -e  maximum e-value, default 1e-06
+    
+    -h  display this help message
+    
 
     -a  include aligned sequences in comparison results [T/F], default F. (not
          available in lastal)
