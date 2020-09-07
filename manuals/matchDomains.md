@@ -35,8 +35,11 @@ and clustering of huge protein sequence data sets. For more information, visit t
 
 5. **_Domain profile databases_**  
 Download the following profile databases _Pfam_, _CDD_, _COG_, and _tigrfam_ as they 
-need to be locally available.
-
+need to be locally available. The program expects an environmental variable, DOMAINDB, pointing 
+to a directory where the databases will be found. For example, if the base directory is named: 
+DomainDBs, then the variable should poin to this directory, and it should contain the databases 
+in subdirectories as follows: pfam and tigerfam in: DomainDBs/xfamDB; mmseqs databases 
+in: DomainDBs/mmseqsDB; and cdd databases in: DomainDBs/cddDB
 
 ## Command line options
 The following options are available. You can also run the 
