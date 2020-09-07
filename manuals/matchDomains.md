@@ -34,7 +34,7 @@ and clustering of huge protein sequence data sets. For more information, visit t
 [official repository](https://github.com/soedinglab/MMseqs2).
 
 5. **_Domain profile databases_**  
-Download following profile databases _Pfam_, _CDD_, _COG_, and _tigrfam_ as they 
+Download the following profile databases _Pfam_, _CDD_, _COG_, and _tigrfam_ as they 
 need to be locally available.
 
 
