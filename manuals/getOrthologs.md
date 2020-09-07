@@ -2,8 +2,8 @@
 
 
 ## Summary
-Compares the proteomes of selected genomes and infers pairs of orthoglogs 
-based on reciprobal best hits.
+Compares the proteomes of selected genomes and infers pairs of orthologs 
+based on reciprocal best hits.
 
 ## Contributor
 Gabriel Moreno-Hagelsieb
@@ -16,21 +16,21 @@ program to run properly:
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.  
 
-2. **_Blast+ 2.6.0 to 2.10.0_**  
+2. **_Blast+ 2.9.0 to 2.10.1_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-3. **_Diamond_**  
+3. **_Diamond (2.0.1 and up)_**  
 Efficient sequence aligner for protein and translated DNA searches, designed for high performance 
 analysis of big sequence data. Visit the [official website](http://www.diamondsearch.org/) for 
 details on this program.
 
-4. **_MMseqs_**  
+4. **_MMseqs 11-e1a1c and up_**  
 Open-source software suite for very fast, parallelized protein sequence searches
 and clustering of huge protein sequence data sets. For more information, visit the
 [official repository](https://github.com/soedinglab/MMseqs2).
 
-5. **_lastal_**  
+5. **_lastal (1045 and up)_**  
 This program finds similar regions between sequences and aligns them. Visit the
 [Official website](http://last.cbrc.jp/) for more details.
 
@@ -83,11 +83,8 @@ script without arguments to display the options:
 
     -e  maximum e-value, default 1e-06
     
-    -h  display this help message
-    
-
-    -a  include aligned sequences in comparison results [T/F], default F. (not
-         available in lastal)
+    -a  include aligned sequences in comparison results [T/F], default F (not
+         available in lastal).
 
     -r  find RBH [T|F], default 'T', if 'F' the program will only run the
         blastp|diamond|lastal|mmseqs comparisons
@@ -100,4 +97,4 @@ script without arguments to display the options:
     -z  maximum number of targets to find with blastp|diamond|lastal|mmseqs
         minimum of 50. Defaults to 1/7th of the sequences in the target file
 
-    -x  number of CPUs to use, default: 4 (max: 4)
+    -x  number of CPUs to use, default: 4 (max: all available CPUs)
