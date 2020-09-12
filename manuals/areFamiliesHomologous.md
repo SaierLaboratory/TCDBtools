@@ -10,11 +10,12 @@ to allow rapid comparisons of large superfamilies and make analyses at the level
 or subclass. Users have the option to use precomputed alignments or run new BLASTs for their 
 sequences.
 
-First, _famXpander_ is run in order to extract an expanded list of candidate homologous 
-proteins for each family. Second, _protocol2_ is run to determine homology and TMS 
-topology. Only those pairs that have a protocol2 score above a user-specified 
-threshold and minimum alignment length will be singled out to run _gsat_. If _gsat_ produces 
-a z-score above a user-specified value it will be regarded significant.
+First, [_famXpander_](famXpander.md) is run in order to extract an expanded list of candidate homologous 
+proteins for each family. Second, [_protocol2_](https://github.com/SaierLaboratory/BioVx/blob/master/manuals/BioV_manual.pdf) 
+is run to determine homology and TMS topology. Only those pairs that have a protocol2 score above a user-specified 
+threshold and minimum alignment length will be singled out to run [_gsat_](https://github.com/SaierLaboratory/BioVx/blob/master/manuals/BioV_manual.pdf). 
+If _gsat_ produces a z-score above a user-specified value it will be regarded significant and GSAT scores are then calculated across the full homology
+transitivity path. These hits can then be explored for hydropathy overlap, repeat unit compatibility, [Pfam](https://pfam.xfam.org/) domains, motif conservation, and 3D structural similarities.
 
 
 ## Contributor
