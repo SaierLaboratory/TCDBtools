@@ -1,9 +1,7 @@
 # Documentation for script: _extractFamily.pl_
 
 ## Summary
-This program extracts the protein sequences of any transport family, etc. in TCDB; 
-including the complete TCDB database. The sequences can downloaded in several formats.
-
+This program allows easy retrieval of protein sequences from TCDB. Sequences can be downloaded based on TCIDs at the subclass, family, subfamily and system levels, as well as the whole protein content in TCDB. The program can present the sequences in FASTA and 2-column formats (i.e., accession and sequence). In addition, it is possible to generate a [_BLAST database_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download) with the specified sequences. Furthermore, sequences can be extracted from a local version of TCDB, which is useful when working with projects that freeze databases in a specific version.
 
 ## Contributor
 Gabriel Morneo-Hagelsieb
@@ -38,12 +36,15 @@ script without arguments to display the options:
     -i  TCDB family ID (required)
         "-i tcdb", "-i all", or "-i full" will bring the
         complete TCDB database
-    -o  output directory where data will be saved. (default: Families)  
+        
+    -o  output directory where data will be saved. (default: Families) 
+    
     -F  output format: fasta|column|blast (default: fasta)
         column:  presents data in 2 tab-delimited columns,
                  TCDB ID and the sequence in one string.
         blast:   Generates a BLAST database with the downloaded
                  sequences.
+                 
     -d  path to a fasta file with all sequences in TCDB,
         as in previous runs of 'extractFamily.pl -i tcdb -f fasta'
         This allows to work with frozen version of TCDB.
