@@ -50,7 +50,7 @@ script without arguments to display the options:
        [blastp|fasta36|ssearch36]. Default: ssearch36
        
     -s Amino acid substitution matrix that wil be used
-      by ssearch36. Default: ssearch36 default for option -s
+       by ssearch36. Default: ssearch36 default for option -s
       
     -z Algorithm to be used by ssearch36 to calculate E-values,
        default: ssearch36 default for option -z 
