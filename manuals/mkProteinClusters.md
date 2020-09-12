@@ -1,7 +1,7 @@
 # Documentation for script: _mkProteinClusters.pl_
 
 ## Summary
-Given a number of proteins presumed to form a family or superfamily, this program performs hierarchical clustering based on their pairwise alignment bit scores and reports the results as a tree. The scores can be estimated using [_BLAST_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [_Fasta or SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_class.shtml). Several methods for merging clusters are supported (i.e., Ward, single, average, complete and weighted).The clustering is performed using the [_R statistical computing environment_](https://www.r-project.org/). This program is especially useful when working with large numbers of proteins, or with highly diverse proteins (as in a superfamily) where standard phylogenies cannot be constructed due to low-quality multiple alignments.
+Given a number of proteins presumed to form a family or superfamily, this program performs hierarchical clustering based on their pairwise alignment bit scores and reports the results as a tree. The scores can be estimated using [_BLAST_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [_Fasta or SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_class.shtml). Several methods for merging clusters are supported (i.e., Ward, single, average, complete and weighted). The clustering is performed using the [_R statistical computing environment_](https://www.r-project.org/). This program is especially useful when working with large numbers of proteins, or with highly diverse proteins (as in a superfamily) where standard phylogenies cannot be constructed due to low-quality multiple alignments.
 
 
 ## Contributor
