@@ -43,15 +43,21 @@ The following options are available. You can also run the
 script without arguments to display the options:
 
     -i query filename in fasta format, required
+    
     -o output folder. Default: Clusters
+    
     -p program for pairwise comparisons
        [blastp|fasta36|ssearch36]. Default: ssearch36
+       
     -s Amino acid substitution matrix that wil be used
       by ssearch36. Default: ssearch36 default for option -s
+      
     -z Algorithm to be used by ssearch36 to calculate E-values,
        default: ssearch36 default for option -z 
+       
     -k Number of shuffles to be used by ssearch36 in the
        calculation of E-values. Default: ssearch36 default for option -k
+       
     -c agglomerative clustering method
        [average|complete|single|ward|weighted].
        Default: ward
