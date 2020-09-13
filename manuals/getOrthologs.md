@@ -2,11 +2,12 @@
 
 
 ## Summary
-Compares the proteomes of selected genomes and infers pairs of orthologs 
-based on reciprocal best hits.
+This program compares full proteomes and infers pairs of orthologous genes based on the reciprocal best hit approach. The program can use any one of several programs to perform the sequence alignments (i.e., [_BLAST_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [_DIAMOND_](http://www.diamondsearch.org/), [_LASTAL_](http://last.cbrc.jp/) and [_MMseqs_](https://github.com/soedinglab/MMseqs2)). Various levels of sensitivity can be used when running _DIAMOND_. Furthermore, the program offers options for controlling how a candidate protein fusion will be treated based on cutoffs for minimal alignment coverage and maximal E-value.
+
 
 ## Contributor
 Gabriel Moreno-Hagelsieb
+
 
 ## Dependencies
 The following programs need to be available in your path for this 
