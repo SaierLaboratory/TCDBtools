@@ -2,7 +2,7 @@
 
 
 ## Summary
-This program identifies domains in protein sequences based on several programs (i.e., [_hmmscan_](http://hmmer.org/), [_rps-blast_](https://www.perl.org/) or [_mmseqs_](https://github.com/soedinglab/MMseqs2)) and domain databases (i.e., [Pfam](https://pfam.xfam.org/), [CDD](https://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml), [COG](https://www.ncbi.nlm.nih.gov/COG/), [TIGRFAMs](http://tigrfams.jcvi.org/cgi-bin/index.cgi)). This program facilitates comparisons of domain contents between genomes and the identification of characteristic domains within families and superfamilies.
+This program identifies domains in protein sequences based on several programs (i.e., [_hmmscan_](http://hmmer.org/), [_rps-blast_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download) or [_mmseqs_](https://github.com/soedinglab/MMseqs2)) and domain databases (i.e., [Pfam](https://pfam.xfam.org/), [CDD](https://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml), [COG](https://www.ncbi.nlm.nih.gov/COG/), [TIGRFAMs](http://tigrfams.jcvi.org/cgi-bin/index.cgi)). This program facilitates comparisons of domain contents between genomes and the identification of characteristic domains within families and superfamilies.
 
 
 ## Contributor
