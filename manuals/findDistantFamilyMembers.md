@@ -26,7 +26,7 @@ This program is available in our [Perl repository](https://github.com/SaierLabor
 TMS are predicted with HMMTOP. Visit the [download site](http://www.enzim.hu/hmmtop/html/download.html).
 
 4. **_blast+ 2.8.0 to 2.10.0_**  
-Other versions of blast may require minor adaptations. Visit the [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). If run locally the NCBI NR needs to be available in your $BLASTDB environment varaible.  
+Other versions of blast may require minor adaptations. Visit the [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). If run locally, the NCBI NR blast database needs to be available in your $BLASTDB environment varaible.  
 
 
 ## Command line options
