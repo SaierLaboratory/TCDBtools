@@ -1,21 +1,13 @@
 # Documentation for script: _getDomainTopology.pl_
 
 ## Summary
-This program characterizes the Pfam domain composition of a TCDB family. It first runs 
-[_HMMSCAN_](http://hmmer.org/) on every protein sequence against [Pfam](https://pfam.xfam.org/). 
-If not all proteins in the family have a direct hit with a Pfam domain, the fragments of the 
-sequences with direct hits are extracted and aligned to the sequences without direct hits 
-using the Smith-Waterman algorithm as implemented in [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
-This is equivalent to projecting the domains of sequences with direct PFAM hits onto 
-sequences without Pfam hits. The expectation is that all sequences in a family should 
-share at least one domain or have domains that belong to the same Pfam clan. This can 
-further be used to relate families based on the overlap of shared domains. 
+This program obtains the Pfam domain composition of a TCDB family or superfamily. It first runs [_HMMSCAN_](http://hmmer.org/) on every protein sequence to be examined against the [Pfam](https://pfam.xfam.org/) database. If not all proteins in the family have a direct hit with a Pfam domain, the fragments of the sequences with direct hits are extracted and aligned to the sequences without direct hits using the Smith-Waterman algorithm as implemented in [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). This is interpreted as projecting the domains of sequences with direct Pfam hits onto sequences without Pfam hits. The expectation is that all sequences in a family should share at least one domain or have domains that belong to the same Pfam clan. This can further be used to relate families based on the overlap of shared domains. 
 
 ## Contributor
 Arturo Medrano-Soto
 
 ## How to cite this program
-The rational for this program was published in two of our publications: 
+The rationale for this program was published in two of our publications: 
 (PMID: 29145176 and 29579047):
 
   * Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr. 
