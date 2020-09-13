@@ -1,10 +1,7 @@
 # Documentation for script: _prepNewIMPs4TCDBupload.pl_
 
 ## Summary
-After running [_findNovelTrasporters_](findNovelTransporters.md)  and obtaining a list of proteins
-in a reference genome with little or no similarity to any protein in TCDB, this programs extracts 
-homologs from NCBI for each of the new candidate transporters that will be used to expand current families
-or create new families in TCDB. This list will significantly optimize  TCDB curators' time.
+After running [_findNovelTrasporters_](findNovelTransporters.md) and selecting a list of candidate novel integral membrane proteins in a reference genome that may potentially be transporters, this program extracts non-redundant homologs from NCBI that will be used by [TCDB](http://tcdb.org) curators to create the new family.
 
 
 ## Contributor
