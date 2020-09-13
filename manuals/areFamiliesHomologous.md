@@ -32,21 +32,25 @@ If you find this program useful, please cite the paper:
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_extractFamily.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
-
-2. **_famXpander.pl_**  
-This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
-
-3. **_protocol2.py_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
-
-4. **_gsat.py_**  
-This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
-
-5. **_PERL 5.18_**  
+1. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
+was not tested with more recent versions of perl. The following modules
+are required:  
+  a) [Bioperl](https://bioperl.org/)  
+  b) _TCDB::CheckDependencies_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))
+  c) _TCDB::Assorted_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)):
+
+2. **_extractFamily.pl_**  
+This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+
+3. **_famXpander.pl_**  
+This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
+
+4. **_protocol2.py_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
+
+5. **_gsat.py_**  
+This program is available in our [Python repository](https://github.com/SaierLaboratory/BioVx).
 
 
 ## Command line options
