@@ -1,13 +1,12 @@
 # Documentation for script: _findNovelTransporters.pl_
 
 ## Summary
-This program searches for potential transporters within a genome that 
-have little or no significant similarity to any protein in TCDB. The 
-user can specify the minimal number of TMS in the expected transporters, 
-the alignment coverage and the E-value cutoff.
+In transportome characterization, the main task is the identification of transporters for which there is knowledge available in [TCDB](http://tcdb.org). This program performs the other side of the analysis, that is, the identification of integral membrane proteins in the genome that are likely transporters (e.g., by having a minimal number of TMSs), but show no significant similarity to any protein in TCDB. The user can specify the minimal number of TMS in the expected transporters, the alignment coverage and the E-value cutoff. For each protein that passes these criteria the program reports hydropathy plots that can be used by curators to ultimately decide whether proteins are good candidates for novel families in TCDB.
+
 
 ## Contributor
 Arturo Medrano-Soto
+
 
 ## Dependencies
 The following programs need to be available in your path for this 
