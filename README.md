@@ -16,7 +16,7 @@ Each program has its own help file:
 **5.** interpret_proto2_top_hits.pl ([Manual](manuals/interpret_proto2_top_hits.md))  
 **6.** mkProteinClusters.pl  ([Manual](manuals/mkProteinClusters.md))  
 **7.** tmsRepeat.pl ([Manual](Manuals/tmsRepeat.md))  
-**8.** findDistantFamilyMembers ([Manual](manuals/findDistantFamilyMembers))
+**8.** findDistantFamilyMembers ([Manual](manuals/findDistantFamilyMembers))  
 **9.** getDomainTopology.pl ([Manual](manuals/getDomainTopology.md))   
 **10.** getMultCompSystems.pl ([Manual](manuals/getMultCompSystems.md))  
 **11.** findNovelTransporters.pl ([Manual](manuals/findNovelTransporters.md))  
