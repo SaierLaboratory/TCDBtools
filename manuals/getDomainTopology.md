@@ -24,28 +24,23 @@ The rationale for this program was published in two of our publications:
 The following dependencies need to be available in your enviroment for this 
 program to run properly:
 
-1. **Perl Module: _TCDB::Assorted_**  
-This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
+1. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl. The following modules
+are required:  
+  a) _TCDB::Assorted_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
+  b) _TCDB::Domain::PfamParser_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
+  c) _TCDB::Domain::Characterize_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
 
-2. **Perl Module: _TCDB::Domain::PfamParser_**  
-This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
-
-3. **Perl Module: _TCDB::Domain::Characterize_**  
-This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
-
-4. **_ssearch36 version: 36.3.8e_**  
+2. **_ssearch36 version: 36.3.8e_**  
 Other versions of ssearch may require minor adaptations. Visit the
 [download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
-5. **_HHMER 3.2.1_**  
+3. **_HHMER 3.2.1_**  
 Package suite used for searching sequence databases for sequence homologs, and for making 
 sequence alignments based on probabilistic models called profile hidden Markov models 
 (profile HMMs). You can download this suite of programs from its [official site](http://hmmer.org/). 
 
-
-6. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
 
 ## Command line options
 The following options are available. You can also run the 
