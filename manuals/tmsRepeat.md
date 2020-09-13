@@ -1,7 +1,7 @@
 # Documentation for script: _tmsRepeat.pl_
 
 ## Summary
-We developed tmsRepeat as a strategy to identify repeated regions of TMSs within a transporter sequence, allowing the incorporation of prior knowledge about the TMS topology and the expected size of the repeat unit. The program first cuts the sequences of query transporters into TMS-bundles of a specified length depending on the size of the repeat unit expected by the user. TMS-bundles are then aligned with [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml), and the results are printed in an HTML report that includes the hydropathy plots of the proteins under study, the limits of the bundles aligned and the regions within the bundles involved in the alignments.
+We developed _tmsRepeat_ as a strategy to identify repeated regions of TMSs within a transporter sequence, allowing the incorporation of prior knowledge about the TMS topology and the expected size of the repeat unit. The program first cuts the sequences of query transporters into TMS-bundles of a specified length depending on the size of the repeat unit expected by the user. TMS-bundles are then aligned with [_SSEARCH_](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml), and the results are printed in an HTML report that includes the hydropathy plots of the proteins under study, the limits of the bundles aligned and the regions within the bundles involved in the alignments.
 
 ## Contributor
 Arturo Medrano-Soto
