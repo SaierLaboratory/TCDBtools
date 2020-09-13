@@ -37,8 +37,8 @@ Visit the [official website](https://www.perl.org/). This program
 was not tested with more recent versions of perl. The following modules
 are required:  
   a) [Bioperl](https://bioperl.org/)  
-  b) _TCDB::CheckDependencies_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))
-  c) _TCDB::Assorted_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools)):
+  b) _TCDB::CheckDependencies_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
+  c) _TCDB::Assorted_ (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
 
 2. **_extractFamily.pl_**  
 This program is available in our [Perl repository](https://github.com/SaierLaboratory/TCDBtools). 
