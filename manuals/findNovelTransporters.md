@@ -16,7 +16,7 @@ program to run properly:
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.
 
-2. **_blast+ 2.6.0 to 2.10.0_**  
+2. **_blast+ 2.8.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
