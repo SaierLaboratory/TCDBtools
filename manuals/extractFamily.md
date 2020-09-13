@@ -1,7 +1,7 @@
 # Documentation for script: _extractFamily.pl_
 
 ## Summary
-This program allows easy retrieval of protein sequences from TCDB. Sequences can be downloaded based on TCIDs at the subclass, family, subfamily and system levels, as well as the whole protein content in TCDB. The program can present the sequences in FASTA and 2-column formats (i.e., accession and sequence). In addition, it is possible to generate a [_BLAST database_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download) with the specified sequences. Furthermore, sequences can be extracted from a local version of TCDB, which is useful when working with projects that freeze databases in a specific version.
+This program allows easy retrieval of protein sequences from [TCDB](http://tcdb.org). Sequences can be downloaded based on TCIDs at the subclass, family, subfamily and system levels, as well as the whole protein content in TCDB. The program can present the sequences in FASTA and 2-column formats (i.e., accession and sequence). In addition, it is possible to generate a [_BLAST database_](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download) with the specified sequences. Furthermore, sequences can be extracted from a local version of TCDB, which is useful when working with projects that freeze databases in a specific version.
 
 ## Contributor
 Gabriel Morneo-Hagelsieb
