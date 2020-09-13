@@ -1,7 +1,7 @@
 # Documentation for script: _findDistantFamilyMembers.pl_
 
 ## Summary
-This program is used when we want to identify remote members of a family in TCDB in order to increase the coverage of sequence diversity within a family. It consists of BLASTing all members within a family against the NCBI NR database and selecting hits that show borderline similarity to other members in the family, while having no significant similarity to any other families in TCDB. Alignments should satisfy a minimal coverage and involve a minimal number of TMSs compatible with the topology of the family under analysis. This produces a list of candidates that should be further evaluated by an expert. 
+This program is used when we want to identify remote members of a family in [TCDB](http://tcdb.org) in order to increase the coverage of sequence diversity within a family. It consists of BLASTing all members within a family against the NCBI NR database and selecting hits that show borderline similarity to other members in the family, while having no significant similarity to any other families in TCDB. Alignments should satisfy a minimal coverage and involve a minimal number of TMSs compatible with the topology of the family under analysis. This produces a list of candidates that should be further evaluated by an expert. 
 
 
 ## Contributor
