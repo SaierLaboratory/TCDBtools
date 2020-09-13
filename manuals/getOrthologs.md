@@ -17,21 +17,21 @@ program to run properly:
 Visit the [official website](https://www.perl.org/). This program 
 was not tested with more recent versions of perl.  
 
-2. **_Blast+ 2.9.0 to 2.10.1_**  
+2. **_Blast+_ (2.9.0 to 2.10.1)**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-3. **_Diamond (2.0.1 and up)_**  
+3. **_Diamond_ (2.0.1 and up)**  
 Efficient sequence aligner for protein and translated DNA searches, designed for high performance 
 analysis of big sequence data. Visit the [official website](http://www.diamondsearch.org/) for 
 details on this program.
 
-4. **_MMseqs 11-e1a1c and up_**  
+4. **_MMseqs_ (11-e1a1c and up)**  
 Open-source software suite for very fast, parallelized protein sequence searches
 and clustering of huge protein sequence data sets. For more information, visit the
 [official repository](https://github.com/soedinglab/MMseqs2).
 
-5. **_lastal (1045 and up)_**  
+5. **_lastal_ (1045 and up)**  
 This program finds similar regions between sequences and aligns them. Visit the
 [Official website](http://last.cbrc.jp/) for more details.
 
