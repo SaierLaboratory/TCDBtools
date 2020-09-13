@@ -20,13 +20,13 @@ program to run properly:
 
 1. **_PERL 5.18_**  
 Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl. The following module is/ required:  
-  b) TCDB::CheckDependencies (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
+was not tested with more recent versions of perl. The following module is required:  
+  a) TCDB::CheckDependencies (included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools))  
   
 2. **_hvordan_**  
 This program is included in the [BioVx distribution](https://github.com/SaierLaboratory/BioVx).
 
-3. **_blast+ 2.6.0 to 2.10.0_**  
+3. **_blast+ 2.8.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
