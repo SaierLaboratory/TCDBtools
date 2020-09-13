@@ -1,14 +1,7 @@
 # Documentation for script: _getMultCompSystems.pl_
 
 ## Summary
-This program characterizes the set of multicomponent systems present in a fully sequenced genome. 
-This complements gblast, which targets the best matches between the query genome and TCDB. 
-All multicomponent systems available in TCDB are downloaded and BLASTed against the genome 
-allowing users to specify the E-value cutoff, minimal coverage of the query and subject sequences, 
-and more. Hydropathy plots are generated depicting the regions in the query and subject that are 
-aligned. The program also determines the genomic context of homologs of each of the components 
-within a system by identifying genes in close neighborhood, thus aiding in the process of selecting 
-components that may be parts of the same operon.
+This program complements [_GBlast_]() and represents the first step in the characterization of multicomponent systems encoded within (meta)genomes. All multicomponent systems available in [_TCDB_](tcdb.org) are downloaded and BLASTed against the genome allowing users to specify the E-value cutoff, minimal coverages of the query and subject sequences, sequence identity, minimal alignment length, and more. Hydropathy plots are generated depicting the regions in the query and subject proteins that are aligned and covered by [_Pfam_](https://pfam.xfam.org/) domains. The program also determines the genomic context of homologs of each of the components within a system. Given that in prokaryotes multicomponent systems are often found in operons, the genomic context facilitates the selection of components that are members of the same operon.
 
 
 ## Contributor
