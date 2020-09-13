@@ -2,9 +2,7 @@
 
 
 ## Summary
-This program scans protein sequences against a database domain profiles (i.e.,
-cog, cdd, pfam, and tigrfam) using either of [_hmmscan_](http://hmmer.org/), 
-[_rpsblast_](https://www.perl.org/), or [_mmseqs_](https://github.com/soedinglab/MMseqs2).
+This program identifies domains in protein sequences based on several programs (i.e., [_hmmscan_](http://hmmer.org/), [_rps-blast_](https://www.perl.org/) or [_mmseqs_](https://github.com/soedinglab/MMseqs2)) and domain databases (i.e., [Pfam](https://pfam.xfam.org/), [CDD](https://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml), [COG](https://www.ncbi.nlm.nih.gov/COG/), [TIGRFAMs](http://tigrfams.jcvi.org/cgi-bin/index.cgi)). This program facilitates comparisons of domain contents between genomes and the identification of characteristic domains within families and superfamilies.
 
 
 ## Contributor
@@ -40,6 +38,7 @@ to a directory where the databases will be found. For example, if the base direc
 DomainDBs, then the variable should poin to this directory, and it should contain the databases 
 in subdirectories as follows: pfam and tigerfam in: DomainDBs/xfamDB; mmseqs databases 
 in: DomainDBs/mmseqsDB; and cdd databases in: DomainDBs/cddDB
+
 
 ## Command line options
 The following options are available. You can also run the 
