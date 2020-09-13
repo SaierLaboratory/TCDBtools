@@ -1,51 +1,35 @@
 # Documentation for script: _findDistantFamilyMembers.pl_
 
 ## Summary
+This program is used when we want to identify remote members of a family in TCDB in order to increase the coverage of sequence diversity within a family. It consists of BLASTing all members within a family against the NCBI NR database and selecting hits that show borderline similarity to other members in the family, while having no significant similarity to any other families in TCDB. Alignments should satisfy a minimal coverage and involve a minimal number of TMSs compatible with the topology of the family under analysis. This produces a list of candidates that should be further evaluated by an expert. 
 
 
 ## Contributor
 Arturo Medrano-Soto
-
-## How to cite this program
-The rationale for this program was published in two of our publications: 
-(PMID: 29145176 and 29579047):
-
-  * Medrano-Soto A, Moreno-Hagelsieb G, McLaughlin D, Ye ZS, Hendargo KJ, Saier MH Jr. 
-  _Bioinformatic characterization of the Anoctamin Superfamily of Ca2+-activated ion 
-  channels and lipid scramblases._  2018. PLoS One. **13**(3):e0192851
-  **PMID:** [29579047](https://www.ncbi.nlm.nih.gov/pubmed/?term=29579047) 
-  
-  * Moreno-Hagelsieb G, Vitug B, Medrano-Soto A, Saier MH Jr.
-  J Mol Microbiol Biotechnol. 2017. **27**(4):252-267
-  **PMID:** [29145176](https://www.ncbi.nlm.nih.gov/pubmed/?term=29145176)
 
 
 ## Dependencies
 The following dependencies need to be available in your enviroment for this 
 program to run properly:
 
-1. **Perl Module: _TCDB::Assorted_**  
+6. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl.
+
+1. **Perl Module: _TCDB::CheckDependencies_**  
 This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
-2. **Perl Module: _TCDB::Domain::PfamParser_**  
+2. **_Bioperl_**  
 This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
-3. **Perl Module: _TCDB::Domain::Characterize_**  
+3. **_HMMTOP_**  
 This module is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools). 
 
 4. **_ssearch36 version: 36.3.8e_**  
 Other versions of ssearch may require minor adaptations. Visit the
 [download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
-5. **_HHMER 3.2.1_**  
-Package suite used for searching sequence databases for sequence homologs, and for making 
-sequence alignments based on probabilistic models called profile hidden Markov models 
-(profile HMMs). You can download this suite of programs from its [official site](http://hmmer.org/). 
 
-
-6. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
 
 ## Command line options
 The following options are available. You can also run the 
