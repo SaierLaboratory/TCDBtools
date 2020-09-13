@@ -21,21 +21,21 @@ If you find this program useful, please cite the paper:
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.6.0 to 2.10.0_**  
+1. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl.
+
+2. **_blast+ 2.6.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-2. **_ssearch36 and fasta36 version: 36.3.8_**  
+3. **_ssearch36 and fasta36 version: 36.3.8_**  
 Other versions of ssearch may require minor adaptations. Visit the
 [download site](https://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml). 
 
-3. **_R_**  
-The [R package](https://www.r-project.org/) is used. Make sure the following 
+4. **_R_**  
+The [R package](https://www.r-project.org/) is used to compute the clustering. Make sure the following 
 packages are installed: cluster, MCMCpack and ape.
-
-4. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
 
 
 ## Command line options
