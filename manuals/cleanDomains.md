@@ -2,9 +2,8 @@
 
 
 ## Summary
-This program extracts results from [_hmmscan_](http://hmmer.org/), 
-[_rpsblast_](https://www.perl.org/), or [_mmseqs_](https://github.com/soedinglab/MMseqs2)
-normally obtained using [matchDomains.pl](matchDomains.md)
+This program parses the output files of [_hmmscan_](http://hmmer.org/), [_rpsblast_](https://www.perl.org/), or [_mmseqs_](https://github.com/soedinglab/MMseqs2)
+normally obtained using [matchDomains](matchDomains.md) and extracts useful data based on user-defined minimal coverage of domain models and maximal overlap between domains.
 
 
 ## Contributor
