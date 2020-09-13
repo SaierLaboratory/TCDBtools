@@ -17,22 +17,23 @@ If you find this program useful, please cite the paper:
 The following programs need to be available in your path for this 
 program to run properly:
 
-1. **_blast+ 2.6.0 to 2.10.0_**  
+1. **_PERL 5.18_**  
+Visit the [official website](https://www.perl.org/). This program 
+was not tested with more recent versions of perl.
+
+2. **_blast+ 2.8.0 to 2.10.0_**  
 Other versions of blast may require minor adaptations. Visit the
 [download site](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
 
-2. **_NCBI non-redundant protein database_**  
+3. **_NCBI non-redundant protein database_**  
 Given that blast runs locally, the NCBI non-redundant (NR) database
 must be available locally through the environment varaible _$BLASTDB_. 
 You can download NR from the NCBI FTP site: ftp://ftp.ncbi.nlm.nih.gov/blast/db/  
 
-3. **_cd-hit 4.8_**  
+4. **_cd-hit 4.8_**  
 Visit the [official website](http://weizhongli-lab.org/cd-hit/) to 
 download the latest version.
 
-4. **_PERL 5.18_**  
-Visit the [official website](https://www.perl.org/). This program 
-was not tested with more recent versions of perl.
 
 ## Command line options
 The following options are available. You can also run the 
