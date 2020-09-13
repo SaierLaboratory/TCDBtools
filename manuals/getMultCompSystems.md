@@ -28,6 +28,8 @@ This program is included in the [TCDBtools distribution](https://github.com/Saie
 4. **quod.py**  
 This program in included in the [BioVx distribution](https://github.com/SaierLaboratory/BioVx). 
 
+5. **examineGBhit.pl**  
+This program is included in the [TCDBtools distribution](https://github.com/SaierLaboratory/TCDBtools).  
 
 
 ## Command line options
