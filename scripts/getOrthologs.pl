@@ -17,7 +17,6 @@ my $ownName = $0;
 $ownName =~ s{.*/}{};
 my $system = qx(uname -s);
 chomp($system);
-my $time = $system eq 'Darwin' ? '/usr/bin/time -p' : 'time';
 
 my %url = (
     "blastp"  => 'ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/',
@@ -57,8 +56,10 @@ my $sensitive  = '';
 my $runRBH     = "T";
 my $keepold    = 'T';
 my $topMatch   = 0;
-my $minTop     = 50; # 30 was enough for lastal in one example
+my $minTop     = 1; # 30 was enough for lastal in one example
 my $matchRatio = 7;
+my $lengthsort = 'F';
+my $logtime    = 'F';
 
 ### check if there's more than one processor or assume there's 1.
 my $cpu_count
@@ -113,6 +114,8 @@ my $podUsage
     . qq((10%) of shortest sequence.\n\n)
     . qq(=item B<-e>\n\n)
     . qq(maximum e-value, default $maxEvalue\n\n)
+    . qq(=item B<-l>\n\n)
+    . qq(sort files so that pairwise comparisons run against largest database [T|F], default $lengthsort\n\n)
     . qq(=item B<-a>\n\n)
     . qq(include aligned sequences in comparison results [T/F], default $defAln. (not available in lastal)\n\n)
     . qq(=item B<-r>\n\n)
@@ -126,9 +129,10 @@ my $podUsage
     . qq(=item B<T:>\n\nkeep prior alignments and prior RBHs\n\n)
     . qq(=back\n\n)
     . qq(=item B<-z>\n\nmaximum number of targets to find with $matchProg\n)
-    . qq(minimum of $minTop. Defaults to 1/${matchRatio}th of the\n)
+    . qq(minimum recommended is 50. Defaults to 1/${matchRatio}th of the\n)
     . qq(sequences in the target file\n\n)
     . qq(=item B<-x>\n\nnumber of CPUs to use, default: $cpus (max: $cpu_count)\n\n)
+    . qq(=item B<-n>\n\nnote time spent running pairwise comparisons (T|F), default: $logtime\n\n)
     . qq(=back\n\n)
     . qq(=head1 REQUIREMENTS\n\n)
     . qq(This program requires either appropriately formatted\n)
@@ -152,20 +156,30 @@ GetOptions(
     "m=s"    => \$pwDir,
     "s=s"    => \$sensitive,
     "o=s"    => \$rbhDir,
-    "c=s"    => \$minCov,
-    "f=s"    => \$maxOverlap,
-    "e=s"    => \$maxEvalue,
+    "c=f"    => \$minCov,
+    "f=f"    => \$maxOverlap,
+    "e=f"    => \$maxEvalue,
     "a=s"    => \$alnSeqs,
     "r=s"    => \$runRBH,
     "k=s"    => \$keepold,
-    "z=s"    => \$topMatch,
+    "z=i"    => \$topMatch,
     "x=i"    => \$cpus,
+    "l=s"    => \$lengthsort,
+    "n=s"    => \$logtime,
 ) or podhelp();
+
+if( !$faaDir && ( !$queries[0] || !$against[0] ) ) {
+    podhelp();
+}
 
 ### check if the selected program works
 if( $refmissing->{"$pwProg"} ) {
     podhelp("$pwProg is missing");
 }
+
+### sorting by file length?
+$lengthsort = $lengthsort =~ m{^(T|F)$}i ? uc($1) : 'F';
+print "sorting by file length = $lengthsort\n";
 
 ### check if working with all-vs-all directory
 my $allvsall = length($faaDir) > 0 ? 1 : 0;
@@ -277,6 +291,13 @@ else {
             . " even if prior results exists\n";
     }
 }
+
+$logtime = $logtime =~ m{^(T|F)$}i ? uc($1) : 'F';
+my $time = '';
+if( $logtime eq 'T' ) {
+    $time = $system eq 'Darwin' ? '/usr/bin/time -p' : 'time';
+}
+
 #### directories where to find files:
 #### temporary working directory:
 my $tempFolder = tempdir("/tmp/$ownName.XXXXXXXXXXXX");
@@ -330,7 +351,12 @@ my @pwTbl = qw(
           );
 ##### add alignments to blast results table?
 if( $alnSeqs eq "T" ) {
-    push(@pwTbl,"qseq","sseq");
+    if( $pwProg eq "diamond" ) {
+        push(@pwTbl,"qseq_gapped","sseq_gapped");
+    }
+    else {
+        push(@pwTbl,"qseq","sseq");
+    }
 }
 my $pwTbl = join(" ","6",@pwTbl);
 my $dmdTbl = $pwTbl;
@@ -362,9 +388,9 @@ my $blastOptions
     . qq( -seg yes )
     . qq( -soft_masking true )
     . qq( -comp_based_stats 0 )
-    . qq( -parse_deflines )
     . qq( -num_threads $cpus )
     . qq( -outfmt '$pwTbl' );
+#    . qq( -parse_deflines )
 
 my $diamondOptions
     = qq( --evalue $maxEvalue )
@@ -372,6 +398,7 @@ my $diamondOptions
     . qq( --comp-based-stats 0 )
     . qq( --threads $cpus )
     . qq( --tmpdir $tempFolder )
+    . qq( -c 1 )
     . qq( --quiet )
     . qq( --outfmt $dmdTbl );
 if( $dmdmode =~ m{sensitive} ) {
@@ -397,6 +424,9 @@ open( my $LOG,">","$tmpLog" );
 my $maxKeep  = 10;
 my $kept     = 0;
 if( $allvsall > 0 ) {
+    my $totalfiles = @queries;
+    my $totalpairs = $totalfiles * ( $totalfiles + 1 ) / 2;
+    my $currentrun = 0;
     ##### by running these in reverse we ensure that
     ##### each database is formatted only once
   TARGETAVA:
@@ -406,11 +436,19 @@ if( $allvsall > 0 ) {
             = $topMatch >= $minTop ? $topMatch
             : sprintf("%.0f",($cntTargets/$matchRatio));
         if( $cntTargets < 1 ) {
+            $currentrun += @queries;
+            print {$LOG} "jumped empty file: $faaTarget\n";
             print "  jumping empty file: $faaTarget";
             next TARGETAVA;
         }
         else {
             for my $faaQuery ( @queries,$faaTarget ) {
+                $currentrun++;
+                print {$LOG}
+                    "running  ",
+                    nakedName($faaQuery)," vs ",
+                    nakedName($faaTarget),
+                    " ($currentrun/$totalpairs runs)\n";
                 runPairWise("$faaQuery","$faaTarget","$maxAlns");
                 if( $runRBH eq 'T' ) {
                     buildNrunRBH("$faaQuery","$faaTarget");
@@ -423,8 +461,14 @@ if( $allvsall > 0 ) {
             }
         }
     }
+    print {$LOG} "\ndone comparing $totalfiles files for a total of\n"
+        ."$totalpairs pairwise comparisons ($currentrun counted)\n\n";
 }
 else {
+    my $totalQs = @queries;
+    my $totalTs = @against;
+    my $totalpairs = $totalQs * $totalTs;
+    my $currentrun = 0;
     ##### by running these target-wise to try and ensure that
     ##### each database is formatted only once
   TARGETQVA:
@@ -434,11 +478,19 @@ else {
             = $topMatch >= $minTop ? $topMatch
             : sprintf("%.0f",($cntTargets/$matchRatio));
         if( $cntTargets < 1 ) {
+            $currentrun += @queries;
+            print {$LOG} "jumped empty file: $faaTarget\n";
             print "  jumping empty file: $faaTarget";
             next TARGETQVA;
         }
         else {
             for my $faaQuery ( @queries ) {
+                $currentrun++;
+                print {$LOG}
+                    "running  ",
+                    nakedName($faaQuery)," vs ",
+                    nakedName($faaTarget),
+                    " ($currentrun/$totalpairs runs)\n";
                 runPairWise("$faaQuery","$faaTarget","$maxAlns");
                 if( $runRBH eq 'T' ) {
                     buildNrunRBH("$faaQuery","$faaTarget");
@@ -451,6 +503,8 @@ else {
             }
         }
     }
+    print {$LOG} "\ndone comparing $totalQs vs $totalTs files for a total of\n"
+        ."$totalpairs pairwise comparisons ($currentrun counted)\n\n";
 }
 close($LOG);
 #### save logfile
@@ -917,8 +971,8 @@ sub formatDB {
                 . qq( makeblastdb )
                 . qq( -dbtype prot )
                 . qq( -title $dbfile )
-                . qq( -parse_seqids )
                 . qq( -out $dbfile );
+                #. qq( -parse_seqids )
             print {$LOG} "building db:\n$mkblastdb\n";
             my $outdb = qx($mkblastdb 2>&1);
             print {$LOG} "$outdb";
@@ -1172,12 +1226,12 @@ sub runLastal {
         = qq($opener $file | $time lastal -f BlastTab+ )
         . qq(-P $cpus -N $maxAlns $dbfile);
     print {$LOG} "running pw comparisons:\n$lastcommand\n";
-    my @lastLines = qx($lastcommand 2>&1);
+    # my @lastLines = qx($lastcommand 2>&1);
     my $lineCount = 0;
     open( my $PWLAST,"|-","bzip2 -9 > $tmpOut" );
     print {$PWLAST} "# ",join("\t",@pwHeading),"\n";
   LASTLINE:
-    for my $lastLine ( @lastLines ) {
+    for my $lastLine ( qx($lastcommand 2>&1) ) {
         next LASTLINE if( $lastLine =~ m{^#} );
         next LASTLINE if( $lastLine =~ m{^\s*\n} );
         chomp $lastLine;
@@ -1242,7 +1296,17 @@ sub findFaaFiles {
     my $cntFound = @foundFiles;
     if( $cntFound > 0 ) {
         print " will work with $cntFound $label files\n";
-        return(@foundFiles);
+        if( $lengthsort eq 'T' ) {
+            my @lnsort = sort {
+                (stat("$a"))[7] <=> (stat("$b"))[7]
+                    || $a cmp $b } @foundFiles;
+            #print join("\n",@lnsort),"\n";
+            #exit;
+            return(@lnsort);
+        }
+        else {
+            return(@foundFiles);
+        }
     }
     else {
         die " no faa/fasta files in $label directory ($testDir)\n\n";

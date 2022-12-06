@@ -59,6 +59,9 @@ my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
 my $subMatrix  = 'BL50';
 
+#this can be used to remove long sequences from results
+my $maxProtLength = 100000; #default threshold to allow any length
+my $LengthControl  = "N";    #same meaning as $covControl
 
 #internal directories
 my $filesDir = "";
@@ -70,9 +73,11 @@ my $blastDir = "";
 read_command_line();
 
 #print Data::Dumper->Dump([$qfile, $qProt, $sfile, $sProt, $qlabel, $slabel, $outdir, $prog,
-#                          $evalue, $coverage, $covControl, $blastComp, $segFilter],
+#                          $evalue, $coverage, $covControl, $blastComp, $segFilter, $maxProtLength,
+#			  $LengthControl],
 #                        [qw(*qfile *qProt *sfile *sProt *qlabel *slabel *outdir *prog
-#                         *evalue *coverage *covControl *blastComp *segFilter)]);
+#                         *evalue *coverage *covControl *blastComp *segFilter *maxProtLength
+#                         *LengthControl)]);
 #exit;
 
 
@@ -717,6 +722,10 @@ sub parse_ssearch {
 	my $sseq    = $hsp->hit_string;
 	my $hstr    = $hsp->homology_string;
 
+
+	#Check first that both proteins have the right length
+	next HSP if (max_length_violation($qlen, $slen, $maxProtLength, $LengthControl));
+
 	#If the alignment has less than $minLength aas, ignore it
         my $qtmp = $qseq; $qtmp =~ s/-//g;
 	my $stmp = $sseq; $stmp =~ s/-//g;
@@ -740,6 +749,46 @@ sub parse_ssearch {
     } # hit
   } # result
 }
+
+
+
+#==========================================================================
+#Test whether the lengths of two proteins are withing a predefined
+#legnth specified by the user. This are the options for control:
+# X:  Either protein is larger than the cutoff
+# B:  Both proteins are larger than the cutoff
+# Q:  Only the query protein is larger than the cutoff
+# S:  Only the subject protein is larger than the cutoff
+# N:  No control. Any length is ok.
+
+sub max_length_violation {
+
+  my ($qlen, $slen, $maxLen, $control) = @_;
+
+  if ($control eq "X") {
+    (($qlen >= $maxLen) || ($slen >= $maxLen))? return 1 : return 0;
+  }
+
+  if ($control eq "B") {
+    (($qlen >= $maxLen) && ($slen >= $maxLen))? return 1 : return 0;
+  }
+
+  if ($control eq "Q") {
+    ($qlen >= $maxLen)? return 1 : return 0;
+  }
+
+  if ($control eq "S") {
+    ($slen >= $maxLen)? return 1 : return 0;
+  }
+
+  if ($control eq "N") {
+    return 0;
+  }
+
+  die "Unknown control mode: $control";
+
+}
+
 
 
 
@@ -838,6 +887,8 @@ sub read_command_line {
 	"e|evalue=f"       => \$evalue,
 	"c|coverage=f"     => \$coverage,
 	"cc|cov-control=s" => \&read_covControl,
+	"l|max-len=i"      => \$maxProtLength,
+	"lc|len-control=s" => \&read_lenControl,
 	"m|sub-matrix=s"   => \&read_subMatrix,
 	"scs|seq-comp-stats=s"     => \&read_blastComp,
 	"lcf|low-complex-filter=s" => \&read_segFilter,
@@ -988,7 +1039,7 @@ sub read_prog {
   my ($opt, $value) = @_;
 
   my $tmp = lc $value;
-  unless ($tmp =~ /^(blastp|ssearch36|glsearch36|ggsearch36)$/) {
+  unless ($tmp =~ /^(ssearch36|blastp)$/) {
     die "Error in option -$opt: illegal program ($value). Valid programs are blastp and ssearch36\n";
   }
 
@@ -1010,6 +1061,25 @@ sub read_covControl {
 
   $covControl = $tmp;
 }
+
+
+#==========================================================================
+#Option -lc
+
+sub read_lenControl {
+  my ($opt, $value) = @_;
+
+  my $tmp = uc $value;
+  unless ($tmp =~ /^[XQSBN]$/) {
+    die "Error in option -$opt: illegal charater ($value). Valid characters are Q,S,B,X,N\n";
+  }
+
+  $LengthControl = $tmp;
+}
+
+
+
+
 
 
 #==========================================================================
@@ -1094,7 +1164,7 @@ Options:
 
 -p, --prog {string} (Optional. Default: ssearch36);
    Program that will be used to align the sequences. 
-   Valid options are (case insensitive): blastp|ssearch36|glsearch36|ggsearch36
+   Valid options are (case insensitive): blastp|ssearch36
 
 -o, --oudir {path} (Optional, Default: see below)
    Output directory to store the results. Depending on the chosen  alignment
@@ -1119,6 +1189,20 @@ Options:
    B:  Coverage applies to both proteins.
    Q:  Coverage applies to the query protein only.
    S:  Coverage applies to the subject protein only.
+
+-l, --max-len {int} (Optional. Default: no restructions)
+   Maximum length for either query or subject proteins. This option can
+   be used to filter results when long proteins when necessary.
+
+-lc, --len-control {char} (Optional. Default: N)
+   Controls how the max-len threshold will be applied to the query/subject
+   proteins (case insensitive):
+   X:  max-len applies to at least one protein.
+   B:  max-len applies to both proteins.
+   Q:  max-len applies to the query protein only.
+   S:  max-len applies to the subject protein only.
+   N:  max-len is ignored. Any length is allowed. This option supersedes
+       any value passed through option -l.
 
 -scs, --seq-comp-stats { T/F } (Optional. Default: T)
    Perform sequence composition statistics when calculating E-values with

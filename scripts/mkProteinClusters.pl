@@ -86,6 +86,7 @@ if ( !$queryFile ) {
     print "\n";
     print "requirements:\n"
         . qq(   ) . qq(blastp from NCBI's blast suite\n)
+        . qq(   ) . qq(fasta36, ssearch36 from Pearson's fasta36 suite\n)
         . qq(   ) . qq(R from r-project.org\n)
         . qq(   ) . qq(   ) . qq(R packages: cluster, MCMCpack and ape\n\n);
     exit;
@@ -96,15 +97,14 @@ if ( !$queryFile ) {
 ### alignments will use the pre-established defaults of ssearch36.
 my $ssearchOptions = "";
 if ($ssearchMatrix) {
-  $ssearchOptions .= "-s $ssearchMatrix ";
+    $ssearchOptions .= "-s $ssearchMatrix ";
 }
 if ($ssearchAlgorithm) {
-  $ssearchOptions .= "-z $ssearchAlgorithm ";
+    $ssearchOptions .= "-z $ssearchAlgorithm ";
 }
 if ($sserachShuffles) {
-  $ssearchOptions .= "-k $sserachShuffles ";
+    $ssearchOptions .= "-k $sserachShuffles ";
 }
-
 
 
 ### test that the method is spelled correctly:
@@ -116,7 +116,6 @@ else {
     die "   the agglomerative method [$aggMethod] does not exist\n"
         . "   try any of [$aggMethodsMatch] (default: ward)\n\n";
 }
-
 
 
 ### test that the method is spelled correctly:
@@ -221,7 +220,7 @@ print "   clustering\n";
 for my $clustMethod ( $aggMethod ) {
     my $clustFile = "$outputFolder/$family.$pwprogram.$clustMethod.nw.tree";
     build_clust_R("$clustMethod","$clustFile");
-    my $Rcmd = qq(R --vanilla < )
+    my $Rcmd = qq(R -f )
         . qq($outputFolder/$family.$pwprogram.$clustMethod.R )
         . qq(>& $outputFolder/$family.$pwprogram.$clustMethod.log);
     print "      running R\n";
@@ -238,9 +237,9 @@ sub build_clust_R {
     print {$CLUSTR} << "CLUSTR";
 ### this R script will read the distance matrix and produce
 ### a cluster with the $method clustering method
-library(cluster)
-library(MCMCpack)
-library(ape)
+library("cluster")
+library("MCMCpack")
+library("ape")
 
 fampairw <- read.table("$outputFolder/$family.$pwprogram.distances.bz2",
         header=T,sep="\\t")

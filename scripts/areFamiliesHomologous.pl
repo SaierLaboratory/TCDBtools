@@ -224,6 +224,7 @@ else {
 
 
 
+
 #==========================================================================
 #Get the number of sequences in each family
 
@@ -391,7 +392,7 @@ close STAT;
 #==========================================================================
 #Extract subfamilies and systems with famXpander results from the global
 #repository, remove redundant sequences, and generate files with the same
-#names than usual famXpander outut files.
+#names than usual famXpander output files.
 
 
 sub get_subfamilies_for_tcdb_id {
@@ -399,11 +400,13 @@ sub get_subfamilies_for_tcdb_id {
   my ($globalDir, $localDir, $fam_id1, $fam_id2) = @_;
 
 
-  my $finalResFile1 = "$localDir/$fam_id1/results.faa";
-  my $finalPsiFile1 = "$localDir/$fam_id1/psiblast.tbl";
+  my $finalResFile1   = "$localDir/$fam_id1/results.faa";
+  my $finalPsiFile1   = "$localDir/$fam_id1/psiblast.tbl";
+  my $finalClstrFile1 = "$localDir/$fam_id1/results.faa.cdhit.clstr";
 
-  my $finalResFile2 = "$localDir/$fam_id2/results.faa";
-  my $finalPsiFile2 = "$localDir/$fam_id2/psiblast.tbl";
+  my $finalResFile2   = "$localDir/$fam_id2/results.faa";
+  my $finalPsiFile2   = "$localDir/$fam_id2/psiblast.tbl";
+  my $finalClstrFile2 = "$localDir/$fam_id2/results.faa.cdhit.clstr";
 
 
   #----------------------------------------------------------------------
@@ -512,9 +515,9 @@ sub get_subfamilies_for_tcdb_id {
 
     #run cd-hit to remove redundant sequences
     die "Could not find file: $concResFile1" unless (-f $concResFile1 && !(-z $concResFile1));
-    system "cd-hit -i $concResFile1 -o $finalResFile1 -c $cdhit_cutoff -M 0 -l 59 -d 0 -aS 0.7 -B 0 -g 1";
+    system "cd-hit -i $concResFile1 -o $finalResFile1 -c $cdhit_cutoff -M 0 -l 30 -d 0 -aS 0.7 -g 1";
     system "rm $concResFile1";
-    system "rm ${finalResFile1}.clstr";
+    system "mv ${finalResFile1}.clstr $finalClstrFile1";
 
 
     #Remove repeated sequence_ids from $finalResFile1. This happens when famXpander keeps aligned regions
@@ -558,9 +561,9 @@ sub get_subfamilies_for_tcdb_id {
 
     #run cd-hit to remove redundant sequences
     die "Could not find file: $concResFile2" unless (-f $concResFile2 && !(-z $concResFile2));
-    system "cd-hit -i $concResFile2 -o $finalResFile2 -c $cdhit_cutoff -M 0 -l 59 -d 0 -aS 0.7 -B 0 -g 1";
+    system "cd-hit -i $concResFile2 -o $finalResFile2 -c $cdhit_cutoff -M 0 -l 30 -d 0 -aS 0.7 -g 1";
     system "rm $concResFile2";
-    system "rm ${finalResFile2}.clstr";
+    system "mv ${finalResFile2}.clstr $finalClstrFile2";
 
 
     #Remove repeated sequence_ids from $finalResFile1. This happens when famXpander keeps aligned regions

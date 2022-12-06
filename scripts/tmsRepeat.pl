@@ -44,13 +44,15 @@ my $gs_identity    = 0.25;
 my $gsatShuffles   = 1000;
 my $min_gsat_score = 4.0;
 
-my $compStatsFlag  = 0;
+my $compStatsFlag  = 1;
 my $compStats      = "";
 my $outdir         = "repeats";
 my $repDir         = "reports";
 my $seqDir         = "sequences";
 my $alignDir       = "alignments";
 my $plotsDir       = "plots";
+my $goodHitsOnly   = 1;  #print only significant results, ignore everything else
+
 
 #all (all sequences in output file)
 #each (generate one directory per sequence.. for better organization)
@@ -113,13 +115,20 @@ foreach my $ls_sid (keys %gh_tms) {
   cut_seq_in_tms_regions ($ls_sid, $gs_repUnit, \%gh_tms,  \%gh_bundleSeqs);
 
 
+#  print Data::Dumper->Dump([\%gh_bundleSeqs ], [qw(*bundleSeqs)]);
+#  <STDIN>;
+
+
   #run ssearch to find potential repeats.
   align_bundles($ls_sid,\%gh_bundleSeqs, \%gh_topHits);
 
 
+#  print Data::Dumper->Dump([\%gh_topHits ], [qw(*topHits )]);
+#  <STDIN>;
+
+
   #Collect results for final table
   $results{$ls_sid} = \%gh_topHits;
-
 
   #present results per input sequence to verify everything looks fine.
   if ($mode eq 'debug') {
@@ -245,7 +254,17 @@ HEADER
   print $sumh "#Accession\tQ_bundle\tS_bundle\tQ_len\tS_len\tE-value\tIdentity\tGSAT\tAln_len\tQ_cov\tS_cov\n";
 
 
+#  print Data::Dumper->Dump([$res ], [qw(*res )]);
+#  <STDIN>;
+
+
  P:foreach my $id (sort {$a cmp $b} keys %$res) {
+
+    #Jump to next result if there are NO hits for this protein and
+    #ONLY good hits are going to be recorded.
+    unless (%{ $res->{$id} }) {
+      next P if ($goodHitsOnly);
+    }
 
 
     print $deth "===========================================================================\n";
@@ -256,7 +275,6 @@ HEADER
       print $sumh   "$id\tNo_hits\n";
       print $deth   "$id\tNo_hits\n\n\n";
       print $htmlfh "    <h2 style=\"text-align:center;\">$id</h2>\n    <p><b>No candidate repeats found</b></p>\n";
-      next P;
     }
 
     print $deth "$id\n\n";
@@ -411,6 +429,10 @@ sub align_bundles {
   die "Error: invalid plots dir" unless ($hydroPlotsDir);
 
 
+#  print Data::Dumper->Dump([$lhr_bundleSeqFiles ], [qw(*files )]);
+#  <STDIN>;
+
+
   #The bundle that will be used as reference for the comparison
   REF:foreach my $bundle (sort {$a <=> $b} keys %$lhr_bundleSeqFiles) {
 
@@ -421,8 +443,14 @@ sub align_bundles {
       my $id = $lhr_bundleSeqFiles->{$bundle}->[0];
       $id =~ s/\.faa//;
 
-      #For naming GSAT files (ID of system)
-      my ($tcAcc, $kk_bdl) = split(/\_/, $id);
+
+      #For naming GSAT files (ID of system or protein accession)
+      my $tcAcc = ($id =~ /(\S+)_bundle.*/)? $1 : undef;
+      die "Could not extract accession from $id!" unless ($id);
+
+
+#      print Data::Dumper->Dump([$id, $tcAcc ], [qw(*id *tcAcc)]);
+#      <STDIN>;
 
 
       #--------------------------------------------------------------------
@@ -451,6 +479,9 @@ sub align_bundles {
       next REF unless (@cmpFiles);
 
 
+#      print Data::Dumper->Dump([\@cmpFiles ], [qw(*cmpFiles )]);
+#      <STDIN>;
+
 
       #--------------------------------------------------------------------
       #Now run ssearch36 of the reference bundle against all its
@@ -468,9 +499,12 @@ sub align_bundles {
       system "ssearch36 $ssearch_params" unless (-f $ssearchOut);
 
 
+#      print Data::Dumper->Dump([$ssearchOut ], [qw(*ssearchOut )]);
+#      <STDIN>;
+
 
       #---------------------------------------------------------------------
-      #Estimate here the the spacing between x-ticks for hydropathy plots
+      #Estimate here the spacing between x-ticks for hydropathy plots
 
       my $protLen = $origSeqLength{$seqId};
 
@@ -484,6 +518,7 @@ sub align_bundles {
       else {
 	$xticksSpacing = 100;
       }
+
 
 
       #--------------------------------------------------------------------
@@ -512,6 +547,10 @@ sub align_bundles {
 	HSP:while(my $hsp = $hit->next_hsp) {
 
 
+#	    print Data::Dumper->Dump([$hsp ], [qw(*hsp )]);
+#	    <STDIN>;
+
+
 	    my %tmp = ();
 
 	    my $alnLen  = $hsp->hsp_length;
@@ -530,11 +569,16 @@ sub align_bundles {
 
 	    #Calculate coverages properly (do not use alignment length as it includes gaps
 
-	    my $qCov_tmp = ($qend - $qstart) / $qLen;
+	    my $qCov_tmp = ($qend - $qstart + 1) / $qLen;
 	    my $qCov     = ($qCov_tmp > 1.0)? 1.0 : $qCov_tmp;
 
-	    my $hCov_tmp = ($send - $sstart) / $hLen;
+	    my $hCov_tmp = ($send - $sstart + 1) / $hLen;
 	    my $hCov = ($hCov_tmp > 1.0)? 1.0 : $hCov_tmp;
+
+
+#	    print Data::Dumper->Dump([$qLen, $qCov, $hLen, $hCov, $gs_coverage, $hEvalue, $gs_evalue, $hId, $gs_identity],
+#				     [qw(*qLen *qCov $hLen *hCov *coverageCutoff *evalue *evalCutoff *hId *IDcutoff)]);
+#	    <STDIN>;
 
 
 	    #Before storing hit results check minimum coverage, identity and evalue
@@ -569,10 +613,19 @@ sub align_bundles {
 
 	    #Get the GSAT score
 	    my $gsat_outFile = "$alignmentsDir/${tcAcc}_" . $lh_hits{$bundle}{qName} . "_vs_" . $tmp{hName} . ".gsat";
+
+
+#	    print "gsat.py $tmp{qSeq} $tmp{sSeq} $gsatShuffles > $gsat_outFile\n";
+#	    exit;
+
 	    system "gsat.py $tmp{qSeq} $tmp{sSeq} $gsatShuffles > $gsat_outFile" unless (-f $gsat_outFile);
 
 	    my $gsat_score = TCDB::Assorted::get_gsat_score ($gsat_outFile);
 	    $tmp{gsat} = $gsat_score;
+
+
+#	    print Data::Dumper->Dump([\%tmp ], [qw(*matchData )]);
+#	    <STDIN>;
 
 
 	    #GSAT is the last filter
@@ -770,8 +823,10 @@ sub read_tms_coordinates_file {
       my ($id, @tms_str) = split(/\s+/, $_);
       my @tms = map { [ split(/-/, $_) ] }  @tms_str;
 
-      #For debugging
-      #    next unless ($id =~ /2.A.1.8.3-Q9R6U5/);
+
+      #For debugging purposes
+#      next unless ($id eq 'WP_100644534');
+
 
       $hr_tms->{$id} = \@tms;
 
@@ -795,7 +850,11 @@ sub read_tms_coordinates_file {
 
 
       #parse hmmtop line
-      my ($id, $ntms, $tms_str) = (/(\S+)\s+(IN|OUT)\s+(\d+)\s+([\d\s-]+)/)? ($1, $3, $4) : ();
+      my ($id, $ntms, $tms_str) = (/\S+\s+\d+\s+(\S+).+(IN|OUT)\s+(\d+)\s+([\d\s-]+)/)? ($1, $3, $4) : ();
+
+      #For debugging purposes
+#      next unless ($id eq 'WP_100644534');
+
 
       if ($id && $ntms && $tms_str) {
 
@@ -945,7 +1004,7 @@ sub read_command_line_arguments {
       "e|evalue=f"         => \$gs_evalue,
       "c|coverage=f"       => \$gs_coverage,
       "id|identity=f"      => \$gs_identity,
-      "cs|comp-stats!"     => \$compStatsFlag,
+      "ncs|no-comp-stats!" => \$compStatsFlag,
       "gs|gsat-shuffles=i" => \$gsatShuffles,
       "z|gsat-cutoff=f"    => \$min_gsat_score,
       "m|mode=s"           => \$mode,
@@ -999,8 +1058,8 @@ sub read_command_line_arguments {
   }
 
 
-  #option -cs
-  $compStats  = "-k 1000 -z 11" if ($compStatsFlag);
+  #option -ncs
+  $compStats  = ($compStatsFlag)? "" : "-k 1000 -z 11";
 }
 
 
@@ -1052,10 +1111,10 @@ This script searches for regions of TMSs repeated in a full protein.
    Maximum evalue to consider an alignment between two TMS bundles significant.
    (Default: 0.1);
 
--cs, --comp-stats {FLAG}
-   If present, this flag indicates that  E-values will be corrected using
+-ncs, --no-comp-stats {FLAG}
+   If present, this flag indicates that  E-values will not be corrected using
    compositional statistics.
-   (Default: not corrected).
+   (Default: apply correction).
 
 -c, --coverage {float}
    Minimum alignment coverage of the smallest bundle to consider an alignment

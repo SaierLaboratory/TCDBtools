@@ -169,8 +169,13 @@ sub getSequences {
 
   my ($frag, $acc) = @_;
 
+
+#  print Data::Dumper->Dump([$frag, $acc, $accFile ], [qw(*frag *acc *accFile)]);
+#  exit;
+
+
   #Sequence for full protein
-  my $accSeq = "$outdir/${acc}.faa";
+  my $accSeq = (-f $accFile)? $accFile : "$outdir/${acc}.faa";
 
 
   #Save fragment to file
@@ -237,6 +242,14 @@ sub read_command_line {
   #Default value for output directory
   $outdir = "." unless ($outdir);
   system "mkdir -p $outdir" unless (-d $outdir);
+
+  #When accession is not given, take the first part of the input file name as accession
+  unless ($accession) {
+    my @pathComp = split(/\//, $accFile);
+    $accession = $pathComp[-1];
+    $accession =~ s/(\.faa|\.fasta)$//g;
+  }
+
 }
 
 
@@ -327,8 +340,13 @@ Analyze any given GBLAST match. Plot hydropathy and inferred domains.
 
 Options
 
--a, --accession {String} (Mandatory)
-   NCBI accession of query protein
+
+-i, --acc-file {PATH} (Mandataory if option -a is not given)
+  File with the full sequence in fasta format of the proteins where the
+  fragment will be identified. This opeiont
+
+-a, --accession {String} (Mandatory if option -i is not given)
+   NCBI accession of query protein.
 
 -f, --fragment {String} (Mandatory)
    Sequence fragment to locate within the full protein

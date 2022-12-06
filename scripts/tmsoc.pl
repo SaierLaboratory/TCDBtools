@@ -32,6 +32,8 @@
 # options and use HHMTOP predicted TMSs, thus removing the need, but keeping
 # the option, for the user to provide the TMS.
 #
+# NOTE: I have not implemented to read the TMSs in HMMTOP format YET!!!!
+#
 # Date: 11/11/2018
 #---------------------------------------------------------------------------
 
@@ -69,6 +71,8 @@ my $onlyMasked = 0;  #Indicates whether only masked sequences will be printed
 
 my %noTMS = ();
 
+
+#==========================================================================
 #Read command line
 read_command_line();
 
@@ -79,17 +83,29 @@ read_command_line();
 
 
 
+#==========================================================================
 #If TMS are going to be predicted, make sure to remove sequences with 0 TMSs, as
 #it doesn't make sense to run the program in those sequences.
+
 predictTMS() if ($predTMS);
 
 
+#==========================================================================
 #Read TMS coordinates
+
 readCVSfileCoords() unless (scalar(@TMsegments) > 0);
 
+#print Data::Dumper->Dump([$predTMS, \@TMsegments ], [qw(*predTMS *TMsegments )]);
+#exit;
 
+
+#==========================================================================
 #Read FASTA sequences
+
 readSequences();
+
+#print Data::Dumper->Dump([\@FASTAseq ], [qw(*FASTAseq )]);
+#exit;
 
 
 #Estimate simple and complex TMSs from here
@@ -203,6 +219,7 @@ sub readCVSfileCoords {
     my $line = $_;
     $line =~ s/\r//g;	# remove linefeed char
     $line =~ s/\n//g;	# remove new line char
+    $line =~ s/\s+$//;  # remove trailing spaces
 
     @tmp1 = split(/\s+/, $line);
     if (scalar(@tmp1) > 0) {
@@ -245,10 +262,10 @@ sub predictTMS {
     my $n   = undef;
     my $tms = undef;
 
-    if (/\s+(IN|OUT)\s+(\d+)/) {
+    if (/\s+(IN|OUT|UNK)\s+(\d+)/) {
       $n = $2;
       unless ($n == 0) {
-	if (/(IN|OUT)\s+\d+\s+(.+)$/) {
+	if (/(IN|OUT|UNK)\s+\d+\s+(.+)$/) {
 	  $tms = $2;
 	}
       }
@@ -257,10 +274,10 @@ sub predictTMS {
     if ($n == 0) { $noTMS{$cnt} = 1; }
     else {
 
-      die "Error, there should be TMS: n=$n tms=$tms\nline:$_\n" unless ($tms);
+      die "Error, there should be TMS: n=$n tms=$tms\nline: $_\n" unless ($tms);
 
       #Format the hhmtop coordiantes into CSV coordinates
-      my $cvs = format_hmmtop2cvs($tms);
+      my $cvs = format_hmmtop2csv($tms);
       die "Could not format hmmtop coords to cvs: $tms" unless ($cvs);
 
       push (@TMsegments, $cvs);
@@ -274,9 +291,9 @@ sub predictTMS {
 
 
 #==========================================================================
-#Format HMMTOP coordinates string to CVS for TMSOC
+#Format HMMTOP coordinates string to CSV for TMSOC
 
-sub format_hmmtop2cvs {
+sub format_hmmtop2csv {
 
   my $hmmtopStr = shift;
 

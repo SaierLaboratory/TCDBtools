@@ -24,6 +24,9 @@ my @domainSets = qw(
                        cdd
                        pfam
                        tigrfam
+                       superfamily
+                       VFDB
+                       Toxins
                );
 my $matchDom = join('|',@domainSets);
 
@@ -34,10 +37,13 @@ my @programs = qw(
              );
 
 my %defaultProg = (
-    'cog'     => 'rpsblast',
-    'cdd'     => 'rpsblast',
-    'pfam'    => 'hmmscan',
-    'tigrfam' => 'hmmscan',
+    'cog'         => 'rpsblast',
+    'cdd'         => 'rpsblast',
+    'pfam'        => 'hmmscan',
+    'tigrfam'     => 'hmmscan',
+    'superfamily' => 'hmmscan',
+    'VFDB'        => 'hmmscan',
+    'Toxins'      => 'hmmscan',
 );
 
 my $matchProg   = join('|',@programs);
@@ -76,10 +82,12 @@ my %progDBdir = (
 
 ### check if there's more than one processor or assume there's 2.
 my $cpu_count
-    = qx(sysctl -a | grep 'cpu.thread_count')
+    = qx(getconf _NPROCESSORS_ONLN 2>/dev/null)
+    =~ m{\s*(\d+)\s*}                 ? $1
+    : qx(sysctl -a 2>/dev/null | grep 'cpu.thread_count')
     =~ m{\.cpu\.thread_count:\s+(\d+)} ? $1
     : qx(sysctl -a 2>/dev/null | grep 'max-threads')
-    =~ m{\.max-threads\s+=\s+(\d+)} ? $1
+    =~ m{\.max-threads\s+=\s+(\d+)}    ? $1
     : 2;
 
 my $podUsage
@@ -114,7 +122,7 @@ my $podUsage
     . qq(e-value threshold, default $defEvalue (NCBI uses $ncbiEvalue),\n)
     . qq(scientific notation acceptable (e.g. 1e-3)\n\n)
     . qq(=item B<-x>\n\n)
-    . qq(number of CPUs to use, default: 1 (max: $cpu_count)\n\n)
+    . qq(number of CPUs to use, default: 2 (max: $cpu_count)\n\n)
     . qq(=item B<-c>\n\n)
     . qq(running in computer cluster [T|F], default 'F'\n\n)
     . qq(=back\n\n)
@@ -129,7 +137,7 @@ GetOptions(
     "f=s"    => \$domainDB,
     "p=s"    => \$scanProgram,
     "o=s"    => \$resultsDir,
-    "e=s"    => \$Evalue,
+    "e=f"    => \$Evalue,
     "x=i"    => \$cpus,
     "c=s"    => \$cluster,
 ) or podhelp();
@@ -137,6 +145,7 @@ GetOptions(
 if ( !$queries[0] || !$domainDB ) {
     podhelp("I need a protein fasta file and a domain family:");
 }
+$domainDB = lc($domainDB);
 $domainDB =~ s{\.(psq|hmm)}{};
 $domainDB =~ s{^\S+/}{};
 $domainDB =~ s{\.\S+}{};

@@ -27,6 +27,9 @@ my @domainSets = qw(
                        cdd
                        pfam
                        tigrfam
+                       superfamily
+                       VFDB
+                       Toxins
                );
 
 my $matchDom = join('|',@domainSets);
@@ -86,8 +89,8 @@ GetOptions(
     "q=s" => \$domFile,
     "f=s" => \$domFamily,
     "o=s" => \$outputFolder,
-    "c=s" => \$minCover,
-    "v=s" => \$maxOverlap,
+    "c=f" => \$minCover,
+    "v=f" => \$maxOverlap,
     "r=s" => \$reference,
     "a=s" => \$appendAnn,
 ) or podhelp();
@@ -114,11 +117,11 @@ if( length("$reference") > 1 ) {
     }
 }
 
-my $extract_dir = $domFile =~ m{(\S+)/} ? $1 : "./";
+my $extractDir = $domFile =~ m{(\S+)/} ? $1 : "./";
 my $mainName
-    = $domFile =~ m{$extract_dir/(\S+)\.($matchDom)}i ? $1
-    : $domFile =~ m{$extract_dir/(\S+?)\.} ? $1
-    : $domFile =~ m{$extract_dir/(\S+)}   ? $1
+    = $domFile =~ m{$extractDir/(\S+)\.($matchDom)}i ? $1
+    : $domFile =~ m{$extractDir/(\S+?)\.} ? $1
+    : $domFile =~ m{$extractDir/(\S+)}   ? $1
     : $domFile =~ m{(\S+)} ? $1
     : "none";
 my $prog = $mainName =~ s{\.($mProgs)}{} ? $1 : "none";
@@ -139,20 +142,20 @@ if( $xfam eq "none" ) {
 print "  working with $xfam\n";
 my $exten = lc($xfam);
 
-my $genome_db
+my $genomeDB
     = exists $ENV{"GENOMEDB"} ? $ENV{"GENOMEDB"} : '.';
 my $equivDir
     = -d "$equivDir"    ? "$equivDir"
     : -d "equiv-Digest" ? "equiv-Digest"
-    : $genome_db . "/equiv-Digest";
+    : $genomeDB . "/equiv-Digest";
 
 
 mkdir("$outputFolder") unless( -d "$outputFolder" );
 
 #### COG specific
 my $ncbiDir
-    = -d "$genome_db//DownLoad/ncbi" ? "$genome_db//DownLoad/ncbi" : ".";
-my $cdd_dir
+    = -d "$genomeDB//DownLoad/ncbi" ? "$genomeDB//DownLoad/ncbi" : ".";
+my $cddDir
     = -d "$ncbiDir/cdd" ? "$ncbiDir/cdd" : "none";
 ###### learn mini-functions for COGs and other CDDs
 my %function  = ();
@@ -160,10 +163,10 @@ my %translate = ();
 my %desc      = ();
 my %priority  = ();
 if( $xfam =~ m(^(COG|CD|CDD)$) ) {
-    my $cogs_dir  = $ncbiDir . "/COG/COG2014/";
-    print "  using COGs directory:\n  $cogs_dir\n";
+    my $cogsDir  = $ncbiDir . "/COG/COG2014/";
+    print "  using COGs directory:\n  $cogsDir\n";
     print "  learning COG functions\n";
-    open( my $COGF,"<","$cogs_dir/data/cognames2003-2014.tab" )
+    open( my $COGF,"<","$cogsDir/data/cognames2003-2014.tab" )
         or die "\tno COG functions file\n\n";
     while(<$COGF>) {
         next if( m{^#} );
@@ -178,7 +181,7 @@ if( $xfam =~ m(^(COG|CD|CDD)$) ) {
     close($COGF);
     ###### learn CDD identifiers
     print "  learning $xfam identifiers from the CDD database\n";
-    open( my $CDDF,"-|","gzip -qdc $cdd_dir/cddid_all.tbl.gz" )
+    open( my $CDDF,"-|","gzip -qdc $cddDir/cddid_all.tbl.gz" )
         or die "\tno CDD functions file\n\n";
     while(<$CDDF>) {
         chomp;

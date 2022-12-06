@@ -2,7 +2,9 @@
 #########################################################################
 #									#
 #	Author : Gabo Moreno-Hagelsieb          			#
-#	Date of first draft: Dec 18, 2015              			#
+#	Date of first draft: Dec 18, 2015                               #
+#                                                                       #
+#       Modified for parallelization by Arturo Medrano-Soto             #
 #									#
 #########################################################################
 
@@ -12,23 +14,35 @@ use Getopt::Long;
 use File::Temp qw( tempfile tempdir );
 use sigtrap qw(handler signalHandler normal-signals);
 
+my $pathBin = "/usr/local/bin";
 my $commandLine = join(" ",$0,@ARGV);
+
+
+#Get the IP and computer name (for MacOS). For debugging purposes, this
+#will identifiy the computer where a particular job ran.
+chomp (my $compIP   = qx(ipconfig getifaddr en0));
+chomp (my $compName = qx(hostname));
+
 
 ### ensure that external programs (psiblastp, makeblastdb, cd-hit) exist
 my @missingsoft = ();
+chomp(my $host = qx(hostname)); 
+
+print "Running in: $host\n";
+
+
 for my $xsoftware ( qw( psiblast blastdbcmd cd-hit ) ) {
-    if( my $sfwpath = qx(which $xsoftware) ) {
-        chomp($sfwpath);
+    if( -f "$pathBin/$xsoftware" ) {
         #print "$sfwpath<-here\n";
     }
     else {
-        print "\tprogram $xsoftware not found\n";
+        print "$host:\tprogram $xsoftware not found\n";
         push(@missingsoft,$xsoftware);
     }
 }
 my $cntMissing = @missingsoft;
 if( $cntMissing > 0 ) {
-    die "\tcan't proceed because of missing software\n\t"
+    die "$host:\tcan't proceed because of missing software\n\t"
         . join("\n\t",@missingsoft) . "\n\n";
 }
 
@@ -111,6 +125,12 @@ if ( !$inputSeqFile ) {
     exit;
 }
 
+my $testFile = "$outputFolder/results.faa.cdhit.clstr";
+if (-f $testFile) {
+  print "Skipping already complete analysis on: $inputSeqFile\n";
+  exit;
+}
+
 ### make sure that some options are well declared
 $remote    = $remote    =~ m{^(T|F)$}i ? uc($1) : "F";
 $cutRange  = $cutRange  =~ m{^(T|F)$}i ? uc($1) : "T";
@@ -161,9 +181,14 @@ unless( -d $outputFolder ) {
     system("mkdir $outputFolder");
 }
 
+
+#Save original command line and computer where program is being
+#executed
 open( my $COMMANDLINE,">>","$outputFolder/command.line" );
+print {$COMMANDLINE} "$compName ($compIP)\n\n";
 print {$COMMANDLINE} $commandLine,"\n";
 close($COMMANDLINE);
+
 
 my $querySeqHashRef = checkFastaFile($inputSeqFile);
 my @qids = sort keys %$querySeqHashRef;
@@ -207,9 +232,10 @@ sub PasteSeqToFiles {
             print {$ENTRYLS} join("\n",sort @{ $refIDArrayRef }),"\n";
             close($ENTRYLS);
             my $get_seqs
-                = qq(blastdbcmd -db $nrDB -entry_batch $entryList -target_only )
+                = qq($pathBin/blastdbcmd -db $nrDB -entry_batch $entryList -target_only )
                 . qq(-outfmt "%a %i %t %s");
             print "   extracting $seqNum full sequences from $nrDB database:\n";
+            print "   $get_seqs\n";
             for my $seqLine ( qx($get_seqs) ) {
                 $seqLine =~ s{^(\w+)\.\d+}{$1};
                 $seqLine =~ s{(\S+)\n}{\n$1\n};
@@ -244,7 +270,7 @@ sub PasteSeqToFiles {
     ##### filter redundancy out
     if( $printed_seqs > 1 && $filter < 1 ) {
         my $cdhit_command
-            = qq(cd-hit -i $tmp_file -o $tmp_file.cdhit -c $filter);
+            = qq($pathBin/cd-hit -i $tmp_file -o $tmp_file.cdhit -c $filter);
         system("$cdhit_command >& /dev/null");
         print "       cleaning redundancy out ($filter)\n";
         system("mv $tmp_file.cdhit $out_file 2>/dev/null");
@@ -277,7 +303,7 @@ sub runBlast {
     else {
         #### if running locally, check for BLASTDB and nr within it
         if( $remote eq "F" ) {
-            if( -f "${nrDB}.pin" ) {
+            if( -f "$nrDB.pal" ) {
                 print "   working with $nrDB\n";
             }
             elsif( length($ENV{"BLASTDB"}) > 0 ) {
@@ -285,11 +311,11 @@ sub runBlast {
                 my $trueDBs  = @blastdbs;
                 my $verifDir = 0;
                 my $vefirNR  = 0;
-                foreach my $testDir ( @blastdbs ) {
+                for my $testDir ( @blastdbs ) {
                     if( -d $testDir ) {
                         $verifDir++;
-                        my $nr_sure = $testDir . "/" . $nrDB . ".pin";
-                        if( -f $nr_sure ) {
+                        my $nr_sure = $testDir . "/" . $nrDB . ".pal";
+                        if( -f "$nr_sure" ) {
                             $vefirNR++;
                         }
                     }
@@ -303,7 +329,7 @@ sub runBlast {
                 }
                 if( $vefirNR < 1 ) {
                     system "rm -r $tempFolder";
-                    die qq(\n\tNo $nrDB database in:\n\t$ENV{"BLASTDB"}\n\n);
+                    die qq(\n\tno $nrDB database in:\n\t$ENV{"BLASTDB"}\n\n);
                 }
             }
             else {
@@ -312,7 +338,7 @@ sub runBlast {
             }
         }
         my $blastRootCmd
-            = qq(psiblast -query $tempSeqFile -db $nrDB )
+            = qq($pathBin/psiblast -query $tempSeqFile -db $nrDB )
             . qq( -max_target_seqs $maxSubject )
             . qq( -max_hsps 1 )
             . qq( -evalue $Evalue -inclusion_ethresh $iEvalue )
@@ -580,7 +606,7 @@ sub prepareRemoteIter {
         close($LIST);
         ### now build a blast database
         my $buildDBCmd
-            = qq(blastdbcmd -db $nrDB  -entry_batch $accList -target_only 2>/dev/null)
+            = qq($pathBin/blastdbcmd -entry_batch $accList -target_only 2>/dev/null)
             . qq( | makeblastdb -dbtype prot -out $dbFile -title "dbFile");
         system("$buildDBCmd &>/dev/null");
         ### now run psiblast to build pssm files as necessary
