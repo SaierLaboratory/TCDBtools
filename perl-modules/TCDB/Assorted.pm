@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Ref::Util qw(is_arrayref);
+use Scalar::Util qw(looks_like_number);
 
 require Exporter;
 
@@ -265,7 +266,7 @@ sub getFamilyIDs {
   my @uniqueTCIDs = getUniqueTCIDs($level, keys %{ $modeSystems });
 
 #  print Data::Dumper->Dump([ \@uniqueTCIDs], [qw( *uniqueTCIDs)]);
-#  exit;
+#  <STDIN>;
 
 
   if (is_arrayref $tcids) {
@@ -289,11 +290,12 @@ sub getFamilyIDs {
       }
 
 
+      (my $tmp_tc = $tcid) =~ s/\./\\./g;
       if ($userCmp <= ($tcCmp - 1)) {
-	@hits = grep { /$tcid\./ } @uniqueTCIDs;
+	@hits = grep { /^$tmp_tc\./ } @uniqueTCIDs;
       }
       else {
-	@hits = grep { /$tcid/ } @uniqueTCIDs;
+	@hits = grep { /^$tmp_tc$/ } @uniqueTCIDs;
       }
 
 
@@ -548,14 +550,14 @@ sub getUniqueTCIDs {
 #==========================================================================
 #Extract all the single component systems from TCDB
 
-
+my $multCompFams = '3\.A\.1\.|3\.A\.2\.|3\.A\.5\.';
 
 sub getMultiComponentTCIDs {
 
   my ($allTCDB, $outHash) = @_;
 
   foreach my $sys (keys %{ $allTCDB }) {
-    if (scalar @{ $allTCDB->{$sys} } > 1) {
+    if (scalar @{ $allTCDB->{$sys} } > 1 || $sys =~ /$multCompFams/) {
       $outHash->{$sys} = $allTCDB->{$sys};
     }
   }
@@ -582,7 +584,7 @@ sub getSingleComponentTCIDs {
   my ($allTCDB, $outHash) = @_;
 
   foreach my $sys (keys %{ $allTCDB }) {
-    if (scalar @{ $allTCDB->{$sys} } == 1) {
+    if (scalar @{ $allTCDB->{$sys} } == 1 && !($sys =~ /$multCompFams/)) {
       $outHash->{$sys} = $allTCDB->{$sys};
     }
   }
@@ -674,6 +676,7 @@ sub by_system {
   }
 
 
+#  die "No valid systems: $a and $b" unless (scalar(@tc1) == 5 && scalar(@tc2) == 5);
 
 
   #Sort the two arrays

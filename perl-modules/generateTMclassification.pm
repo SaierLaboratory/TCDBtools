@@ -98,53 +98,54 @@ sub generateTMclassification {
 		my $rightpos;
 		my $rightResidueHydro;
 		my $leftResidueHydro;
-		if (scalar(@helixAA)<$winSizeX || scalar(@helixAA)<$winSizeY) {
-			if ($winSizeX > $winSizeY) {
-				$extendLength = $winSizeX-scalar(@helixAA);
-			}
-			else {
-				$extendLength = $winSizeY-scalar(@helixAA);
-			}
-			$leftpos = $position[0];
-			$rightpos = $position[1];
-			for ($k=0; $k<$extendLength; $k++) {
-				$leftpos = $leftpos - 1;	# Extend left position
-				$rightpos = $rightpos + 1;	# Extend right position
-				if ( $leftpos >= 0 && $rightpos<(scalar(@seqAA)) ) {
-					$leftResidueHydro = getAAHydrophobicity($seqAA[$leftpos]);
-					$rightResidueHydro = getAAHydrophobicity($seqAA[$rightpos]);
-					if ($leftResidueHydro < $rightResidueHydro) {
-						$rightpos = $rightpos - 1;	# Restore right position to previous
-					}
-					elsif ($leftResidueHydro > $rightResidueHydro) {
-						$leftpos = $leftpos + 1;	# Restore left position to previous
-					}
-					else {
-						# do nothing i.e. extend both left and right position
-					}
-				}
-				elsif ($leftpos < 0 && $rightpos<(scalar(@seqAA)) ) {	# left position out of valid index
-					$leftpos = $leftpos + 1;	# Restore left position to previous
-				}
-				elsif ($leftpos >= 0 && $rightpos>=(scalar(@seqAA)) ) {	# left position out of valid index
-					$rightpos = $rightpos - 1;	# Restore right position to previous
-				}
-				else {	# do nothing
-				}
-				if (($rightpos-$leftpos+1) >= (scalar(@helixAA)+$extendLength)) {
-					last;
-				}
-			}
+		
+# 		if (scalar(@helixAA)<$winSizeX || scalar(@helixAA)<$winSizeY) {
+# 			if ($winSizeX > $winSizeY) {
+# 				$extendLength = $winSizeX-scalar(@helixAA);
+# 			}
+# 			else {
+# 				$extendLength = $winSizeY-scalar(@helixAA);
+# 			}
+# 			$leftpos = $position[0];
+# 			$rightpos = $position[1];
+# 			for ($k=0; $k<$extendLength; $k++) {
+# 				$leftpos = $leftpos - 1;	# Extend left position
+# 				$rightpos = $rightpos + 1;	# Extend right position
+# 				if ( $leftpos >= 0 && $rightpos<(scalar(@seqAA)) ) {
+# 					$leftResidueHydro = getAAHydrophobicity($seqAA[$leftpos]);
+# 					$rightResidueHydro = getAAHydrophobicity($seqAA[$rightpos]);
+# 					if ($leftResidueHydro < $rightResidueHydro) {
+# 						$rightpos = $rightpos - 1;	# Restore right position to previous
+# 					}
+# 					elsif ($leftResidueHydro > $rightResidueHydro) {
+# 						$leftpos = $leftpos + 1;	# Restore left position to previous
+# 					}
+# 					else {
+# 						# do nothing i.e. extend both left and right position
+# 					}
+# 				}
+# 				elsif ($leftpos < 0 && $rightpos<(scalar(@seqAA)) ) {	# left position out of valid index
+# 					$leftpos = $leftpos + 1;	# Restore left position to previous
+# 				}
+# 				elsif ($leftpos >= 0 && $rightpos>=(scalar(@seqAA)) ) {	# left position out of valid index
+# 					$rightpos = $rightpos - 1;	# Restore right position to previous
+# 				}
+# 				else {	# do nothing
+# 				}
+# 				if (($rightpos-$leftpos+1) >= (scalar(@helixAA)+$extendLength)) {
+# 					last;
+# 				}
+# 			}
 
-			# Create new extended TM-helix sequence
-			$helixseq = "";
-			for ($k=$leftpos; $k<=$rightpos; $k++) {
-				$helixseq = $helixseq.$seqAA[$k];
-			}
-			@helixAA = split(//, $helixseq);
+# 			# Create new extended TM-helix sequence
+# 			$helixseq = "";
+# 			for ($k=$leftpos; $k<=$rightpos; $k++) {
+# 				$helixseq = $helixseq.$seqAA[$k];
+# 			}
+# 			@helixAA = split(//, $helixseq);
 
-#			print "After extension : ".$segments[$i]." ".$helixseq." ".scalar(@helixAA)."\n";
-		}
+# #			print "After extension : ".$segments[$i]." ".$helixseq." ".scalar(@helixAA)."\n";
+# 		}
 
 		# Calculate the entropy for each predicted segment
 		$entropyVector = "";
