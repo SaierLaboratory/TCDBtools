@@ -58,6 +58,8 @@ my $blastComp  = "F"; #2;
 my $segFilter  = 'no';
 my $minLength  = 30;  #Min legnth of proteins to analyze (without gaps)
 my $subMatrix  = 'BL50';
+my $hyd_qylim  = undef;  #Y-axis limits for query hydropathy plot [low, high]
+my $hyd_sylim  = undef;  #Y-axis limits for subject hydropathy plot [low, high]
 
 #this can be used to remove long sequences from results
 my $maxProtLength = 100000; #default threshold to allow any length
@@ -443,6 +445,9 @@ ROW
 #Run quod on the query, subject and the alignment.
 
 
+#quod.py -q -l "HEB99829"  -o plot.png --width 15  --edgecolor red --xticks 25 --no-tms +0 --add-tms 9-32 43-67 98-121 132-151 164-181 192-215 224-241:orange -w 17-245:+2.7:+:Alignment  --region-font 12 --add-region 20-245:'PF07556':-2.8,-2.6:red,black:tc --mark +0:K,R,H:black --xlim 0 400 --  HEB99829.faa
+
+
 sub run_quod {
 
   my ($q, $s, $qs, $qe, $ss, $se, $qseq, $sseq) = @_;
@@ -469,8 +474,9 @@ sub run_quod {
 
   #Note alnquod requires to add the extension to the image name
   my $alnFig = "$plotsDir/${q}_vs_${s}_qs${qs}_qe${qe}_ss${ss}_se${se}.png";
-  my $cmd1 = qq(alnquod.py --grid -q -l "$q (red) and $s (blue)"  -o $alnFig --xticks 25 --width 15 -- $qalnFile  $seqDir/${q}.faa $salnFile  $seqDir/${s}.faa);
-  #print "$cmd1\n\n";
+  my $cmd1 = qq(quod.py -q -l "$q (red) and $s (blue)"  -o $alnFig --xticks 25 --width 15 --edgecolor +0:red +1:blue --facecolor +0:orange +1:cyan --multi frag -- $qalnFile  $seqDir/${q}.faa $salnFile  $seqDir/${s}.faa);
+#  print "$cmd1\n\n";
+#  exit;
   system $cmd1 unless (-f "${alnFig}");
   return undef unless (-f "${alnFig}");
 
@@ -483,17 +489,18 @@ sub run_quod {
   die "Error: no hmmtop results for: $q" unless (exists $hmmtopHits{$q});
   my $qTMS = "";
   if (scalar @{ $hmmtopHits{$q}{coords} } > 0) {
-    $qTMS  = "-at " . join(",", @{ $hmmtopHits{$q}{coords} }) . ":orange";
+    $qTMS  = "--add-tms " . join(",", @{ $hmmtopHits{$q}{coords} }) . ":orange";
   }
 
 
   #Plot query hydropathy
   my $qPfam = get_pfam_coords_for_quod($q, "red");
-  my $qName = "$plotsDir/${q}_vs_${s}_qaln_qs${qs}_qe${qe}";
-  my $cmd2  = qq(quod.py --grid -q -l "$q"  -o $qName --width 15 --color red --xticks 25 -w ${qs}-${qe}::1 -t png -nt +0  $qTMS $qPfam --  $seqDir/${q}.faa);
-  #print "$cmd2\n\n";
-  system $cmd2 unless (-f "${qName}.png");
-  return undef unless (-f "${qName}.png");
+  my $qName = "$plotsDir/${q}_vs_${s}_qaln_qs${qs}_qe${qe}.png";
+  my $cmd2  = qq(quod.py -q -l "$q"  -o $qName --width 15 --edgecolor red --xticks 25 -w ${qs}-${qe}:+2.7:+:Alignment  --no-tms +0  $qTMS $qPfam --  $seqDir/${q}.faa);
+#  print "$cmd2\n\n";
+#  exit;
+  system $cmd2 unless (-f $qName);
+  return undef unless (-f $qName);
 
 
 
@@ -501,16 +508,17 @@ sub run_quod {
   die "Error: no hmmtop results for: $s" unless (exists $hmmtopHits{$s});
   my $sTMS = "";
   if (scalar @{ $hmmtopHits{$s}{coords} } > 0) {
-    $sTMS  = "-at " . join(",", @{ $hmmtopHits{$s}{coords} }) . ":cyan";
+    $sTMS  = "--add-tms " . join(",", @{ $hmmtopHits{$s}{coords} }) . ":cyan";
   }
 
   #Plot Subject hydropaty
   my $sPfam = get_pfam_coords_for_quod($s, "blue");
-  my $sName = "$plotsDir/${q}_vs_${s}_saln_ss${ss}_se${se}";
-  my $cmd3  = qq(quod.py --grid -q -l "$s"  -o $sName --width 15 --color blue --xticks 25 -w ${ss}-${se}::1 -t png -nt +0 $sTMS $sPfam --  $seqDir/${s}.faa);
-  #print "$cmd3\n\n";
-  system $cmd3 unless (-f "${sName}.png");
-  return undef unless (-f "${sName}.png");
+  my $sName = "$plotsDir/${q}_vs_${s}_saln_ss${ss}_se${se}.png";
+  my $cmd3  = qq(quod.py -q -l "$s"  -o $sName --width 15 --edgecolor blue --xticks 25 -w ${ss}-${se}:+2.7:+:Alignment --no-tms +0 $sTMS $sPfam --  $seqDir/${s}.faa);
+#  print "$cmd3\n\n";
+#  exit;
+  system $cmd3 unless (-f $sName);
+  return undef unless (-f $sName);
 
 
   return 1;
@@ -535,7 +543,7 @@ sub get_pfam_coords_for_quod {
   if  (exists $pfamHits{$prot}) {
     my @Doms = keys %{ $pfamHits{$prot} };
     my $dcnt = 0;
-    $str = "--region-font 12 -ar ";
+    $str = "--region-font 12 --add-region ";
     foreach my $d (@Doms) {
 
       my @hits = @{ $pfamHits{$prot}{$d} };
@@ -543,8 +551,10 @@ sub get_pfam_coords_for_quod {
 	my $left  = $hit->{qstart};
 	my $right = $hit->{qend};
 
-	my $ypos = -2.8 + $dcnt * 0.4;
-	$str .= "${left}-${right}:'${d}':${ypos}:$color ";
+	my $yposl = -2.8 + $dcnt * 0.4; #domain bottom coord
+	my $yposh = $yposl + 0.15;       #domain height coord
+
+	$str .= "${left}-${right}:'${d}':${yposl},${yposh}:$color,black:tc ";
 	$dcnt++;
       }
     }
