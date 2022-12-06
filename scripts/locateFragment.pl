@@ -142,7 +142,7 @@ sub run_quod {
   #Generate quod plot
 
   #Format string for the regions
-  my $regions = "-at ";
+  my $regions = "--add-tms ";
   my $coords  = "";
   foreach my $hit (@res) {
 
