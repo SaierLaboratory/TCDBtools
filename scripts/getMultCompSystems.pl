@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -92,11 +92,11 @@ my $fusion_lenRatio = 1.8;   #At what point a protein is considered fused to ano
 my $large_protein   = 200;
 my $small_protein   = 100;
 
-my $high_coverage   = 70.0;  #Assumption of good coverage for candidates 55
-my $mid_coverage    = 60.0;  #Assumption of ok coverage  for candidates  50
-my $min_coverage    = 45.0;  #Assumption of low coverage for candidate   40
+my $high_coverage   = 60.0;  #Assumption of good coverage for candidates 60
+my $mid_coverage    = 50.0;  #Assumption of ok coverage  for candidates  50
+my $min_coverage    = 40.0;  #Assumption of low coverage for candidate   40
 my $minCovDiscard   = 30.0;  #don't look at  blast hits if one of the proteins has this or lower coverage
-my $minEvalDiscard  = 1e-4;  #Do not look at anything worse than this evalue
+my $minEvalDiscard  = 1e-3;  #Do not look at anything worse than this evalue
 
 my $worst_evalue    = 1e-4;  #E-value for high coverage >=$high_coverage ($minEvalDiscard/100)
 my $badCov_evalue   = 1e-10; #E-value for really bad coverage >=$minCovDiscard
@@ -107,7 +107,7 @@ my $min_identity    = 18.0;  #minimum accepted identity to consider a good hit
 
 my $compStats       = 'F';   #Use composition statistis to filter blast output
 my $min_alignment   = 55;    #minimal alignment length
-my $minCompMatches  = 0.25;   #At least this fraction of the components in the system must have a blast/ssearch match
+my $minCompMatches  = 0.25;  #At least this fraction of the components in the system must have a blast/ssearch match
 
 
 
@@ -1269,6 +1269,9 @@ sub parseHMMTOP {
     my ($len, $acc) = ($leftPart =~ /^\>HP:\s+(\d+)\s+(\S+)/)? ($1, $2) : undef;
     die "Could not extract the accession: |$_|\n|$leftPart|\n|$rightPart|\n" unless ($acc);
 
+    #Remove version number from accession
+    $acc =~ s/\.\d$//;
+
 
     #Get the number of TMSs
     my $nTMS = ($rightPart =~ /^\s+(\d+)/)? $1 : undef;
@@ -1980,7 +1983,8 @@ NOTE: This program works currently for genomes with only one replicon!
 Options:
 
 -gdir, --genome-dir { path }  (Mandatory)
-  Directory with all the files as downloaded from NCBI for the genome under analysis.
+  Directory with all the assembly files  as downloaded from NCBI for the genome
+  under analysis.
 
 -gacc, --genome-accesssion { string } (Mandatory)
   The prefix of all the files in the genome directory. This is normally the name of
@@ -2029,7 +2033,7 @@ Options:
 -sp, --small-protein { int } (Optional; Default: 100)
   Maximal length to consider a protein small.
 
--hc, --high-coverage { float } (Optional; Default: 50.0);
+-hc, --high-coverage { float } (Optional; Default: 60.0);
   Assumption of good coverage between query and subject to consider
   two proteins homologous (value must be grater than for option -c).
 
@@ -2042,10 +2046,10 @@ Options:
   it may be worth taking a look at the alignment
   (Value must be larger than 20.0)
 
--id, --identity { float }  (Optional;  Default: 20.0)
+-id, --identity { float }  (Optional;  Default: 18.0)
   Minimal alignment identity to consider a hit in the results.
 
--e, --evalue { float } (Optional;  Default: 1e-4)
+-e, --evalue { float } (Optional;  Default: 1e-3)
   Worst acceptable evalue for alignments with high coverage.
 
 -a, --min-aln-length { int } (Optional; Default: 55)

@@ -122,7 +122,7 @@ $blastOutputFile = "$workDir/data/blastOutput.tsv";
 my $fmtBlastOut = '7 qseqid sseqid qlen slen evalue pident nident length qcovs qstart qend sstart send';
 
 unless (-f $blastOutputFile) {
-  system "blastp -db $tcblastdb -evalue 10 -comp_based_stats f -seg no -outfmt '$fmtBlastOut' -query $seqsCandidatesFile -out $blastOutputFile";
+  system "blastp -db $tcblastdb -evalue 10 -use_sw_tback -comp_based_stats f -seg no -outfmt '$fmtBlastOut' -query $seqsCandidatesFile -out $blastOutputFile";
 }
 
 die "TC Blast output file not found: $blastOutputFile" unless (-f $blastOutputFile);
@@ -158,8 +158,8 @@ my %bestCandidates = ();
 
 remove_redundant_candidates(\%candidates, $seqsCandidatesFile, \%bestCandidates);
 
-#print Data::Dumper->Dump([\%bestCandidates ], [qw(*bestCandidates )]);
-#exit;
+print Data::Dumper->Dump([\%bestCandidates ], [qw(*bestCandidates )]);
+exit;
 
 
 
@@ -312,8 +312,8 @@ sub generate_plot {
   my $cmd1 = qq(blastdbcmd -db $pblastdb -target_only -entry $id -out $sfile);
   system $cmd1 unless (-f $sfile && !(-z $sfile));
 
-  my $qTMS = "-at " . join(",", @{ $coords }) . ":cyan";
-  my $cmd2 = qq(quod.py -q -l "$id" -o $pfile --width 15 --color blue --xticks 50 -nt +0  $qTMS --  $sfile);
+  my $qTMS = "--add-tms " . join(",", @{ $coords }) . ":cyan";
+  my $cmd2 = qq(quod.py -q -l "$id" -o $pfile --width 15 --edgecolor blue --xticks 25 --no-tms +0  $qTMS --  $sfile);
   system $cmd2 unless (-f $pfile && !(-z $pfile));
 
 }
@@ -495,7 +495,6 @@ sub parse_tcblast_output {
 
   #-----------------------------------------------------------------
   #Now sort the blast hits by evalue
-
 
   foreach my $acc (keys %{ $parsed }) {
 
