@@ -4,13 +4,13 @@ The programs in this repository have been developed in a collaboration between
 members of the SaierLab and the group of Dr. Gabriel Moreno-Hagelsieb from 
 Wilfrid Laurier University in Ontario, Canada.
 
-The list below contains the main programs. Dependencies developed by us are 
-not shown in this list, but they are included as part of the repository. 
-Each program has its own help file.
-
-Some of original programs in Python originally written by Vamsee Reddy, many 
+A number of programs in Python were originally written by Vamsee Reddy, many 
 have been updated to work with Python3 and new programs have been added by 
 different members of the lab and collaborators:
+
+Dependencies developed by us are not shown in this list, but they are 
+included as part of the repository. The list below contains only the main 
+programs. 
 
 
 **1.** famXpander.pl ([Manual](manuals/famXpander.md))  
