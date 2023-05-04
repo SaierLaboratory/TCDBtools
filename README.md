@@ -1,5 +1,10 @@
 # Welcome to TCDBtools.
 
+**We have just combined our Python and Perl scripts into a single repository. 
+This facilitaties maintanance by the developers team and installation for our 
+users. Please, do not hesitate to contact us if you have any requests or would
+like to report issues.**
+
 The programs in this repository have been developed in a collaboration between 
 members of the SaierLab and the group of Dr. Gabriel Moreno-Hagelsieb from 
 Wilfrid Laurier University in Ontario, Canada.
