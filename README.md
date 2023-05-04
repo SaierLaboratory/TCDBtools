@@ -59,6 +59,6 @@ enviroment variable to the destination directory.
 * **Note 3:**  
 People contributing software to this repository are: Arturo Medrano-Soto, Gabriel Moreno-Hagelsieb, Vamsee Reddy, Kevin Hendargo, Yichi Zhang, and Vasu Iddamsetty.
 
-* **Note 4**
-We appreciate the contributions from the repository of [Kevin Hendargo](https://gitlab.com/khendarg)
+* **Note 4**  
+We appreciate the contributions from the repository of [Kevin Hendargo](https://gitlab.com/khendarg).
 
