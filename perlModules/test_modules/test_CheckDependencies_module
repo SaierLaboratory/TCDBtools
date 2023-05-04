@@ -1,0 +1,117 @@
+#!/usr/bin/perl -w
+
+
+use strict;
+use warnings;
+use Data::Dumper;
+
+
+use  TCDB::CheckDependencies;
+
+
+#==========================================================================
+#
+#This script contains multiple examples  of how to use the module
+#R2::CheckDependencies in your scripts
+#
+#==========================================================================
+
+
+
+
+#==========================================================================
+# Get help about how to use this class
+#
+#
+#new TCDB::CheckDependencies()->help;
+#
+# -- Or --
+#
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies->help;
+
+
+
+#==========================================================================
+#Verify dependencies given directly to the constructor when  creating the 
+#object. By default empty lists of dependencies and non-executable
+#dependencies generate errors.
+#
+#my $dependencies = new TCDB::CheckDependencies(dependencies_list => ['zcat', 'bzip2', 'fake_1', 'fake_2']);
+#$dependencies -> checkDependencies;
+
+
+
+
+#==========================================================================
+# Dependencies can be given using  accessors:
+#
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies -> dependencies_list(['zcat', 'bzip2', 'fake_1', 'fake_2']);
+#$dependencies -> checkDependencies;
+
+
+
+#==========================================================================
+# Dependencies can also be passed directly to the function 
+# checkDependencies:
+#
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies -> checkDependencies(['zcat', 'bzip2', 'fake_1', 'fake_2']);
+
+
+#==========================================================================
+# If some dependencies are not accessible via the environment variable
+# $PATH, the user can give additional directories to search.
+#
+# For example, assume the scripts non_executable_1 and non_executble_2 
+# are  not executable and are stored in the directory: /dir/to/other/programs
+#
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies -> dependencies_list(['zcat', 'bzip2', 'non_executable_1', 'non_executable_2']);
+#$dependencies -> user_dirs(["/dir/to/other/programs"]);
+#$dependencies -> checkDependencies;
+
+
+#==========================================================================
+# If some dependencies work well if they are not executable, you
+# can instruct the object to not generate an error when a dependency is
+# not executable.
+#
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies -> dependencies_list(['zcat', 'bzip2', 'non_executable_1', 'non_executable_2']);
+#$dependencies -> user_dirs(["/dir/to/other/programs"]);
+#$dependencies -> allow_nonexecutables(1);
+#$dependencies -> checkDependencies;
+
+
+#==========================================================================
+# If you are writing a program that is currently not dependent on other
+# programs but it might be in the future. You can tell the object to
+# accept and empty list of dependencies without generating an error:
+
+#my $dependencies = new TCDB::CheckDependencies();
+#$dependencies -> allow_no_dependencies(1);
+#$dependencies -> checkDependencies;
+
+
+
+
+#==========================================================================
+# Runable example: this script (test_CheckDependencies_module) is not 
+# executable on purpose. You can try commenting and uncommenting the
+# line where the flag allow_nonexecutables is activated.
+#
+# Only an error reporting that fake_script was not found is generated.
+# The fact that test_CheckDependencies_module is not executable is not
+# reported because the flag allow_nonexecutables is set to 1:
+
+my $dependencies = new TCDB::CheckDependencies();
+$dependencies -> dependencies_list(['zcat', 'bzip2', 'fake_script', 'test_CheckDependencies_module']);
+$dependencies -> user_dirs (["/Volumes/tcdbPegasus/perl/test_modules"]);
+$dependencies -> allow_nonexecutables(1);
+
+$dependencies -> checkDependencies;
+
+
+print "Dependencies checked!\n";

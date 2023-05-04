@@ -1,0 +1,140 @@
+<head>
+  <style> body { margin: 0; } </style>
+  <script src="https://unpkg.com/d3-octree"></script>
+  <script src="https://unpkg.com/d3-force-3d"></script>
+  <script src="https://unpkg.com/dat.gui"></script>
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/3d-force-graph"></script>
+  <script src="https://unpkg.com/three-spritetext"></script>
+  <!--<script src="../../dist/3d-force-graph.js"></script>-->
+</head>
+
+<body>
+  <form class="form-inline" onsubmit="search(); return false;" style="margin-bottom: 0">
+      <input id="search_value" class="form-control mr-sm-2" type="search" placeholder="Node Accession" aria-label="Search">
+      <button class="btn btn-primary my-2 my-sm-0 d-none d-md-block" type="submit">Search</button>
+  </form>
+  <div id="3d-graph"></div>
+
+  <script>
+    const address = 'file:///System/Volumes/Data/ResearchData/Users/amedrano/RalfRabus/MultiomponentSystems/Desulfobacula_toluolica_Tol2/'
+    function search(){
+	value = document.getElementById("search_value").value;
+	console.log(value);
+
+	Graph.graphData().nodes.forEach(function(node) {
+	    if (node.id && node.id == value){
+		focusCamera(node);
+	    }
+	})
+    }
+    
+    function focusCamera(node) {
+	// Aim at node from outside it
+          const distance = 200;
+          const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+          Graph.cameraPosition(
+              { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
+              node, // lookAt ({ x, y, z })
+              3000  // ms transition duration
+            );
+    }
+    function nodeSpriteText(text, color, height){
+        let spriteText = new SpriteText(text);
+        spriteText.fontSize = 24;
+        spriteText.color = color;
+        spriteText.textHeight = height;
+        return spriteText;
+    }
+
+    function nodeThreeObject(node){
+         //let group = new THREE.Group();
+         let mesh = new THREE.Mesh(
+           {
+             "system":new THREE.BoxGeometry(10, 10, 10),
+             "component":new THREE.ConeGeometry(5, 10),
+             "subject":new THREE.SphereGeometry(5),
+           }[node.tp],
+         new THREE.MeshLambertMaterial({
+             color: node.color,
+             transparent: true,
+             opacity: 0.75
+           }))
+        mesh.rotation.x = -0.5;
+        //group.add(mesh);
+	text = new nodeSpriteText(node.id, 'white', 5);
+	text.position.y = text.position.y+10;
+	mesh.add(text);
+        //mesh.add(nodeSpriteText('\n\n\n'+node.id, 'white', 5));
+	//setInterval(() => {mesh.rotation.y += 0.03;}, 30);
+        return mesh;
+    }
+    const Graph = ForceGraph3D({ controlType: 'orbit' })
+      (document.getElementById('3d-graph'))
+	.dagMode(null)
+	.dagLevelDistance(100)
+	.nodeThreeObject(nodeThreeObject)
+        .jsonUrl('test_isolated_system.json')
+        .nodeLabel('note')
+	.linkColor("color")
+	.backgroundColor('#101020')
+ 	.linkOpacity(0.5)
+	.linkWidth(({ value })=>value*0.1)
+	.linkDirectionalArrowLength(3.5)
+      	.linkDirectionalArrowRelPos(1)
+	.d3VelocityDecay(0.3)
+	.onNodeClick(node => {
+            //Aim at node from outside it
+            const distance = 200;
+            const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z)
+	    Graph.cameraPosition(
+                { x: node.x * distRatio, y: node.y * distRatio, z:node.z * distRatio }, // new position
+                node, // lookAt ({ x, y, z })
+                3000  // ms transition duration
+            )})
+	.onNodeRightClick(node => window.open({
+            "system":`http://tcdb.org/search/result.php?tc=${node.id}`,
+	    "component":`http://tcdb.org/search/result.php?acc=${node.id}`
+            }[node.tp]))
+	.onLinkClick(link => window.open({
+	    "q_vs_s":`${address}plots/${link.to}_vs_${link.from}/ssearch_${link.from}_vs_${link.to}/report.html`
+	    }[link.tp]))
+	.enableNodeDrag(true)
+	.onNodeDragEnd(node => {
+          node.fx = node.x;
+          node.fy = node.y;
+          node.fz = node.z;
+        })
+	.d3Force('collision', d3.forceCollide(node => Math.cbrt(node.size) * 20))
+	.d3Force('charge', d3.forceManyBody().strength(-10))
+	.d3Force("radial", d3.forceRadial(node => 300 / node.group))
+    // Decrease repel intensity
+    Graph.d3Force('charge').theta(0.1);
+    Graph.d3Force('center', null)
+    const linkForce = Graph
+      .d3Force('link')
+      .distance(link => (link.tp == "q_vs_s") ? settings.CCDistance : settings.CSDistance);
+    //Define GUI
+    const Settings = function() {
+      this.CCDistance = 150;
+      this.CSDistance = 150;
+    };
+    // controls
+    const controls = { 'DAG Orientation': null};
+
+    const settings = new Settings();
+    const gui = new dat.GUI();
+    gui.add(controls, 'DAG Orientation', ['bu','td', 'lr', 'rl', 'zout', 'zin', 'radialout', 'radialin', null])
+      .onChange(orientation => Graph && Graph.dagMode(orientation));
+    const controllerOne = gui.add(settings, 'CCDistance', 0, 300);
+    const controllerTwo = gui.add(settings, 'CSDistance', 0, 300);
+
+    controllerOne.onChange(updateLinkDistance);
+    controllerTwo.onChange(updateLinkDistance);
+
+    function updateLinkDistance() {
+      linkForce.distance(link => (link.tp == "q_vs_s") ? settings.CCDistance : settings.CSDistance);
+      Graph.numDimensions(3); // Re-heat simulation
+    }
+  </script>
+</body>
