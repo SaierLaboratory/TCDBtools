@@ -104,7 +104,7 @@ our @EXPORT = qw( getFamilyIDs       getSystemAccessions  getUniqueTCIDs
 #
 # Count the number of sequences in a file, they can be in either fasta
 # or two-column format. Sequences can either have the format generated
-# by the program extractFamily.pl or a custom name provided by the user.
+# by the program extractTCDB.pl or a custom name provided by the user.
 #
 #
 #--------------------------------------------------------------------------
@@ -208,7 +208,7 @@ our @EXPORT = qw( getFamilyIDs       getSystemAccessions  getUniqueTCIDs
 #
 # Input parameters
 # $tcdb_file: fasta file with all the proteins in TCDB as formated by the
-#             program extractFamily.pl
+#             program extractTCDB.pl
 #
 # $mode:      It can be 'single' for single-component systems, 'multi'
 #             for multi-component systems, or 'both' for all possible
@@ -968,14 +968,14 @@ sub extract_seqs_from_tcdb {
 
     #the program is Vamsee's version of protocol1
     if ($program eq "proto1") {
-      $fname = "family-${fam}.clm";
-      $cmd = "extractFamily.pl -i $fam -f column -o $outdir";
+      $fname = "tcdb-${fam}.clm";
+      $cmd = "extractTCDB.pl -i $fam -f column -o $outdir";
     }
 
     #if program is famXpander (Gabo's version of protocol1: famXpander.pl)
     elsif ($program eq "fxpand") {
-      $fname = "family-${fam}.faa";
-      $cmd = "extractFamily.pl -i $fam -f fasta -o $outdir";
+      $fname = "tcdb-${fam}.faa";
+      $cmd = "extractTCDB.pl -i $fam -f fasta -o $outdir";
     }
     else {die "Error: Unknown program: $program --> "; }
 
@@ -995,7 +995,7 @@ sub extract_seqs_from_tcdb {
 #==========================================================================
 #Count the number of sequences in a file, they can be in either fasta
 #or two-column format. Sequences can either have the format generated
-#by the program extractFamily.pl or a custom name provided by the user.
+#by the program extractTCDB.pl or a custom name provided by the user.
 #
 #This will help in the calculation in the number of protein pairs that
 #will be processed by protocol2
@@ -1023,10 +1023,10 @@ sub count_sequences_in_family {
 
   #Determine the possible input sequence file names
   if ($program eq "fxpand") {
-    @file_names = ("$indir/family-${id}.faa", "$indir/${id}.faa");
+    @file_names = ("$indir/tcdb-${id}.faa", "$indir/${id}.faa");
   }
   elsif ($program eq "proto1") {
-    @file_names = ("$indir/family-${id}.clm", "$indir/${id}.clm");
+    @file_names = ("$indir/tcdb-${id}.clm", "$indir/${id}.clm");
   }
   else { die "Error: unknown program $program --> "; }
 

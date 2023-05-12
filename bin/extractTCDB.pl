@@ -44,7 +44,7 @@ my $help
     . qq(      complete TCDB database\n)
     . qq(   -o output folder, default $outDir\n)
     . qq(   -f output format ($formats), default $format\n)
-    . qq(   -s source database (a fasta file with TCDB entries),\n)
+    . qq(   -d source database (a fasta file with TCDB entries),\n)
     . qq(      default: $database (online database)\n)
     . qq(\n);
 

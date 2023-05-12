@@ -307,7 +307,7 @@ sub rescueDomForFamily  {
   #Get sequences of the reference family
 
   #If sequences were given as a parameter, copy them to the proper folder
-  my $famSeqsFile = "$seqDir/family-${fam}.faa";
+  my $famSeqsFile = "$seqDir/tcdb-${fam}.faa";
 #  if (-f $self->protSeqs1it && !(-z $self->protSeqs1it)) {
 #    my $cmd = "cp " . $self->protSeqs1it . " $seqDir";
 #    system $cmd;
@@ -322,8 +322,8 @@ sub rescueDomForFamily  {
 
     my @files = ();
     foreach my $f (@$fams) {
-      my $file = "$seqDir/family-${f}.faa";
-      system "extractFamily.pl -i $f -o $seqDir -f fasta $tcdbFaaParam" unless (-f $file);
+      my $file = "$seqDir/tcdb-${f}.faa";
+      system "extractTCDB.pl -i $f -o $seqDir -f fasta $tcdbFaaParam" unless (-f $file);
       push(@files, $file);
     }
 
@@ -332,7 +332,7 @@ sub rescueDomForFamily  {
     die "Coud not generate sequences for superfamily: " unless (-f $famSeqsFile && !(-z $famSeqsFile))
   }
   else {
-    system "extractFamily.pl -i $fam -o $seqDir -f fasta $tcdbFaaParam" unless (-f $self->protSeqs1it);
+    system "extractTCDB.pl -i $fam -o $seqDir -f fasta $tcdbFaaParam" unless (-f $self->protSeqs1it);
   }
 
 
