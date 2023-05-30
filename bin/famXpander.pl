@@ -28,19 +28,21 @@ my @blasters = qw(
                      mmseqs
              );
 my $matchBlasters = join("|",@blasters);
-my $matchNCBI     = join("|",'psiblast','blastp');
+my $matchNCBI     = join("|",'psiblast','blastp','blastdbcmd');
 
 my %dbdir = (
-    'psiblast' => $ENV{"BLASTDB"},
-    'blastp'   => $ENV{"BLASTDB"},
-    'diamond'  => $ENV{"DMDB"},
-    'mmseqs'   => $ENV{"MMDB"},
+    'psiblast'   => $ENV{"BLASTDB"},
+    'blastp'     => $ENV{"BLASTDB"},
+    'blastdbcmd' => $ENV{"BLASTDB"},
+    'diamond'    => $ENV{"DIAMONDDB"},
+    'mmseqs'     => $ENV{"MMSEQSDB"},
 );
 
 my @dbs = qw(
                 nr
                 trembl
                 uniref90
+                alphafold
         );
 my $matchDBs = join("|",@dbs);
 
@@ -118,7 +120,7 @@ my $helpMsg
     . qq(\noptions:\n)
     . qq(   -i input filename in fasta format, required\n)
     . qq(   -d non-redundant database [$matchDBs], default $defDB\n)
-    . qq(   -b problam for sequence comparisons [$matchBlasters],\n)
+    . qq(   -b program for sequence comparisons [$matchBlasters],\n)
     . qq(      default $defblaster\n)
     . qq(   -o output folder, default $outputFolder\n)
     . qq(   -n max number of aligned sequences to keep, default $maxSubject\n)
@@ -178,6 +180,7 @@ $rewrite   = $rewrite   =~ m{^(T|F)$}i ? uc($1) : $defRW;
 $eitherCov = $eitherCov =~ m{^(T|F)$}i ? uc($1) : "F";
 $blaster   = $blaster   =~ m{($matchBlasters)}i ? lc($1) : $defblaster;
 $maxHSP    = $maxHSP > 0 ? $maxHSP : 1;
+$nrDB      =~ s{\.\w+$}{};
 ####### check remote shit #########
 if( $remote eq "T" ) {
     if( $blaster eq "psiblast" ) {
@@ -255,7 +258,7 @@ else {
 }
 
 print "   will be ". $blaster . "ing $toRun sequences\n";
-my $blastOutputHashRef = runBlast($toRun);
+my $blastOutputHashRef = runSeqAlign($toRun);
 saveSeqs2File( $blastOutputHashRef,$cutRange );
 
 print  "\n\tcleaning up ...";
@@ -270,73 +273,7 @@ print  "\tdone!\n\n";
 ###########################################################################
 ###########################################################################
 
-sub saveSeqs2File {
-    my ( $blastOutputHashRef, $cutRange ) = @_;
-    my @ids = sort keys %{ $blastOutputHashRef };
-    my $tmp_file = "$tempFolder/results.faa";
-    my $out_file = "$outputFolder/results.faa";
-    open( my $OF, ">","$tmp_file" );
-    my $printed_seqs = 0;
-    my $seqNum       = @ids;
-    if( $seqNum > 0 ) {
-        #### using entry_batch to retrieve full seqs:
-        if ( $cutRange eq 'F' ) {
-            my $entryList = "$tempFolder/entry.list";
-            open( my $ENTRYLS,">","$entryList" );
-            print {$ENTRYLS} join("\n",sort @ids ),"\n";
-            close($ENTRYLS);
-            my $get_seqs
-                = qq($wpath{"blastdbcmd"} -db $nrDB )
-                . qq(-entry_batch $entryList -target_only )
-                . qq(-outfmt "%a %i %t %s");
-            print "   extracting $seqNum full sequences from $nrDB database:\n";
-            print "   $get_seqs\n";
-            for my $seqLine ( qx($get_seqs) ) {
-                $seqLine =~ s{^(\w+)\.\d+}{$1};
-                $seqLine =~ s{(\S+)\n}{\n$1\n};
-                print {$OF} ">",$seqLine;
-                $printed_seqs++;
-                ### feedback to terminal
-                progressLine($printed_seqs,$seqNum,0);
-                ### end feedback
-            }
-        }
-        else { # $cutRange eq 'T'
-            print "   saving $seqNum sequence segments:\n";
-            for my $refID ( @ids ) {
-                my $hr = $blastOutputHashRef->{$refID};
-                #my $fullname = $hr->{'sn'};
-                my $range = join("-",$hr->{'ss'},$hr->{'se'});
-                #    . $hr->{'full'} . ":$range [" . $fullname . "]\n"
-                my $sequence
-                    = ">" . $refID . " "
-                    . $hr->{'full'} . ":$range\n"
-                    . $hr->{'seq'}  . "\n";
-                print {$OF} $sequence;
-                $printed_seqs++;
-                ### feedback to terminal
-                progressLine($printed_seqs,$seqNum,0);
-                ### end feedback
-            }
-        }
-    }
-    close($OF);
-    ##### filter redundancy out
-    if( $printed_seqs > 1 && $filter < 1 ) {
-        my $cdhit_command
-            = qq($wpath{"cd-hit"} -i $tmp_file -o $tmp_file.cdhit -c $filter);
-        system("$cdhit_command >& /dev/null");
-        print "       cleaning redundancy out ($filter)\n";
-        system("mv $tmp_file.cdhit $out_file 2>/dev/null");
-        # Include cd-hit cluster file in results directory
-        system("mv $tmp_file.cdhit.clstr  $outputFolder 2>/dev/null");
-    }
-    else {
-        system("mv $tmp_file $out_file 2>/dev/null");
-    }
-}
-
-sub runBlast {
+sub runSeqAlign {
     my $totalQueries = $_[0];
     my $outPsiFile   = "$outputFolder/psiblast.tbl";
     my $tmpPsiFile   = "$tempFolder/psiblast.tbl";
@@ -421,26 +358,30 @@ sub runBlast {
         }
         else {
             #### if running locally, check BLASTDB and database (ex nr)
-            my $dbok    = checkDBs();
-            my $rootCmd = prepareCommand("$dbok");
-            my $addCmd
-                = $blaster eq 'psiblast'
-                ? qq( -num_threads $cpus -num_iterations $iters )
-                : $blaster eq 'blastp'
-                ? qq( -num_threads $cpus )
-                : qq( -p $cpus );
-            my $fullCmd = join( " ",$rootCmd,$addCmd );
-            $fullCmd =~ s{\s+}{ }g;
-            print "   ". $blaster . "ing now (might take a while):\n";
-            runPlusSave("$tmpPsiFile","$fullCmd","$totalQueries");
-        }
-        my( $psiCount,$refIDBlastResultRef ) = parseBlast("$tmpPsiFile");
-        if( $psiCount > 0 ) {
-            system("mv $tmpPsiFile $outPsiFile 2>/dev/null");
-            return($refIDBlastResultRef);
-        }
-        else {
-            signalHandler("   no $blaster results to report\n");
+            if( my $dbok    = checkDBs("$blaster","$nrDB") ) {
+                my $rootCmd = prepareCommand("$dbok");
+                my $addCmd
+                    = $blaster eq 'psiblast'
+                    ? qq( -num_threads $cpus -num_iterations $iters )
+                    : $blaster eq 'blastp'
+                    ? qq( -num_threads $cpus )
+                    : qq( -p $cpus );
+                my $fullCmd = join( " ",$rootCmd,$addCmd );
+                $fullCmd =~ s{\s+}{ }g;
+                print "   ". $blaster . "ing now (might take a while):\n";
+                runPlusSave("$tmpPsiFile","$fullCmd","$totalQueries");
+                my( $psiCount,$refIDBlastResultRef ) = parseBlast("$tmpPsiFile");
+                if( $psiCount > 0 ) {
+                    system("mv $tmpPsiFile $outPsiFile 2>/dev/null");
+                    return($refIDBlastResultRef);
+                }
+                else {
+                    signalHandler("   no $blaster results to report\n");
+                }
+            }
+            else {
+                signalHandler("   did not find the database:\n$nrDB\n");
+            }
         }
         unlink($tempSeqFile);
     }
@@ -550,8 +491,9 @@ sub checkFastaFile {
     my $currentName    = '';
     my $totalSeqs      = 0;
     open( my $IS,"<",$inputSeqFile );
+  INPUTSEQ:
     while (<$IS>) {
-        if ( $_ =~ m/^\s+\n/ ) { next; }
+        if ( $_ =~ m/^\s+\n/ ) { next INPUTSEQ; }
         if ( $_ =~ m/\>(\S+)\s/ ) {
             $currentName = $1;
             $currentName =~ s{^(gnl|lcl)\|}{};
@@ -578,20 +520,6 @@ sub checkFastaFile {
         signalHandler("no sequences or no fasta format in $inputSeqFile\n");
     }
     return $seqHashRef;
-}
-
-sub signalHandler {
-    my $msg = $_[0];
-    print "\n\tcleaning up ...\n";
-    if( -f "$tempFolder" ) {
-        system "rm -rf $tempFolder";
-    }
-    if( length("$msg") > 1 ) {
-        die  "$msg\n done!\n\n";
-    }
-    else {
-        die  " done!\n\n";
-    }
 }
 
 sub prepareRemoteIter {
@@ -661,6 +589,8 @@ sub runPlusSave {
     my $queryCnt = 0;
     open( my $PSITMP,">","$tmpPsiFile");
     print {$PSITMP} "# ",join("\t",@heading),"\n";
+    print "running:\n" .
+        "$compCmd\n";
     open( my $GETPSIRES,"-|","$compCmd 2>/dev/null" );
   GETTINGBLASTED:
     while(<$GETPSIRES>) {
@@ -743,41 +673,6 @@ sub separateQueries {
     return(@queries);
 }
 
-sub progressLine {
-    my($done,$toGo,$decim) = @_;
-    my $columns = qx(tput cols);
-    chomp($columns);
-    if( $columns > 50
-            && $toGo >= 10
-            && -t STDOUT
-            && -t STDIN ) {
-        if( $decim > 2 ) {
-            ### better to count than show percent
-            my $buffer     = " " x ( length($toGo) - length($done) + 1 );
-            my $counter    = "[$buffer" . $done . " ]";
-            my $countSpace = length($counter);
-            my $pbwidth    = $columns - ( $countSpace + 3 );
-            my $nhashes    = int($done / $toGo * $pbwidth);
-            printf("\r% -${pbwidth}s% ${countSpace}s",
-                   '#' x $nhashes,$counter);
-        }
-        else {
-            my $percent    = sprintf("%.${decim}f",(100 * $done / $toGo));
-            my $maxPC      = sprintf("%.${decim}f",100);
-            my $buffer     = " " x ( length($maxPC) - length($percent) + 1 );
-            my $counter    = "[$buffer" . $percent . "% ]";
-            my $countSpace = length($counter);
-            my $pbwidth    = $columns - ( $countSpace + 3 );
-            my $nhashes    = int($done / $toGo * $pbwidth);
-            printf("\r% -${pbwidth}s% ${countSpace}s",
-                   '#' x $nhashes,$counter);
-        }
-        if( $done == $toGo ) {
-            print "\n";
-        }
-    }
-}
-
 sub calcCoverage {
     my( $start,$end,$ln ) = @_;
     my $coverage = sprintf("%.1f",100 * ( ( $end - $start + 1 ) / $ln ));
@@ -836,35 +731,16 @@ sub getFields {
 }
 
 sub checkDBs {
-    my $dbok  = 'no';
-    if( $blaster =~ m{$matchNCBI}
-        || $cutRange eq 'F' ) {
-        print "   checking NCBI formatted databases\n";
-        if( $blaster !~ m{$matchNCBI} ) {
-            print "   needed to extract full sequences\n";
-        }
-        my $blastdbok = checkSpecificDBs("psiblast");
-        if( $blaster =~ m{$matchNCBI} ) {
-            $dbok = $blastdbok;
-        }
-    }
-    else {
-        $dbok = checkSpecificDBs("$blaster");
-    }
-    return($dbok);
-}
-
-sub checkSpecificDBs {
-    my $testblaster = $_[0];
-    my $otherdbok = 'no';
-    my $dbdir     = $dbdir{"$blaster"};
+    my($testblaster,$db2check) = @_;
+    my $otherdbok = '';
+    my $dbdir     = $dbdir{"$testblaster"};
     my $dbfile
-        = $blaster =~ m{$matchNCBI} ? "$nrDB.pal"
-        : $blaster eq 'diamond'     ? "$nrDB.dmnd"
-        : "$nrDB";
-    #### check current dir:
+        = $testblaster =~ m{$matchNCBI} ? "$db2check.pal"
+        : $testblaster eq 'diamond'     ? "$db2check.dmnd"
+        : "$db2check";
+    #### check current dir or full path:
     if( -f "$dbfile" ) {
-        $otherdbok = $nrDB;
+        $otherdbok = $db2check;
         print "   working with $otherdbok\n";
     }
     elsif( length($dbdir) > 0 ) {
@@ -876,10 +752,11 @@ sub checkSpecificDBs {
             if( -d $testDir ) {
                 push(@trueDBs,$testDir);
                 my $sureNR = $testDir . "/" . $dbfile;
+                #print "checking for $sureNR\n";
                 if( -f "$sureNR" ) {
                     $verifyNR++;
                     if( $verifyNR == 1 ) {
-                        $otherdbok = $testDir . "/" . $nrDB;
+                        $otherdbok = $testDir . "/" . $db2check;
                         print "   working with $sureNR\n";
                     }
                 }
@@ -893,19 +770,15 @@ sub checkSpecificDBs {
         }
         elsif( $verifyNR == 0 ) {
             my $error
-                = qq(\tno $nrDB database in:\n$dbdir\n);
+                = qq(\tno $db2check database in:\n$dbdir\n);
             signalHandler("$error");
         }
     }
     else {
-        my $dbsetup
-            = $blaster =~ m{$matchNCBI} ? q($ENV{"BLASTP"})
-            : $blaster eq 'diamond'     ? q($ENV{"DMDB"})
-            : q($ENV{"MMDB"});
-        signalHandler(qq(\tDatabase directory is not set up: $dbsetup));
+        signalHandler(qq(\tDatabase directory is not set up\n));
     }
-    if( $blaster =~ m{$matchNCBI} ) {
-        return($nrDB);
+    if( $testblaster =~ m{$matchNCBI} ) {
+        return($db2check);
     }
     else {
         return($otherdbok);
@@ -936,4 +809,131 @@ sub prepareCommand {
     }
     $moreCmd =~ s{\s+TRUEDB\s+}{ $trueDB };
     return( join(" ",$init,$moreCmd) );
+}
+
+sub saveSeqs2File {
+    my ( $blastOutputHashRef, $cutRange ) = @_;
+    my @ids = sort keys %{ $blastOutputHashRef };
+    my $tmp_file = "$tempFolder/results.faa";
+    my $out_file = "$outputFolder/results.faa";
+    open( my $OF, ">","$tmp_file" );
+    my $printed_seqs = 0;
+    my $seqNum       = @ids;
+    if( $seqNum > 0 ) {
+        #### using entry_batch to retrieve full seqs:
+        if ( $cutRange eq 'F' ) {
+            my $xDB = '';
+            my $nakeddb = $nrDB;
+            $nakeddb =~ s{^\S+/}{};
+            $nakeddb =~ s{\.\S+}{};
+            print "   checking if $nakeddb blast db exists\n";
+            if( my $testDB = checkDBs("blastdbcmd","$nakeddb") ) {
+                $xDB = $testDB;
+                print "   found it as $xDB at:\n ",$dbdir{"blastdbcmd"},"\n";
+            }
+            else {
+                signalHandler("   no database to extract complete seqs from\n");
+            }
+            my $entryList = "$tempFolder/entry.list";
+            open( my $ENTRYLS,">","$entryList" );
+            print {$ENTRYLS} join("\n",sort @ids ),"\n";
+            close($ENTRYLS);
+            my $get_seqs
+                = qq($wpath{"blastdbcmd"} -db $xDB )
+                . qq(-entry_batch $entryList -target_only )
+                . qq(-outfmt "%a %i %t %s");
+            print "   extracting $seqNum full sequences from $xDB database:\n";
+            print "$get_seqs\n";
+            for my $seqLine ( qx($get_seqs) ) {
+                #$seqLine =~ s{^(\w+)\.\d+}{$1};
+                $seqLine =~ s{(\S+)\n}{\n$1\n};
+                print {$OF} ">",$seqLine;
+                $printed_seqs++;
+                ### feedback to terminal
+                progressLine($printed_seqs,$seqNum,0);
+                ### end feedback
+            }
+        }
+        else { # $cutRange eq 'T'
+            print "   saving $seqNum sequence segments:\n";
+            for my $refID ( @ids ) {
+                my $hr = $blastOutputHashRef->{$refID};
+                #my $fullname = $hr->{'sn'};
+                my $range = join("-",$hr->{'ss'},$hr->{'se'});
+                #    . $hr->{'full'} . ":$range [" . $fullname . "]\n"
+                my $sequence
+                    = ">" . $refID . " "
+                    . $hr->{'full'} . ":$range\n"
+                    . $hr->{'seq'}  . "\n";
+                print {$OF} $sequence;
+                $printed_seqs++;
+                ### feedback to terminal
+                progressLine($printed_seqs,$seqNum,0);
+                ### end feedback
+            }
+        }
+    }
+    close($OF);
+    ##### filter redundancy out
+    if( $printed_seqs > 1 && $filter < 1 ) {
+        my $cdhit_command
+            = qq($wpath{"cd-hit"} -i $tmp_file -o $tmp_file.cdhit -c $filter);
+        system("$cdhit_command >& /dev/null");
+        print "       cleaning redundancy out ($filter)\n";
+        system("mv $tmp_file.cdhit $out_file 2>/dev/null");
+        # Include cd-hit cluster file in results directory
+        system("mv $tmp_file.cdhit.clstr  $outputFolder 2>/dev/null");
+    }
+    else {
+        system("mv $tmp_file $out_file 2>/dev/null");
+    }
+}
+
+sub progressLine {
+    my($done,$toGo,$decim) = @_;
+    my $columns = qx(tput cols);
+    chomp($columns);
+    if( $columns > 50
+            && $toGo >= 10
+            && -t STDOUT
+            && -t STDIN ) {
+        if( $decim > 2 ) {
+            ### better to count than show percent
+            my $buffer     = " " x ( length($toGo) - length($done) + 1 );
+            my $counter    = "[$buffer" . $done . " ]";
+            my $countSpace = length($counter);
+            my $pbwidth    = $columns - ( $countSpace + 3 );
+            my $nhashes    = int($done / $toGo * $pbwidth);
+            printf("\r% -${pbwidth}s% ${countSpace}s",
+                   '#' x $nhashes,$counter);
+        }
+        else {
+            my $percent    = sprintf("%.${decim}f",(100 * $done / $toGo));
+            my $maxPC      = sprintf("%.${decim}f",100);
+            my $buffer     = " " x ( length($maxPC) - length($percent) + 1 );
+            my $counter    = "[$buffer" . $percent . "% ]";
+            my $countSpace = length($counter);
+            my $pbwidth    = $columns - ( $countSpace + 3 );
+            my $nhashes    = int($done / $toGo * $pbwidth);
+            printf("\r% -${pbwidth}s% ${countSpace}s",
+                   '#' x $nhashes,$counter);
+        }
+        if( $done == $toGo ) {
+            print "\n";
+        }
+    }
+}
+
+sub signalHandler {
+    my $msg = $_[0];
+    print "\n\tcleaning up ...\n";
+    if( -d "$tempFolder" ) {
+        system "rm -rf $tempFolder";
+    }
+    if( length("$msg") > 1 ) {
+        die  "$msg\n done!\n\n";
+    }
+    else {
+        die  " done!\n\n";
+    }
 }
