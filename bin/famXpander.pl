@@ -116,7 +116,7 @@ my $helpMsg
     = qq(usage:\n)
     . qq(    $ownName [options]\n)
     . qq(warning:\n)
-    . qq(    Comparisons based on mmseqs aren't working yet.\n)
+    . qq(    Comparisons based on mmseqs aren't implemented yet.\n)
     . qq(\noptions:\n)
     . qq(   -i input filename in fasta format, required\n)
     . qq(   -d non-redundant database [$matchDBs], default $defDB\n)
@@ -142,7 +142,7 @@ my $helpMsg
     . qq(   -p run psiblast remotely (at ncbi) [T/F], default $remote\n)
     . qq(\n)
     . qq(warning:\n)
-    . qq(    Comparisons based on mmseqs aren't working yet.\n)
+    . qq(    Comparisons based on mmseqs aren't implemented yet.\n)
     . qq(\n);
 
 
@@ -806,6 +806,7 @@ sub prepareCommand {
     elsif( $blaster eq 'diamond' ) {
         $moreCmd =~ s{\s+(-\w)}{ -$1}g;
         $moreCmd =~ s{(\w)_(\w)}{$1-$2}g;
+        $moreCmd .= qq( --masking none --sensitive )
     }
     $moreCmd =~ s{\s+TRUEDB\s+}{ $trueDB };
     return( join(" ",$init,$moreCmd) );
