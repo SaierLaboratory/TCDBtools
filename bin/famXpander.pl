@@ -22,26 +22,26 @@ chomp (my $compIP   = qx(ipconfig getifaddr en0));
 chomp (my $compName = qx(hostname));
 
 my @blasters = qw(
-                     psiblast
-                     blastp
                      diamond
+                     blastp
+                     psiblast
                      mmseqs
              );
 my $matchBlasters = join("|",@blasters);
 my $matchNCBI     = join("|",'psiblast','blastp','blastdbcmd');
 
 my %dbdir = (
-    'psiblast'   => $ENV{"BLASTDB"},
-    'blastp'     => $ENV{"BLASTDB"},
-    'blastdbcmd' => $ENV{"BLASTDB"},
     'diamond'    => $ENV{"DIAMONDDB"},
+    'blastp'     => $ENV{"BLASTDB"},
+    'psiblast'   => $ENV{"BLASTDB"},
+    'blastdbcmd' => $ENV{"BLASTDB"},
     'mmseqs'     => $ENV{"MMSEQSDB"},
 );
 
 my @dbs = qw(
-                nr
-                trembl
                 uniref90
+                trembl
+                nr
                 alphafold
         );
 my $matchDBs = join("|",@dbs);
@@ -76,9 +76,9 @@ if( $cntMissing > 0 ) {
 ####### default values for options
 my $defcpu     = 2;
 my $defcov     = 80;
-my $defblaster = 'psiblast';
+my $defblaster = 'diamond';
 my $defEvalue  = 1e-7;
-my $defDB      = 'nr';
+my $defDB      = 'uniref90';
 my $defRW      = 'F';
 my $defHSP     = 1;
 ####### preset values for options
@@ -365,7 +365,7 @@ sub runSeqAlign {
                     ? qq( -num_threads $cpus -num_iterations $iters )
                     : $blaster eq 'blastp'
                     ? qq( -num_threads $cpus )
-                    : qq( -p $cpus );
+                    : qq( --threads $cpus );
                 my $fullCmd = join( " ",$rootCmd,$addCmd );
                 $fullCmd =~ s{\s+}{ }g;
                 print "   ". $blaster . "ing now (might take a while):\n";
@@ -806,9 +806,12 @@ sub prepareCommand {
     elsif( $blaster eq 'diamond' ) {
         $moreCmd =~ s{\s+(-\w)}{ -$1}g;
         $moreCmd =~ s{(\w)_(\w)}{$1-$2}g;
+        $moreCmd =~ s{\s+qseq\s+}{ qseq_gapped };
+        $moreCmd =~ s{\s+sseq\s+}{ sseq_gapped };
         $moreCmd .= qq( --masking none --sensitive )
     }
     $moreCmd =~ s{\s+TRUEDB\s+}{ $trueDB };
+    $moreCmd =~ s{\s+}{ }g;
     return( join(" ",$init,$moreCmd) );
 }
 

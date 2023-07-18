@@ -44,9 +44,9 @@ $CheckDep_obj -> checkDependencies;
 
 my $fragment    = undef;
 my $accession   = undef;
-my $accFile     = undef
+my $accFile     = undef;
 my $outdir      = undef;
-my $blastdb     = undef;
+my $blastdb     = "uniref90";
 my $evalue      = 1e-2;
 my $subMatrix   = 'BL50';
 my $quiet       = 0;
@@ -154,11 +154,11 @@ sub run_quod {
   }
 
   my $outPlot = "$outdir/${accession}_map_frag.png";
-  my $qstring = ($quiet)? "-q -o $outPlot" : "-o $outPlot";
-  my $iString = ($interactive)? "-o $outPlot --show" : "";
+  my $qstring = ($quiet)? "-q" : "";
+  my $iString = "-o $outPlot";
 
-  my $cmd = qq(quod.py $qstring $iString -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence);
-  print "$cmd\n";
+  my $cmd = qq(quod.py $qstring $iString -l "$accession ($coords)" --xticks 25 --grid  $regions -- $sequence 2>/dev/null);
+  #print "$cmd\n";
   system $cmd;
 }
 
@@ -175,7 +175,7 @@ sub getSequences {
 
 
   #Sequence for full protein
-  my $accSeq = (-f $accFile)? $accFile : "$outdir/${acc}.faa";
+  my $accSeq = ($accFile && -f $accFile)? $accFile : "$outdir/${acc}.faa";
 
 
   #Save fragment to file
@@ -201,7 +201,7 @@ sub getSequences {
     system $cmd;
 
     #Remove the version and annotations from the sequence file
-    my $cmd2 = qq(perl -i.bkp -pe 's/^\\>(\\w+)\.\*/\\>\$1/;' $accSeq);
+    my $cmd2 = qq(perl -i -pe 's/^\\>(\\w+)\.\*/\\>\$1/;' $accSeq);
     system $cmd2 unless (-f "${accSeq}.pkp");
   }
 
@@ -274,7 +274,7 @@ sub read_accession {
   my ($opt, $value) = @_;
 
   #Remove version number if any
-  $value =~ s/\.\d+$//;
+  #$value =~ s/\.\d+$//;
 
   $accession = $value;
 }
@@ -300,14 +300,31 @@ sub read_fragment {
 sub read_blastdb {
   my ($opt, $value) = @_;
 
-  my $tmpFile = "${value}.pin";
-
-  unless (-f $tmpFile && !(-z $tmpFile)) {
-    die "Error in option -bdb: Blast DB does not exist! -> $value";
+  #In case the user provided the whole path to the blastDB.
+  my $exists1 = qx(ls ${value}*.pin 2>/dev/null);
+  if ($exists1) {
+    $blastdb = $value;
+    return;
   }
 
-  $blastdb = $value;
 
+  #In case the user provided only the blastDB name
+  my @paths = split(/:/, $ENV{BLASTDB});
+  my $found = 0;
+
+  foreach my $dir (@paths) {
+    my $exists2 = qx(ls $dir/${value}*.pin 2>/dev/null);
+    if  ($exists2) {
+      $blastdb = "$dir/$value";
+      $found = 1;
+      last;
+    }
+  }
+
+  #Report an error if BlastDB was not found
+  unless ($found) {
+    die "Error in option -bdb: BlastDB not found! -> $value";
+  }
 }
 
 
@@ -354,8 +371,8 @@ Options
 -o, --outdir {PATH} (Optional. Default: ./)
    Path to output directory.
 
--bdb {PATH} (Optional. Default: nr)
-   Path to the BLAST database where accessions will be extracted from.
+-bdb {PATH} (Optional. Default: uniref90)
+   Path or name of the BLAST database where sequences will be extracted from.
 
 -e, --evalue {FLOAT} (Optional. Default: 0.01)
    E-value cut off when comparing full proteins

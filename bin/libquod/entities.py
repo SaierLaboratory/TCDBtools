@@ -26,10 +26,11 @@ def error(*things):
 
 def apply_fragment(fragseq, fullseq, arr):
 
-    aligner = Align.PairwiseAligner(mode='local', match_score=2, mismatch_score=-1, gap_score=0)
+    aligner = Align.PairwiseAligner(mode='local', match_score=2, mismatch_score=-1, gap_score=-1)
     alignments = aligner.align(str(fragseq.seq).replace('-', 'X'), str(fullseq.seq).replace('-', 'X'))
 
     first = alignments[0]
+    print(first)
     fragresi = []
     fullresi = []
     for start, end in first.aligned[0]: fragresi.extend(range(start, end))

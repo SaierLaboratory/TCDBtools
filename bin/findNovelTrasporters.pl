@@ -23,7 +23,7 @@ use TCDB::CheckDependencies;
 #==========================================================================
 #Check dependencies
 
-my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'blastp', 'extractFamily.pl');
+my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'blastp', 'extractTCDB.pl');
 
 my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
@@ -768,7 +768,7 @@ sub read_command_line_arguments {
     my $tcblastdbFile = "${tcblastdb}.pin";
     #get the blast database
     print "Extracting TCDB blast database...\n";
-    system qq(extractFamily.pl -i tcdb -f blast -o $blastDir) unless (-f $tcblastdbFile);
+    system qq(extractTCDB.pl -i tcdb -f blast -o $blastDir) unless (-f $tcblastdbFile);
   }
 
 

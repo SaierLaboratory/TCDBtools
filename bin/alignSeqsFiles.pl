@@ -482,7 +482,7 @@ sub run_quod {
   my $ylimStr   = "--ylim -3 3";
 
 
-  #Note alnquod requires to add the extension to the image name
+  #Plot alignment
   my $alnFig = "$plotsDir/${q}_vs_${s}_qs${qs}_qe${qe}_ss${ss}_se${se}.png";
   my $cmd1 = qq(quod.py -q $labelsStr -l "$q (red) and $s (blue)"  -o $alnFig  $ylimStr --edgecolor +0:red +1:blue --facecolor +0:orange +1:cyan --multi frag -- $qalnFile  $seqDir/${q}.faa $salnFile  $seqDir/${s}.faa);
 #  print "$cmd1\n\n";
@@ -673,7 +673,7 @@ sub run_pfam_hmmtop {
 
   print "\nRunning hmmscan and parsing output....\n";
 
-  my $pfamDB = ($ENV{PFAMDB})? $ENV{PFAMDB} : "$ENV{RESEARCH_DATA}/pfam/pfamdb/Pfam-A.hmm";
+  my $pfamDB = ($ENV{PFAMDB})? $ENV{PFAMDB} : "$ENV{RESEARCH_DATA}/DB/domainDBs/xfamDB/Pfam-A.hmm";
   my $cmd2 = qq(hmmscan --cpu 4 --noali --cut_ga -o /dev/null --domtblout $pfamFile $pfamDB  $topHitsSeqs);
   system $cmd2 unless (-f $pfamFile && !(-z $pfamFile));
 

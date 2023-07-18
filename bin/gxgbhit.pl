@@ -9,7 +9,7 @@ use TCDB::Assorted;
 
 
 #==========================================================================
-#  Run xgbhit.sh for all GBLAST hits. This will help the analysi of
+#  Run xgbhit.sh for all GBLAST hits. This will help the analysis of
 #  of genomes until this is incorporated into GBLAST.
 #==========================================================================
 
@@ -32,7 +32,7 @@ read_command_line_arguments();
 my $blastDir = "$ENV{HOME}/db/blastdb";
 system "mkdir -p $blastDir" unless (-d $blastDir);
 
-my $cmd1 = "extractFamily.pl -i tcdb -f blast -o $blastDir";
+my $cmd1 = "extractTCDB.pl -i tcdb -f blast -o $blastDir";
 system $cmd1 if ($owTCblastDB || !(-f "$blastDir/tcdb.pin"));
 
 

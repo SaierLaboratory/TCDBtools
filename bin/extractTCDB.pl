@@ -175,7 +175,12 @@ sub bringTCDB {
     }
     elsif( -f "$inputDB" ) {
         print "   working with local TCDB fasta file\n";
-        system("cp $inputDB $tempFolder/tcdb >& /dev/null");
+        my $open
+            = $inputDB =~ m{\.bz2$} ? "bzip2 -qdc"
+            : $inputDB =~ m{\.gz$} ?  "gzip -qdc"
+            : "cat";
+        #print "command = $open $inputDB > $tempFolder/tcdb\n";
+        system("$open $inputDB > $tempFolder/tcdb");
     }
     else {
         return();

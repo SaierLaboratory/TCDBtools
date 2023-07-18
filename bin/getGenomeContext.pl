@@ -47,7 +47,7 @@ read_command_line_arguments();
 
 #Download the TCDB database in fasta format
 my $tcdbFaa = "$outdir/tcdb/tcdb.faa";
-system "extractFamily.pl -i tcdb -o $outdir/tcdb -f fasta" unless (-f $tcdbFaa);
+system "extractTCDB.pl -i tcdb -o $outdir/tcdb -f fasta" unless (-f $tcdbFaa);
 die "TCDB seqs not found: $tcdbFaa" unless (-f $tcdbFaa);
 
 my $multSystems = getModeSystems($tcdbFaa, 'multi');

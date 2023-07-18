@@ -38,7 +38,7 @@ read_command_line_arguments();
 my $blastDir = "$ENV{HOME}/db/blastdb";
 system "mkdir -p $blastDir" unless (-d $blastDir);
 
-my $cmd1 = "extractFamily.pl -i tcdb -f blast -o $blastDir";
+my $cmd1 = "extractTCDB.pl -i tcdb -f blast -o $blastDir";
 system $cmd1 if ($owBlastDB || !(-f "$blastDir/tcdb.pin"));
 
 
@@ -67,7 +67,7 @@ if ($query eq $sAcc) {
 
 
 #==========================================================================
-#Second dowload the TCDB protein sequence
+#Second download the TCDB protein sequence
 
 my $sSeqFile = "$outdir/${sAcc}.faa";
 my $sID = "${sTC}-$sAcc";
@@ -83,7 +83,6 @@ my $alnDir  = "$outdir/ssearch_${query}_vs_$sAcc";
 my $repFile = "$alnDir/report.html";
 my $cmd4 = qq(alignSeqsFiles.pl -q $qSeqFile -ql $query -s $sSeqFile -sl $sID -o $alnDir -e 1 -c 20 -cc X -m $subMatrix);
 system $cmd4 unless (-f $repFile);
-
 
 
 ###########################################################################

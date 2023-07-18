@@ -37,7 +37,7 @@ use TCDB::CheckDependencies;
 my $blastdbcmd = "/usr/local/bin/blastdbcmd";
 
 
-my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'psiblast', 'famXpander.pl', 'cd-hit');
+my @dependencies = ('grep', 'hmmtop', 'blastdbcmd',  'psiblast', 'famXpander.pl', 'cd-hit', 'extractTCDB.pl');
 
 my $CheckDep_obj = new TCDB::CheckDependencies();
 $CheckDep_obj -> dependencies_list(\@dependencies);
@@ -1080,7 +1080,7 @@ sub read_command_line_arguments {
 #Regenerate the TCDB blast DB
 
 sub generate_tcdb_blastdb {
-  my $cmd = qq(rm $tcblastdbDir/*; extractFamily.pl -i tcdb -f blast -o $tcblastdbDir; extractFamily.pl -i tcdb -o $tcblastdbDir);
+  my $cmd = qq(rm $tcblastdbDir/*; extractTCDB.pl -i tcdb -f blast -o $tcblastdbDir; extractTCDB.pl -i tcdb -o $tcblastdbDir);
   system $cmd;
 }
 

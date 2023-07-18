@@ -162,7 +162,7 @@ print "Retrieving TCDB sequences.\n";
 
 #Download the TCDB database in fasta format
 $tcdbFaa = "$outdir/tcdb/tcdb.faa" unless ($tcdbFaa);
-system "extractFamily.pl -i tcdb -o $outdir/tcdb -f fasta" unless (-f $tcdbFaa);
+system "extractTCDB.pl -i tcdb -o $outdir/tcdb -f fasta" unless (-f $tcdbFaa);
 die "TCDB seqs not found: $tcdbFaa" unless (-f $tcdbFaa);
 
 my $multSystems = getModeSystems($tcdbFaa, 'multi');
@@ -204,7 +204,9 @@ print "Downloading sequences for multicomponent systems.\n";
 
 
 my $file_blastp_query = "$seqDir/systems.faa";
-downloadSeqsForMCS(\%gblastTCIDs, $multSystems, $file_blastp_query);
+unless (-f $file_blastp_query && !(-z $file_blastp_query)) {
+  downloadSeqsForMCS(\%gblastTCIDs, $multSystems, $file_blastp_query);
+}
 
 #print Data::Dumper->Dump([$file_blastp_query], [qw(*file_blastp_query )]);
 #exit;
@@ -230,7 +232,7 @@ if ($blastOverWrite) {
 
 #download tcdb sequences and make blast database
 if ($blastOverWrite || !(-f $blastTestFile)) {
-  system "extractFamily.pl -i tcdb -o $tcdbBlastDBdir -f blast -d $tcdbFaa";
+  system "extractTCDB.pl -i tcdb -o $tcdbBlastDBdir -f blast -d $tcdbFaa";
 }
 
 
@@ -271,11 +273,10 @@ my $bdb_cmd =
 
 #generate the database
 print qq($bdb_cmd -in $internalProteome \n);
-system qq($bdb_cmd -in $internalProteome);
+system qq($bdb_cmd -in $internalProteome) unless (-f "${blastdb}.phr");
 
 #Verify that the database was successfully generated
 die "Blast databse $blastdb_name was not created" unless (-f "${blastdb}.phr");
-
 
 #print "Check blastdb: $blastdb\n";
 #exit;
@@ -332,9 +333,6 @@ else {
 
   $blast_file = "$blastoutDir/ssearch.out";
 
-  my $proteome = 
-
-
   #----------------------------------------------------------------------
   #Prepare the ssearch command
 
@@ -380,6 +378,7 @@ print "Running HMMTOP.....\n";
 my %TMS = ();
 runHMMTOP(\%filteredBlast, \%TMS);
 
+
 #print Data::Dumper->Dump([\%TMS], [qw(*ntms)]);
 #exit;
 
@@ -395,7 +394,7 @@ print "Analyzing genome context\n";
 my %gnmAnnotations = ();
 verify_neighborhood(\%filteredBlast, $gnmFeatTable, \%gnmAnnotations);
 
-#print Data::Dumper->Dump([\%gnmAnnotations ], [qw(*gnmAnnotations )]);
+#print Data::Dumper->Dump([\%filteredBlast ], [qw(*filtered_blast)]);
 #exit;
 
 
@@ -452,7 +451,7 @@ sub generate_reports {
 
 
   #Get the HTML header
-  my @hHeader = qw (tcid  query_accession  status  subject_accession  hydropathy
+  my @hHeader = qw (#tcid  query_accession  status  subject_accession  hydropathy
 		    query_length  subject_length  query_tms subject_tms evalue  perc_idenity
 		    alignment_length  query_coverage  subject_coverage
 		    neighbors gnm_annotation);
@@ -880,6 +879,7 @@ sub verify_neighborhood {
 
     #The protein accession
     my @d = split (/\t/, $_);
+    next unless($d[10]);  #Ignore line if there is no protein accession
     my ($acc, $ver) = split(/\./, $d[10]);
 
 
@@ -912,6 +912,9 @@ sub verify_neighborhood {
     #      misformatting of the reference features table.
 
     foreach my $orf (sort { $a->{start} <=> $b->{start} } @{ $protPerScaffold{$scaffold} }) {
+
+#      print "$scaffold\t",$orf->{acc}, "\n";
+
       $pos2cds{ $scaffold }{ $pos } = $orf;
       $cds2pos{ $orf->{acc} } = [$pos, $scaffold];
       $pos++;
@@ -1777,19 +1780,24 @@ sub downloadSeqsForMCS {
 
   unless (-f $outSeqsFile && ! (-z $outSeqsFile)) {
 
-    #foreach my $system (keys %{ $all_tcdb }) { #Based on the entire TCDB
+    #Save accessions to a file
+    my $accFile="$seqDir/mcs_tcid.acc";
+    open (my $fh, ">", $accFile) || die $!;
+    print $fh join ("\n", keys %{ $tcids }), "\n";
+    close $fh;
+
+    #Download systems now
+    system "extractTCDB.pl -i $accFile -o $seqDir -f fasta";
+
+    #Verify that each system was subbessfully downloaded
     foreach my $system (keys %{ $tcids }) { #Based on GBLAST output
 
-      #extract the sequences associated with this system
-      my $seqFile = "$seqDir/family-${system}.faa";
-      unless (-f $seqFile && ! (-z  $seqFile)) {
-	system "extractFamily.pl -i $system -o $seqDir -f fasta";
-      }
+      my $seqFile = "$seqDir/tcdb-${system}.faa";
       die "Could not download sequences for system:  $system" unless  (-f $seqFile && ! (-z  $seqFile));
     }
 
     #Put all sequences in a single file
-    system "cat $seqDir/family-*.faa > $outSeqsFile";
+    system "cat $seqDir/tcdb-*.faa > $outSeqsFile";
 
     unless (-f $outSeqsFile && ! (-z $outSeqsFile)) {
       die "Error: failed to generate sequence file -> $outSeqsFile";
@@ -1813,6 +1821,8 @@ sub run_quod {
   my $htfile = "$pdir/ssearch_${s}_vs_${q}/report.html";
   my $cmd    = qq(examineGBhit.pl -q $s -s $q -t $tcid -o $pdir -bdb $blastdb);
   system $cmd unless (-f $htfile && !(-z $htfile));
+#  print "$cmd\n";
+#  exit;
 
 
   if (-f $htfile && !(-z $htfile)) {

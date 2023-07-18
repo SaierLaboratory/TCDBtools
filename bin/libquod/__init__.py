@@ -95,6 +95,62 @@ def draw_other(ax, **kwargs):
             region.plot(ax)
             xlim, ylim = update_lims(xlim, ylim,region.get_bounding_box())
 
+    if 'adddashedregion' in kwargs and kwargs['adddashedregion']:
+        #spans:labeltext:y:facecolor(,textcolor):valign,halign
+
+        for batch in kwargs['adddashedregion']:
+            args = batch.split(':')
+            spans = entities.Parser.parse_ranges(args.pop(0))
+
+            #incerti ordinis {
+            try: text = args.pop(0)
+            except IndexError: text = ''
+
+            regionkwargs = {'alpha':1.0}
+
+            try: 
+                rawy = args.pop(0)
+                y = [float(_) for _ in rawy.split(',')]
+                if len(y) == 2:
+                    if y[0] == y[-1]:
+                        yspan = [y[0]-0.15, y[0]]
+                    else:
+                        yspan = y
+                elif len(y) == 1:
+                    yspan = [y[0]-0.15, y[0]]
+            except IndexError:
+                yspan = [-2.8, -2.8+0.15]
+
+            try:
+                colors = args.pop(0)
+                if len(colors.split(',')) == 1:
+                    regionkwargs['facecolor'] = colors
+                else:
+                    regionkwargs['facecolor'], regionkwargs['textcolor'] = colors.split(',')
+            except IndexError:
+                regionkwargs['facecolor'] = 'blue'
+                regionkwargs['textcolor'] = 'white'
+
+            #}
+
+            try:
+                align = args.pop(0)
+                if len(align) == 1:
+                    regionkwargs['valign'] = align
+                    regionkwargs['halign'] = 'c'
+                else: regionkwargs['valign'], regionkwargs['halign'] = align
+            except IndexError:
+                regionkwargs['valign'] = 'm'
+                regionkwargs['halign'] = 'c'
+
+            regionkwargs["dashed"] = kwargs.get("dashed_fraction")
+            regionkwargs["period"] = kwargs.get("dashed_period")
+
+
+            region = entities.Region(spans=spans, yspan=yspan, text=text, **regionkwargs)
+            #region = entities.Region(spans=spans, yspan=yspan, fc=color, text=text, ha='c', va='t', fontsize=kwargs.get('fontsize'))
+            region.plot(ax)
+            xlim, ylim = update_lims(xlim, ylim,region.get_bounding_box())
     if kwargs.get('addwalls'):
         for batch in kwargs['addwalls']:
             args = batch.split(':')

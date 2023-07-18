@@ -423,8 +423,17 @@ if __name__ == '__main__':
     regionargs.add_argument('--add-region', metavar='start-end[:text[:y1[,y2]:facecolor[,:textcolor][:align]]]', nargs='+',
         help='Draw regions. "start-end" is a dash-delimited range with endpoints corresponding to the endpoints of the region. "text" contains text to be plotted in/with regions. "facecolor" controls the color of the region rectangle while textcolor controls the color of the text label. "align" is up to two characters denoting the vertical alignment ([tmb]) and optionally the horizontal alignment ([lcr]) of the text label.')
 
+    regionargs.add_argument('--add-dashed-region', metavar='start-end[:text[:y1[,y2]:facecolor[,:textcolor][:align]]]', nargs='+',
+        help='Draw dashed regions. "start-end" is a dash-delimited range with endpoints corresponding to the endpoints of the region. "text" contains text to be plotted in/with regions. "facecolor" controls the color of the region rectangle while textcolor controls the color of the text label. "align" is up to two characters denoting the vertical alignment ([tmb]) and optionally the horizontal alignment ([lcr]) of the text label.')
+
     regionargs.add_argument('--region-font', type=float, default=8, 
         help='Font size for region markers in points (default: 8)')
+
+    regionargs.add_argument('--dashed-fraction', type=float, default=0.7, 
+        help='Fraction of dashed regions to paint in(default: 0.7)')
+
+    regionargs.add_argument('--dashed-period', type=float, default=10., 
+        help='Period of region dashing (default: 10)')
 
     regionargs.add_argument('--mark', metavar='(+id):(resn1,resn2,resn3|REGEXP(:color))',
         help='Add circular markers on specified curves. Accepts comma-separated lists of residues or regular expressions')
@@ -526,6 +535,9 @@ if __name__ == '__main__':
 
     #region args
     kwargs['addregion'] = args.add_region
+    kwargs['adddashedregion'] = args.add_dashed_region
+    kwargs['dashed_fraction'] = args.dashed_fraction
+    kwargs['dashed_period'] = args.dashed_period
     kwargs['regionfont'] = args.region_font
     kwargs['mark'] = args.mark
 
