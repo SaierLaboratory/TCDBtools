@@ -42,13 +42,13 @@ class tools:
         handle = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
 
         results = handle.communicate()[0]
-        tms = re.compile("(IN|OUT)\s+([0-9]+)\s+([^\n]+)?")
+        tms = re.compile("\s+(IN|OUT)\s+([0-9]+)\s+([^\n]+)?")
         ranges = re.compile("(\d+)\s+(\d+)")
         name = re.compile("^>HP:\s+\d+\s+(\S+)")
         
         lines = [i for i in results.rstrip().split('\n') if len(i) > 1]
         (res,symbols)=[],[]
-        
+
         for pos,i in enumerate(lines):
 
             #Ignore matches with 0 TMSs
@@ -86,7 +86,6 @@ class tools:
             keys = dict(zip(symbols,result))
             self.results[name] = keys
             self.libraries.pop(name)
-
 
         if ( 'BIOV_DEBUG' in os.environ and
              os.environ['BIOV_DEBUG'].lower() == 'true' ):

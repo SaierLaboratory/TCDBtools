@@ -27,7 +27,7 @@ import bz2
 import re
 import tempfile
 import io
-from PlotBio_test import *
+from PlotBio import *
 rsrc = resource.RLIMIT_DATA
 soft, hard = resource.getrlimit(rsrc)
 ##resource.setrlimit(rsrc, (1073741824, hard)) #limit to one gig, omg..
@@ -269,6 +269,7 @@ class Tools:
         db = self.indir+"/goodresults.db"
         if os.path.exists(db) and self.debug:
             self.goodresults = pickle.load(open(db,'r'))
+
             return
         xml = os.listdir(self.indir+"/xml")
         rez = []
@@ -318,7 +319,7 @@ class Tools:
 
                         if qcov >= self.mincov or hcov >= self.mincov:
 
-                                rez.append((query,record,hsp,q_len,h_len,qcov,hcov)) # (genome ID, hit record <e,title>, hit.hsp)
+                                rez.append((query,record,hsp,q_len,h_len,qcov,hcov)) # (genome ID, hit record <e,title>, hit.hsp)i
                     except:
                         pass
             except:

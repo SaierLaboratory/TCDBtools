@@ -59,7 +59,7 @@ class annotate:
         # Annotate
         x=match.start()-1
         for residue in self.gap:
-            if residue is not "-":
+            if residue != "-":
                 self.annotate.append(self.get_tms_number(x))
                 x += 1
             else:
@@ -69,13 +69,13 @@ class annotate:
         string =[]
         tms = 0
         for i in self.annotate:
-            if i is not "." and i is not False:
-                if i is not tms:
+            if i != "." and i != False:
+                if i != tms:
                     string.append(str(i))
                     ignore = len(str(i))-1
                     tms = i
                 else:
-                    if ignore is not 0 and tms > 0:
+                    if ignore != 0 and tms > 0:
                         ignore -= 1
                         continue
                     string.append("+")

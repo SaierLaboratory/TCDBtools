@@ -30,7 +30,6 @@ def apply_fragment(fragseq, fullseq, arr):
     alignments = aligner.align(str(fragseq.seq).replace('-', 'X'), str(fullseq.seq).replace('-', 'X'))
 
     first = alignments[0]
-    print(first)
     fragresi = []
     fullresi = []
     for start, end in first.aligned[0]: fragresi.extend(range(start, end))
