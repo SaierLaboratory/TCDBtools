@@ -128,10 +128,17 @@ for my $tcdbID ( @tcdbIDs ) {
             my $date = qx(date);
             chomp($date);
             my $makeDbCmd
-                = qq(makeblastdb -in $tmpFile -dbtype prot )
+                = qq(makeblastdb -in $tmpFile -dbtype prot -input_type fasta )
                 . qq( -parse_seqids -hash_index -out $tempFolder/$rootName )
                 . qq( -title "$rootName $date");
             system("$makeDbCmd >&/dev/null");
+
+	    #Blast DB created. Now remove the nasty 'lcl|' prefix from the fasta
+	    #headers, so the TCDB sequences in the fasta file can be used by other
+	    #programs
+	    system qq(perl -i -pe 's/>lcl\\|/>/;' $tmpFile);
+
+	    #Clean up tmp dirs
             system("mv $tempFolder/$rootName.* $outDir/ 2>/dev/null");
             print  "    cleaning up ...\n";
             system "rm -r $tempFolder";
