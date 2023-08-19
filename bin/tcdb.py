@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # A TCDB Interface
 import urllib.request, urllib.parse, urllib.error
@@ -17,7 +17,8 @@ import pickle
 import requests
 
 def acc2fasta(accs):
-    url='http://www.tcdb.org/projectv/acc2fasta.php?accs=%s'%(','.join(accs))
+    #url='http://www.tcdb.org/projectv/acc2fasta.php?accs=%s'%(','.join(accs))
+    url='https://tcdb.org/projectv/acc2fasta.php?accs=%s'%(','.join(accs))
     result = urllib.request.urlopen(url)
     text = result.read()
     fastafile=tempfile.TemporaryFile()
@@ -34,7 +35,8 @@ def acc2fasta(accs):
     return myfastas
 
 def define_family(family,fasta=False):
-    url = "http://www.tcdb.org/projectv/sft.php?fam=%s" %(family)
+    #url = "http://www.tcdb.org/projectv/sft.php?fam=%s" %(family)
+    url = "https://tcdb.org/projectv/sft.php?fam=%s" %(family)
     response = urllib.request.urlopen(url)
     acc = response.read().strip()
     accs = [i.strip() for i in acc.split(' ')]
@@ -44,24 +46,40 @@ def define_family(family,fasta=False):
         return accs
     # Get Seq Object instead
     accs = ",".join(accs)
-    url = 'http://www.tcdb.org/cgi-bin/projectv/accs2fasta.py?accs=%s'%accs
+    #url = 'http://www.tcdb.org/cgi-bin/projectv/accs2fasta.py?accs=%s'%accs
+    url = 'https://tcdb.org/cgi-bin/projectv/accs2fasta.py?accs=%s'%accs
     response = urllib.request.urlopen(url)
     fastas = SeqIO.parse(response,'fasta')
     return fastas
 
-def download_fasta(out):
-    urllib.request.urlretrieve ('http://www.tcdb.org/api.php?tcid=all', out)
-    return
+#THis function is not called anywher
+#def download_fasta(out):
+#    urllib.request.urlretrieve ('http://www.tcdb.org/api.php?tcid=all', out)
+#    return
 
 def prep_db(path):
     locald = '/'.join(path.split('/')[0:-1])
     if not os.path.exists(locald):
         os.mkdir(locald)
-    urllib.request.urlretrieve("http://tcdb.org/public/tcdb", path)
+    urllib.request.urlretrieve("https://tcdb.org/public/tcdb", path)
+
+    #Some protein in TCDB have spaces between pipes in the fasta header, which causes
+    #problems with programs that parse the sequence file ~/db/tcdb (e.g., XP_012335038)
+    cmd = "perl -i -ne 'if(/^(>\\S+?\\|\\S+?\\|.+?\\|\\S+?)\\s+(.+)/) { $a=$1; $b=$2; if($a=~/\\s+/) { $a=~s/\s+//g; print \"$a $b\\n\";} else {print;}} else {print ;}' "+path
+    os.system(cmd)
+
+    #Create blastDB
     os.system('makeblastdb -dbtype prot -in '+path)
 
+
 def prep_bb(path):
-    urllib.request.urlretrieve("http://tcdb.org/public/betabarrel", path)
+    #urllib.request.urlretrieve("http://tcdb.org/public/betabarrel", path)
+    urllib.request.urlretrieve("https://tcdb.org/public/betabarrel", path)
+
+    #Some protein in TCDB have spaces between pipes in the fasta header, which causes
+    #problems with programs that parse the sequence file ~/db/tcdb (e.g., XP_012335038)
+    cmd = "perl -i -ne 'if(/^(>\\S+?\\|\\S+?\\|.+?\\|\\S+?)\\s+(.+)/) { $a=$1; $b=$2; if($a=~/\\s+/) { $a=~s/\s+//g; print \"$a $b\\n\";} else {print;}} else {print ;}' "+path
+    os.system(cmd)
 
 def use_local(path='/db/tcdb'):
     local = os.environ['HOME']+path
@@ -98,7 +116,8 @@ class Names:
     def __init__(self):
         # Load Abbreviations for families
         self.familyabr = {}
-        abr = requests.get('http://tcdb.org/cgi-bin/projectv/family_abbreviations.py', allow_redirects=True).text.split("\n")
+        #abr = requests.get('http://tcdb.org/cgi-bin/projectv/family_abbreviations.py', allow_redirects=True).text.split("\n")
+        abr = requests.get('https://tcdb.org/cgi-bin/projectv/family_abbreviations.py', allow_redirects=True).text.split("\n")
         for a in abr:
             try:
                 (family,symbol) = a.split('\t')

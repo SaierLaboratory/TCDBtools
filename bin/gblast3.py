@@ -1,4 +1,4 @@
-#!/usr/local/anaconda3/bin/python3
+#!/usr/bin/env python
 # coding=utf-8
 import os, sys, re, csv
 from pprint import pprint
@@ -96,7 +96,7 @@ class Tools:
 
     def generate_tcdb(self):
         tcdb=[]
-        with bz2.open("/ResearchData/pfam/tcdb.pfam-a.hmmscan.bz2", "rt") as bz_file:
+        with bz2.open(os.environ['TCDBPFAM'], "rt") as bz_file:
             for line in bz_file:
                 tcdb.append(line.rstrip())
         index_row=tcdb[2]
@@ -560,7 +560,7 @@ class Tools:
         #glink = '<a href="content.html#%s">%s</a>'%(genome,genome)
         #tclink = '<a href="http://tcdb.org/search/result.php?tc={}">{}</a>'.format(tcid,tcid)
         glink = '<a href="htmls/%s.html">%s</a>'%(genome,genome)
-        tclink = '<a href="http://tcdb.org/search/result.php?tc={}">{}</a>'.format(tcid,tcid)
+        tclink = '<a href="https://tcdb.org/search/result.php?tc={}">{}</a>'.format(tcid,tcid)
         #h_row = (glink,acc,tclink,tcdb.title,len(hsp.match),tcdb.e,ident,q_len,h_len,qcov,hcov,query_tms,\
         #hit_tms,overlap,family,substrate,self.globalcount,pfamDomain,SbjpfamDomain)
         h_row = (glink,acc,tclink,tcdb.title,len(hsp.match),tcdb.e,ident,q_len,h_len,hsp.query_start,hsp.query_end,hsp.sbjct_start,hsp.sbjct_end,qcov,hcov,query_tms,\
@@ -703,9 +703,8 @@ class Tools:
 
         print('Loading Substrates')
 
-        #substrateData = urlopen('http://tcdb.org/cgi-bin/projectv/getSubstrates.py')
-        #substrateData = urlopen('https://tcdb.org/cgi-bin/substrates/getSubstrates.py')
-        substrateData =  requests.get('https://tcdb.org/cgi-bin/substrates/getSubstrates.py', allow_redirects=True).text.strip().split("\n")
+        #URL to download substrates from TCDB
+        substrateData = requests.get('https://tcdb.org/cgi-bin/substrates/getSubstrates.py', allow_redirects=True).text.strip().split("\n")
         
         for line in substrateData:
 
@@ -914,13 +913,15 @@ if __name__=="__main__":
                     default=False,
                     help="Use e-value as the preliminary criteria for sorting (otherwise sorted by TCID)"
     )
-    '''    
+        
     opts.add_option('--betabarrel',
                     action='store_true',
                     dest='bb',
                     default=False,
                     help="Find Beta Barrels instead of TMS"
     )
+
+    '''
     opts.add_option('--cdd',
                     action='store_true',
                     default=False,

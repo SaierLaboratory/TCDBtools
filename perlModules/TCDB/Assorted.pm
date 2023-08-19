@@ -2056,7 +2056,7 @@ sub get_clans {
 
   my ($out, $tmpDir) = @_;
 
-  my $clansDB = ($ENV{PFAMCLANSDB})? $ENV{PFAMCLANSDB} : "$ENV{RESEARCH_DATA}/pfam/download/Pfam-A.clans.tsv.gz";
+  my $clansDB = ($ENV{PFAMCLANSDB})? $ENV{PFAMCLANSDB} : "/usr/local/DB/domainDBs/xfamDB/Pfam-A.clans.tsv.gz";
 
   #Temporal file to store PFAM accessions
   my $tmpFile = ($tmpDir)? "$tmpDir/pfam_acc.txt" : "/tmp/pfam_acc.txt";
